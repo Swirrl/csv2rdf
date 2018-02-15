@@ -3,8 +3,12 @@
             [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.test :refer :all :as test]
-            [csv2rdf.csvw :as csvw])
-  (:import [java.net URI URL]))
+            [csv2rdf.csvw :as csvw]
+            [grafter.rdf :as rdf]
+            [grafter.rdf4j.io :as rdf4j-io]
+            [grafter.rdf4j.formats :as formats])
+  (:import [java.net URI URL]
+           [org.eclipse.rdf4j.model.util Models]))
 
 (def test-data-dir (io/file "csvw_data"))
 (def test-base-uri (URI. "http://www.w3.org/2013/csvw/tests/"))
@@ -214,11 +218,10 @@
 
 (defmethod escape-read :default [x] x)
 
-(defn read-result-file [result-file]
-  )
-
-(defn is-isomorphic? [graph1 graph2]
-  false)
+(defn is-isomorphic? [expected-statements actual-statements]
+  (Models/isomorphic
+    (map rdf4j-io/->backend-type expected-statements)
+    (map rdf4j-io/->backend-type actual-statements)))
 
 (defn build-request-map [requests]
   (into {} (map (fn [{:keys [uri] :as m}]
@@ -235,7 +238,7 @@
              metadata-source# ~(escape-read metadata-file)
              ~result-sym (csvw/csv->rdf csv-source# metadata-source# {:minimal ~minimal?})]
          ~(if (some? result-file)
-            `(let [expected-statements# (read-result-file ~(escape-read result-file))]
+            `(let [expected-statements# (rdf/statements ~(escape-read result-file))]
                (test/is (= true (is-isomorphic? expected-statements# (:result ~result-sym))))))
          ~(if expect-warnings?
             `(test/is (pos? (count (:warnings ~result-sym))) "Expected warnings but none was found")
