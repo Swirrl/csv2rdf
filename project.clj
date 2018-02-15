@@ -3,9 +3,11 @@
   :url "https://github.com/Swirrl/csv2rdf"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.8.0"]
+  :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/data.csv "0.1.4"]
-                 [grafter "0.11.0-drafter-rdf4j"]]
+                 [org.clojure/data.json "0.2.6"]
+                 [grafter "0.11.0-drafter-rdf4j"]
+                 [com.github.fge/uri-template "0.9"]]
   :profiles
   {:dev
    {:resource-paths ["test/resources"]}})
