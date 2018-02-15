@@ -1,8 +1,10 @@
 (ns csv2rdf.csvw-test
   (:require [clojure.data.csv :as csv]
             [clojure.java.io :as io]
-            [clojure.string :as string])
-  (:import [java.net URI]))
+            [clojure.string :as string]
+            [clojure.test :refer :all :as test]
+            [csv2rdf.csvw :as csvw])
+  (:import [java.net URI URL]))
 
 (def test-data-dir (io/file "csvw_data"))
 (def test-base-uri (URI. "http://www.w3.org/2013/csvw/tests/"))
@@ -170,7 +172,7 @@
   (let [type (some-> (get-in test-row [:extra :rdf]) keyword)]
     (#{:positive :negative :warning} type)))
 
-(defn test-descriptor [{:keys [action result-rdf] :as test-row}]
+(defn test-descriptor [{:keys [id action result-rdf] :as test-row}]
   (let [action-file (test-path->file action)
         action-ext (get-file-extension action-file)
         from-metadata? (= "json" action-ext)
@@ -182,14 +184,65 @@
                 (from-csv-test-descriptor test-row))]
         (merge
           m
-          {:minimal? (minimal-mode? test-row)
+          {:id id
+           :minimal? (minimal-mode? test-row)
            :expect-errors? (= :negative test-type)
            :expect-warnings? (= :warning test-type)
            :result-file (some-> result-rdf (test-path->file))})))))
 
 (defn get-tests []
   (->> (parse-manifest)
-       (filter #(> (.length (:id %)) 0))  ;;test026 appears to be invalid? Has no name and mising result file
+       (filter #(> (.length (:id %)) 0))  ;;test026 appears to be invalid? Has no name and missing result file
        (map test-descriptor)
        (remove nil?)))
 
+(defmulti escape-read type)
+
+(defmethod escape-read java.io.File [f]
+  `(io/file ~(.getPath f)))
+
+(defmethod escape-read java.net.URI [uri]
+  `(URI. ~(str uri)))
+
+(defmethod escape-read java.net.URL [url]
+  `(URL. ~(str url)))
+
+(defmethod escape-read clojure.lang.IPersistentMap [m]
+  (into {} (map (fn [[k v]]
+                  [(escape-read k) (escape-read v)])
+                m)))
+
+(defmethod escape-read :default [x] x)
+
+(defn read-result-file [result-file]
+  )
+
+(defn is-isomorphic? [graph1 graph2]
+  false)
+
+(defn build-request-map [requests]
+  (into {} (map (fn [{:keys [uri] :as m}]
+                  [uri (dissoc m :uri)])
+                requests)))
+
+(defrecord TestMetadataLocator [csv-uri responses])
+
+(defn make-test [{:keys [action-uri metadata-file requests id expect-errors? expect-warnings? minimal? result-file] :as test}]
+  (let [result-sym (gensym)
+        request-map (build-request-map requests)]
+    `(test/deftest ~(symbol id)
+       (let [csv-source# (->TestMetadataLocator ~(escape-read action-uri) ~(escape-read request-map))
+             metadata-source# ~(escape-read metadata-file)
+             ~result-sym (csvw/csv->rdf csv-source# metadata-source# {:minimal ~minimal?})]
+         ~(if (some? result-file)
+            `(let [expected-statements# (read-result-file ~(escape-read result-file))]
+               (test/is (= true (is-isomorphic? expected-statements# (:result ~result-sym))))))
+         ~(if expect-warnings?
+            `(test/is (pos? (count (:warnings ~result-sym))) "Expected warnings but none was found")
+            `(test/is (= 0 (count (:warnings ~result-sym))) "Received warnings but none was expected"))
+         ~(if expect-errors?
+            `(test/is (pos? (count (:errors ~result-sym))) "Expected errors but none was found")
+            `(test/is (= 0 (count (:errors ~result-sym))) "Received errors but none was expected"))))))
+
+(doseq [t (get-tests)]
+  (eval (make-test t)))
