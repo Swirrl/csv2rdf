@@ -7,7 +7,9 @@
                  [org.clojure/data.csv "0.1.4"]
                  [org.clojure/data.json "0.2.6"]
                  [grafter "0.11.0-drafter-rdf4j"]
-                 [com.github.fge/uri-template "0.9"]]
+                 [com.github.fge/uri-template "0.9"]
+                 [org.apache.httpcomponents/httpcore "4.4.9"]
+                 [clj-http "3.7.0"]]
   :profiles
   {:dev
    {:resource-paths ["test/resources"]}})

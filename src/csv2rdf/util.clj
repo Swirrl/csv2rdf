@@ -17,3 +17,6 @@
 
 (defn remove-fragment [uri]
   (URI. (.getScheme uri) (.getUserInfo uri) (.getHost uri) (.getPort uri) (.getPath uri) (.getQuery uri) nil))
+
+(defn ->coll [x]
+  (if (coll? x) x [x]))

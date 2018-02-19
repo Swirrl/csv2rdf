@@ -6,7 +6,8 @@
             [csv2rdf.csvw :as csvw]
             [grafter.rdf :as rdf]
             [grafter.rdf4j.io :as rdf4j-io]
-            [grafter.rdf4j.formats :as formats])
+            [grafter.rdf4j.formats :as formats]
+            [csv2rdf.http :as http])
   (:import [java.net URI URL]
            [org.eclipse.rdf4j.model.util Models]))
 
@@ -230,13 +231,22 @@
 
 (defrecord TestMetadataLocator [csv-uri responses])
 
+(defrecord TestHttpClient [request-map]
+  http/HttpClient
+  (http-get [_this uri]
+    (if-let [response (get request-map uri)]
+      (assoc response :status 200)
+      {:status 404 :headers {} :body ""})))
+
 (defn make-test [{:keys [action-uri metadata-file requests id expect-errors? expect-warnings? minimal? result-file] :as test}]
   (let [result-sym (gensym)
         request-map (build-request-map requests)]
     `(test/deftest ~(symbol id)
-       (let [csv-source# (->TestMetadataLocator ~(escape-read action-uri) ~(escape-read request-map))
+       (let [http-client# (->TestHttpClient ~(escape-read request-map))
+             csv-uri# ~(escape-read action-uri)
              metadata-source# ~(escape-read metadata-file)
-             ~result-sym (csvw/csv->rdf csv-source# metadata-source# {:minimal ~minimal?})]
+             ~result-sym (http/with-http-client http-client#
+                           (csvw/csv->rdf csv-uri# metadata-source# {:minimal ~minimal?}))]
          ~(if (some? result-file)
             `(let [expected-statements# (rdf/statements ~(escape-read result-file))]
                (test/is (= true (is-isomorphic? expected-statements# (:result ~result-sym))))))

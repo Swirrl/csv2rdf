@@ -8,16 +8,10 @@
            [java.net URI]))
 
 ;;TODO: move into http namespace?
-(defn is-not-found-response?
-  "Indicates whether the response map represents a 'not found' response.
-
-   SPEC Section 5.3:
-   If no such file is located (i.e. the response results in a client error 4xx status code
-   or a server error 5xx status code)"
+(defn ^{:table-spec "5.3"} is-not-found-response?
+  "Indicates whether the response map represents a 'not found' response."
   [{:keys [status]}]
   (and (>= status 400) (<= status 600)))
-
-(def ^{:table-spec "5.2"} link-header-name "Link")
 
 (def ^{:table-spec "5.2"} metadata-link-header-content-types
   #{"application/csvm+json" "application/ld+json" "application/json"})
@@ -29,14 +23,14 @@
   (and (= "describedby" rel)
        (contains? metadata-link-header-content-types type)))
 
-(defn ^{:table-spec "5.2"} get-link-header [headers]
-  (last (filter is-metadata-link-header? (get headers link-header-name))))
+(defn ^{:table-spec "5.2"} get-link-header [csv-response]
+  (let [links (http/find-links csv-response)]
+    (last (filter is-metadata-link-header? links))))
 
-(defn ^{:table-spec "5.2"} get-metadata-link-uri [csv-uri {:keys [headers] :as csv-response}]
-  (if-let [link-header (get-link-header headers)]
-    ;;TODO: handle exception if header value is invalid URI
+(defn ^{:table-spec "5.2"} get-metadata-link-uri [csv-uri csv-response]
+  (if-let [link-header (get-link-header csv-response)]
     ;;TODO: URIs must be normalised (section 6.3)
-    (.resolve csv-uri (::http/header-value link-header))))
+    (.resolve csv-uri (::http/link-uri link-header))))
 
 (defprotocol MetadataSource
   (locate-metadata [this csv]))
