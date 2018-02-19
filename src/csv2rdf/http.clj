@@ -5,9 +5,12 @@
   (:import [org.apache.http.message BasicHeader]
            [java.net URI]))
 
-(s/def ::header-value string?)
 (s/def ::link-uri #(instance? URI %))
 (s/def ::link (s/keys :req [::link-uri]))
+(s/def ::status (s/and integer? pos?))
+(s/def ::header-value (s/or :single string? :multi (s/coll-of string? :min-count 2)))
+(s/def ::headers (s/map-of string? ::header-value))
+(s/def ::response (s/keys :req-un [::status ::headers ::body]))
 
 (defn is-ok-response? [{:keys [status] :as response}]
   (and (>= status 200) (<= status 300)))
@@ -56,5 +59,3 @@
 (defn get-uri
   ([uri] (get-uri uri *http-client*))
   ([uri client] (http-get client uri)))
-
-
