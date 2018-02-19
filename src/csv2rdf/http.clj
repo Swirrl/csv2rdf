@@ -3,7 +3,7 @@
             [clj-http.client :as client]
             [csv2rdf.util :as util])
   (:import [org.apache.http.message BasicHeader]
-           [java.net URI]))
+           [java.net URI URISyntaxException]))
 
 (s/def ::link-uri #(instance? URI %))
 (s/def ::link (s/keys :req [::link-uri]))
@@ -19,9 +19,16 @@
   (into {} (map (fn [p] [(keyword (.getName p)) (.getValue p)]) (.getParameters element))))
 
 (defn parse-link-uri [link-str]
-  ;;TODO: handle exception if header value is invalid URI
   (if-let [[_ uri-str] (re-find #"<([^>]*)>" link-str)]
-    (URI. uri-str)))
+    (try
+      (URI. uri-str)
+      (catch URISyntaxException ex
+        (throw (ex-info (.getMessage ex)
+                        {:type ::invalid-link-uri
+                         :link-string link-str}))))
+    (throw (ex-info "Invalid link header format: expected <link-uri> (; key=value)*"
+                    {:type ::invalid-link-uri
+                     :link-string link-str}))))
 
 (defn parse-link-header
   "Parse a Link header value into a map conforming to the ::link spec. The target of the link is associated
