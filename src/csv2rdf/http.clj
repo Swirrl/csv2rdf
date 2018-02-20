@@ -43,11 +43,21 @@
 
 (def ^{:table-spec "5.2"} link-header-name "Link")
 
+(defn ^{:rfc5988 "4.1"} relation-type=
+  "Whether two link relation types are equal. Relation types are compared case-insensitively."
+  [t1 t2]
+  (if (nil? t1)
+    (nil? t2)
+    (.equalsIgnoreCase t1 t2)))
+
 (defn find-links
   "Finds and parses all the Link headers in the given response. Links are returned in the same order as the
-   corresponding headers in the response."
+   corresponding headers in the response. Any malformed Link headers are ignored and remove from the output."
   [{:keys [headers] :as response}]
-  (map parse-link-header (util/->coll (get headers link-header-name))))
+  (->> (get headers link-header-name)
+       (util/->coll)
+       (map (fn [header-str] (util/ignore-exceptions (parse-link-header header-str))))
+       (remove nil?)))
 
 (defprotocol HttpClient
   (http-get [this uri]))

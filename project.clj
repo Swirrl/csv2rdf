@@ -12,4 +12,5 @@
                  [clj-http "3.7.0"]]
   :profiles
   {:dev
-   {:resource-paths ["test/resources"]}})
+   {:dependencies [[org.clojure/test.check "0.9.0"]]
+    :resource-paths ["test/resources"]}})

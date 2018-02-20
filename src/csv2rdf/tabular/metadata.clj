@@ -16,19 +16,19 @@
 (def ^{:table-spec "5.2"} metadata-link-header-content-types
   #{"application/csvm+json" "application/ld+json" "application/json"})
 
-(defn ^{:table-spec "5.2"} is-metadata-link-header?
+(defn ^{:table-spec "5.2"} is-metadata-link?
   "Indicates whether the given CSV file response header is a valid Link header for the
    associated metadata file."
   [{:keys [rel type]}]
-  (and (= "describedby" rel)
+  (and (http/relation-type= "describedby" rel)
        (contains? metadata-link-header-content-types type)))
 
-(defn ^{:table-spec "5.2"} get-link-header [csv-response]
+(defn ^{:table-spec "5.2"} get-metadata-link [csv-response]
   (let [links (http/find-links csv-response)]
-    (last (filter is-metadata-link-header? links))))
+    (last (filter is-metadata-link? links))))
 
 (defn ^{:table-spec "5.2"} get-metadata-link-uri [csv-uri csv-response]
-  (if-let [link-header (get-link-header csv-response)]
+  (if-let [link-header (get-metadata-link csv-response)]
     ;;TODO: URIs must be normalised (section 6.3)
     (.resolve csv-uri (::http/link-uri link-header))))
 
