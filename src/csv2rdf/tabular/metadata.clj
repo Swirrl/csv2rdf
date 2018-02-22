@@ -3,7 +3,8 @@
             [clojure.java.io :as io]
             [clojure.data.json :as json]
             [csv2rdf.util :as util]
-            [csv2rdf.uri-template :as template])
+            [csv2rdf.uri-template :as template]
+            [clojure.string :as string])
   (:import [java.io File FileNotFoundException]
            [java.net URI]))
 
@@ -49,16 +50,20 @@
 (defn try-get-linked-metadata
   "Tries to fetch the linked metadata from the given URI. Returns nil on any errors or if the request fails."
   [metadata-uri]
-  (try
-    (let [{:keys [body] :as response} (http/get-uri metadata-uri)]
-      (if (http/is-ok-response? response)
-        (with-open [r (io/reader body)]
-          (json/read r))))
-    (catch Exception _ex nil)))
+  (let [{:keys [body] :as response} (http/get-uri metadata-uri)]
+    (if (http/is-ok-response? response)
+      ;;TODO: handle non-string body types?
+      (json/read-str body))))
 
-(defn ^{:table-spec "5.2"} linked-metadata-references-data-file? [csv-url metadata]
-  ;;TODO: from the spec: If the metadata file found at this location does not explicitly include a reference to the requested tabular data file then it MUST be ignored
-  true)
+(defn ^{:table-spec "5.2"} linked-metadata-references-data-file? [csv-uri {:strs [tables] :as metadata}]
+  ;;from the spec: If the metadata file found at this location does not explicitly include a reference
+  ;; to the requested tabular data file then it MUST be ignored
+  (let [table-urls (->> tables
+                        (map (fn [{:strs [url]}]
+                               (util/ignore-exceptions (URI. url))))
+                        (remove nil?)
+                        (into #{}))]
+    (contains? table-urls csv-uri)))
 
 (defn ^{:table-spec "5.2"} try-resolve-linked-metadata [csv-url metadata-uri]
   (if (some? metadata-uri)
@@ -68,11 +73,19 @@
 
 (def ^{:table-spec "5.3"} well-known-site-wide-configuration-uri (URI. "/.well-known/csvm"))
 
+(defn ^{:template-spec "5.3"} parse-response-location-templates [body]
+  ;;TODO: handle non-string body types?
+  ;;NOTE: specification states "This file MUST contain a URI template, as defined by [URI-TEMPLATE], on each line"
+  ;;this is trivially true if there are no lines (i.e. body is empty) but split-lines returns a singleton sequence
+  ;;containing the empty string on an empty input.
+  (if (.isEmpty body)
+    []
+    (string/split-lines body)))
+
 (defn ^{:table-spec "5.3"} try-get-location-templates [uri]
-  (util/ignore-exceptions
-    (let [{:keys [body] :as response} (http/get-uri uri)]
-      (if-not (is-not-found-response? response)
-        (util/read-lines body)))))
+  (let [{:keys [body] :as response} (http/get-uri uri)]
+    (if-not (is-not-found-response? response)
+      (parse-response-location-templates body))))
 
 (defn try-get-site-wide-configuration-templates [csv-uri]
   (let [config-uri (.resolve csv-uri well-known-site-wide-configuration-uri)]
@@ -95,9 +108,23 @@
     (let [metadata-uri (.resolve csv-uri expanded-uri)]
       (try-resolve-linked-metadata csv-uri metadata-uri))))
 
+(defn try-resolve-template-uri [csv-uri template]
+  (if-let [template-uri (try-expand-location-template csv-uri template)]
+    (.resolve csv-uri template-uri)))
+
+(defn try-resolve-template-metadata [csv-uri template-uris]
+  (if (seq template-uris)
+    (if-let [metadata (try-resolve-linked-metadata csv-uri (first template-uris))]
+      metadata
+      (recur csv-uri (rest template-uris)))))
+
+(defn resolve-template-metadata-uris [csv-uri uri-template-strings]
+  (remove nil? (map #(try-resolve-template-uri csv-uri %) uri-template-strings)))
+
 (defn try-locate-site-wide-configurations-metadata [csv-uri]
-  (let [templates (get-site-wide-configuration-templates csv-uri)]
-    (first (filter some? (map #(try-resolve-location-template-metadata csv-uri %) templates)))))
+  (let [templates (get-site-wide-configuration-templates csv-uri)
+        metadata-uris (resolve-template-metadata-uris csv-uri templates)]
+    (try-resolve-template-metadata csv-uri metadata-uris)))
 
 (defn resolve-associated-metadata [csv-uri csv-link]
   (or

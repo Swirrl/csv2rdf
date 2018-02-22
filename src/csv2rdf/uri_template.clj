@@ -20,3 +20,6 @@
 (defn expand-template [template vars]
   (.toURI template (make-variable-map vars)))
 
+(defn expand-template-string [template-string vars]
+  (expand-template (parse-template template-string) vars))
+
