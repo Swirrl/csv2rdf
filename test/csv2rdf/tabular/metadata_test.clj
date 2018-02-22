@@ -22,9 +22,39 @@
                                 c)) s flags)]
              (apply str chars))))
 (def metadata-rel-gen (shuffle-case (gen/return "describedby")))
-(def metadata-uri-gen (gen/return (URI. "test-metadata.json")))
+
+(def host-gen (gen/fmap
+                (fn [t] (string/join "." (remove nil? t)))
+                (gen/tuple (gen/elements [nil "odin" "thor" "hiemdall"])
+                           (gen/elements ["example" "test" "object"])
+                           (gen/elements ["com" "net" "org" "uk"]))))
+
+(def directory-name-gen (gen/elements ["usr" "bin" "local" "opt" "home" "src"]))
+(def dir-path-gen (gen/fmap
+                    (fn [dirs]
+                      (apply str "/" (map #(str % "/") dirs)))
+                    (gen/vector directory-name-gen)))
+(def file-stem-gen (gen/fmap #(apply str %) (gen/vector gen/char-alpha 3 10)))
+
+(defn file-name-gen [file-extension]
+  (gen/fmap (fn [stem] (str stem "." file-extension)) file-stem-gen))
+
+(defn absolute-file-path-gen [file-extension]
+  (gen/fmap (fn [[dir file-name]]
+              (str dir file-name))
+            (gen/tuple dir-path-gen (file-name-gen file-extension))))
+
+(defn file-uri-gen [file-extension]
+  (gen/let [schema (gen/elements ["http" "https"])
+            host host-gen
+            file-path (absolute-file-path-gen file-extension)]
+           (URI. schema host file-path nil)))
+
+(def linked-metadata-uri-gen (file-uri-gen "json"))
+(def csv-uri-gen (file-uri-gen "csv"))
+
 (def metadata-link-gen (gen/fmap #(zipmap [::http/link-uri :rel :type] %)
-                                 (gen/tuple metadata-uri-gen metadata-rel-gen metadata-content-type-gen)))
+                                 (gen/tuple linked-metadata-uri-gen metadata-rel-gen metadata-content-type-gen)))
 
 (def non-metadata-link-gen
   (let [rel-types #{"stylesheet" "next" "prev"}
@@ -61,50 +91,27 @@
 (defn make-link-headers [link other-links]
   (if (empty? other-links)
     (format-link link)
-    (map format-link (concat other-links) [link])))
+    (map format-link (concat other-links [link]))))
 
-(deftest get-metadata-link-exists-test
+(defspec get-metadata-link-exists-test 100
   (prop/for-all
     [[link other-links] (gen/tuple metadata-link-gen (gen/vector metadata-link-gen))]
     (let [headers {"Content-Type" "text/csv"
                    "Content-Length" "1024"
                    http/link-header-name (make-link-headers link other-links)}
           found (get-metadata-link {:headers headers})]
-      (is (= link found)))))
+      (= link found))))
 
-(deftest get-metadata-link-missing-test
+(defspec get-metadata-link-missing-test 100
   (prop/for-all
     [headers non-metadata-headers-gen]
-    (is (nil? (get-metadata-link {:headers headers})))))
+    (nil? (get-metadata-link {:headers headers}))))
 
 (deftest get-metadata-link-malformed-test
   (let [headers {http/link-header-name "<invalid uri> ; rel=\"describedby\" type=\"application/json\""}]
     (is (nil? (get-metadata-link {:headers headers})))))
 
 ;;associated metadata
-
-(def host-gen (gen/fmap
-                (fn [t] (string/join "." (remove nil? t)))
-                (gen/tuple (gen/elements [nil "odin" "thor" "hiemdall"])
-                           (gen/elements ["example" "test" "object"])
-                           (gen/elements ["com" "net" "org" "uk"]))))
-
-(def directory-name-gen (gen/elements ["usr" "bin" "local" "opt" "home" "src"]))
-(def dir-path-gen (gen/fmap
-                    (fn [dirs]
-                      (apply str "/" (map #(str % "/") dirs)))
-                    (gen/vector directory-name-gen)))
-(def file-stem-gen (gen/fmap #(apply str %) (gen/vector gen/char-alpha 3 10)))
-
-(defn file-uri-gen [file-extension]
-  (gen/let [schema (gen/elements ["http" "https"])
-            host host-gen
-            dir dir-path-gen
-            file-stem file-stem-gen]
-           (URI. schema host (str dir file-stem "." file-extension) nil)))
-
-(def linked-metadata-uri-gen (file-uri-gen "json"))
-(def csv-uri-gen (file-uri-gen "csv"))
 
 (defn failing-metadata-request-gen [csv-uri metadata-uri]
   (gen/let [reason (gen/elements [:not-found :missing-reference])
