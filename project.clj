@@ -9,6 +9,7 @@
                  [grafter "0.11.0-drafter-rdf4j"]
                  [com.github.fge/uri-template "0.9"]
                  [org.apache.httpcomponents/httpcore "4.4.9"]
+                 [com.opencsv/opencsv "4.0"]
                  [clj-http "3.7.0"]]
   :profiles
   {:dev
