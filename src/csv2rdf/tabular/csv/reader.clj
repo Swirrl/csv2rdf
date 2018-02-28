@@ -19,10 +19,10 @@
 (defn is-comment-row? [{:keys [type]}]
   (= :comment type))
 
-(defn make-row [cells source-row-num {:keys [delimiter comment-prefix trim-mode] :as options}]
+(defn make-row [cells source-row-num {:keys [delimiter commentPrefix trim-mode] :as options}]
   (let [content (string/join delimiter cells)
-        is-comment? (and (some? comment-prefix)
-                         (.startsWith content (str comment-prefix)))]
+        is-comment? (and (some? commentPrefix)
+                         (.startsWith content (str commentPrefix)))]
     {:source-row-number source-row-num
      :content content
      :comment (if is-comment?
@@ -36,10 +36,9 @@
    the source row number (reader is initially assumed to be positioned on row 1), the parsed
    content and cells along with any comment. Rows are classified as comments or data rows containing
    cell data. Cell data values are trimmed according to the trim-mode specified by the options."
-  [reader {:keys [quote-char escape-char delimiter] :as options}]
+  [reader {:keys [quoteChar escapeChar delimiter] :as options}]
   ;;TODO: can quote, escape or delimiters be nil?
-  (println options)
-  (let [csv-reader (CSVReader. reader delimiter quote-char escape-char)
+  (let [csv-reader (CSVReader. reader delimiter quoteChar escapeChar)
         rows (iterator-seq (.iterator csv-reader))]
     (map-indexed (fn [idx row]
                    (make-row row (inc idx) options))

@@ -1,22 +1,21 @@
 (ns csv2rdf.tabular.csv.dialect
   (:require [clojure.spec.alpha :as s]
-            [clojure.string :as string]))
-
-(s/def ::trim-mode #{:none :all :start :end})
+            [clojure.string :as string]
+            [csv2rdf.util :refer [non-negative?]]))
 
 (def ^{:metadata-spec "5.9"} default-dialect
   {:encoding "utf-8"
    :line-terminators ["\r\n", "\n"]
-   :quote-char \"
-   :double-quote true
-   :skip-rows 0
-   :comment-prefix \#
+   :quoteChar \"
+   :doubleQuote nil                                         ;;NOTE: differs from spec - see calculate-quote-escape-chars
+   :skipRows 0
+   :commentPrefix \#
    :header nil                                              ;;NOTE: differs from spec - see calculate-header-row-count
-   :header-row-count nil                                    ;;NOTE: differs from spec - see calculate-header-row-count
+   :headerRowCount nil                                      ;;NOTE: differs from spec - see calculate-header-row-count
    :delimiter \,
-   :skip-columns 0
-   :skip-blank-rows false
-   :skip-initial-space nil                                  ;;NOTE: differs from spec - see calculate-trim-mode
+   :skipColumns 0
+   :skipBlankRows false
+   :skipInitialSpace nil                                    ;;NOTE: differs from spec - see calculate-trim-mode
    :trim nil                                                ;;NOTE: differs from spec - see calculate-trim-mode
    })
 
@@ -30,7 +29,7 @@
    specifies a default value of true for trim. A default value of false is also specified for skipInitialSpace.
    We use nil for the default values of both trim and skip-initial-space and only apply the defaults if neither
    is specified."
-  [{:keys [trim skip-initial-space] :as dialect}]
+  [{:keys [trim skipInitialSpace] :as dialect}]
   ;; from the specification:
   ;; if true, sets the trim flag to "start" and if false, to false. If the trim property is provided, the
   ;; skipInitialSpace property is ignored
@@ -38,19 +37,19 @@
     ;;use trim if specified
     (some? trim) trim
 
-    (some? skip-initial-space)
-    (if skip-initial-space :start :none)
+    (some? skipInitialSpace)
+    (if skipInitialSpace :start :none)
 
     ;;use default for trim (true => :all) if neither specified
     :else :all))
 
 (defn ^{:metadata-spec "5.9"} calculate-header-row-count
   "Calculate the number of expected header rows in the input CSV file"
-  [{:keys [header header-row-count] :as dialect}]
+  [{:keys [header headerRowCount] :as dialect}]
   (cond
     ;;use header-row-count if specified
-    (some? header-row-count)
-    header-row-count
+    (some? headerRowCount)
+    headerRowCount
 
     (some? header)
     (if header 1 0)
@@ -62,28 +61,62 @@
    quoteChar and doubleQuote dialect settings. The default quote and escape characters are both \". The specification
    is unclear on the expected behaviour if quote-char is null and double-quote is specified - this function will
    raise an exception."
-  [{:keys [quote-char double-quote] :as dialect}]
-  (if (nil? quote-char)
-    (if (nil? double-quote)
-      {:quote-char nil :escape-char nil}
+  [{:keys [quoteChar doubleQuote] :as dialect}]
+  (if (nil? quoteChar)
+    (if (nil? doubleQuote)
+      {:quoteChar nil :escapeChar nil}
       (throw (ex-info "Cannot specify doubleQuote when quoteChar is null"
-                      {:type ::configuration-error`
+                      {:type ::configuration-error
                        :subtype ::dialect
                        :config (select-keys dialect [:quote-char :double-quote])})))
-    {:quote-char quote-char
-     :escape-char (if (or double-quote (nil? double-quote)) \" \\)}))
+    {:quoteChar quoteChar
+     :escapeChar (if (or doubleQuote (nil? doubleQuote)) \" \\)}))
 
 (defn calculate-dialect-options
   "Calculates the options used to configure reading for the source CSV data from the given dialect definition"
   [dialect]
   ;;TODO: line terminators cannot currently be configured
-  (merge (select-keys dialect [:encoding :skip-rows :comment-prefix :delimiter :skip-columns :skip-blank-rows])
+  (merge (select-keys dialect [:encoding :skipRows :commentPrefix :delimiter :skipColumns :skipBlankRows])
          (calculate-quote-escape-chars dialect)
          {:trim-mode (calculate-trim-mode dialect)
           :num-header-rows (calculate-header-row-count dialect)}))
 
-(defn create-dialect [dialect]
-  (merge-with (fn [v default]
-                (if (some? v) v default)) dialect default-dialect))
+(s/def ::commentPrefix char?)
+(s/def ::delimiter char?)                                   ;;NOTE: differs from spec which allows strings
+(s/def ::doubleQuote boolean?)
+(s/def ::encoding string?)
+(s/def ::header boolean?)
+(s/def ::headerRowCount non-negative?)
+(s/def ::lineTerminators (s/coll-of string? :kind vector? :into []))
+(s/def ::quoteChar (s/nilable char?))                       ;;NOTE: differs from specs which allows strings
+(s/def ::skipBlankRows boolean?)
+(s/def ::skipRows non-negative?)
+(s/def ::skipColumns non-negative?)
+(s/def ::skipInitialSpace (s/nilable boolean?))
+(s/def ::trim #{nil "true" "false" "start" "end"})
+(s/def ::trim-mode #{:none :all :start :end})
 
+(s/def ::dialect (s/keys :req-un [::commentPrefix ::delimiter ::doubleQuote ::encoding ::header ::headerRowCount
+                                  ::lineTerminators ::quoteChar ::skipBlankRows ::skipColumns ::skipInitialSpace
+                                  ::skipRows ::trim]))
+(s/def ::options (s/keys :req-un [::encoding ::skipRows ::commentPrefix ::delimiter ::escapeChar ::quoteChar
+                                  ::skipColumns ::skipBlankRows ::trim-mode ::num-header-rows]))
+
+(defn expand-dialect
+  "Expands a possibly partial dialect definition into a complete definition where all configuration
+  values are explicitly specified."
+  [dialect]
+  (merge default-dialect dialect))
+
+(defn dialect->options
+  "Creates a CSV parsing options map from a dialect definition."
+  [dialect]
+  (calculate-dialect-options (expand-dialect dialect)))
+
+(s/fdef expand-dialect
+        :ret ::dialect)
+
+(s/fdef calculalte-dialect-options
+        :args (s/cat :dialect ::dialect)
+        :ret ::options)
 
