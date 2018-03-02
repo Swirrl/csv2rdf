@@ -28,6 +28,18 @@
           cell (parse-cell "value" {:datatype {:base "string"} :lang col-lang})]
       (is (= col-lang (lang (value cell))))))
 
+  (testing "Invalid exact length"
+    (let [cell (parse-cell "value" {:datatype {:base "string"} :length 4})]
+      (is (not (empty? (errors cell))))))
+
+  (testing "Invalid min length"
+    (let [cell (parse-cell "value" {:datatype {:base "string"} :minLength 10})]
+      (is (not (empty? (errors cell))))))
+
+  (testing "Invalid max length"
+    (let [cell (parse-cell "value" {:datatype {:base "string"} :maxLength 3})]
+      (is (not (empty? (errors cell))))))
+
   (testing "Multiple values"
     (let [cell (parse-cell "a|b|c" {:datatype {:base "string"} :separator "|"})]
       (is (= ["a" "b" "c"] (semantic-value cell)))))
@@ -53,4 +65,16 @@
   (testing "Should set column lang for all values"
     (let [col-lang "en"
           cell (parse-cell "a|b|c" {:datatype {:base "string"} :separator "|" :lang col-lang})]
-      (is (every? #(= col-lang (lang %)) (value cell))))))
+      (is (every? #(= col-lang (lang %)) (value cell)))))
+
+  (testing "Multiple values with exact length violation"
+    (let [cell (parse-cell "foo|bar|quux|qaal" {:datatype {:base "string"} :separator "|" :length 3})]
+      (is (= 2 (count (errors cell))))))
+
+  (testing "Multiple values with min length violations"
+    (let [cell (parse-cell "a|b|foo|bar||" {:datatype {:base "string"} :separator "|" :minLength 3})]
+      (is (= 2 (count (errors cell))))))
+
+  (testing "Multiple values with max length violations"
+    (let [cell (parse-cell "foo|bar|quux|qaal" {:datatype {:base "string"} :separator "|" :maxLength 3})]
+      (is (= 2 (count (errors cell)))))))

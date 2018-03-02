@@ -1,6 +1,7 @@
 (ns csv2rdf.tabular.cell
   (:require [clojure.string :as string]
-            [csv2rdf.metadata.column :as mcolumn])
+            [csv2rdf.metadata.column :as mcolumn]
+            [csv2rdf.metadata.datatype :as mdatatype])
   (:import [java.util.regex Pattern]))
 
 (def column-required-message "Column value required")
@@ -35,11 +36,31 @@
   ;;on the cell value
   (if-not (= "string" (:base datatype))
     (throw (IllegalArgumentException. "Only string base types supported"))
-    {:value {:value value :datatype datatype :lang lang}
+    {:value {:value value :stringValue value :datatype datatype :lang lang}
      :errors errors}))
 
-(defn ^{:table-spec "6.4.9"} validate-length [{:keys [value errors] :as cell} {:keys [] :as column}]
-  ;;TODO: implement
+(defn get-length-error [{:keys [stringValue]} rel-sym length constraint]
+  (if (some? constraint)
+    (let [f (resolve rel-sym)]
+      (if-not (f length constraint)
+        (format "Invalid length %s for value %s - expected %s %s" length stringValue rel-sym constraint)))))
+
+(def length-relations {:length '= :minLength '>= :maxLength '<=})
+
+(defn ^{:table-spec "6.4.9"} validate-length
+  "Validates the length of the cell value is valid for the constraints on the column metadata"
+  [{:keys [value] :as cell} column]
+  (if-let [len (mdatatype/get-length (:value value) (:datatype value))]
+    (let [len-errors (->> length-relations
+                          (map (fn [[k sym]] (get-length-error value sym len (get column k))))
+                          (remove nil?))]
+      (update cell :errors concat len-errors))
+    cell))
+
+(defn ^{:table-spec "6.4.9"} validate-value
+  "Validates the range of the cell value is valid for the constraints on the column metadata"
+  [cell column]
+  ;;TODO implement
   cell)
 
 (defn ^{:table-spec "6.4.[6,7,8,9]"} parse-atomic-value
@@ -50,7 +71,8 @@
       (column-default-if-empty column)
       (apply-column-null column)
       (parse-format column)
-      (validate-length column)))
+      (validate-length column)
+      (validate-value column)))
 
 (defn combine-cell-values [cell-values]
   (reduce (fn [acc {:keys [value errors] :as cv}]

@@ -89,17 +89,10 @@
 
 (s/fdef expand :ret ::datatype)
 
-(defn is-binary-type? [datatype]
-  ;;TODO: figure out what this means
-  )
-
-(defn binary-length [value datatype]
-  (throw (IllegalStateException. "Should not be called until is-binary-type? is implemented")))
-
 (defn ^{:table-spec "4.6.1"} get-length [value {:keys [base] :as datatype}]
   (cond
     (nil? value) 0
     (is-subtype? "string" base) (.count (.codePoints value))
-    (is-binary-type? datatype) (binary-length value datatype)
-    :else (throw (IllegalStateException. "TODO: return 0?"))
+    (contains? #{"hexBinary" "base64Binary"} base) (alength value) ;;binary data expected to be byte array
+    :else nil                                                      ;;length undefined for type
     ))
