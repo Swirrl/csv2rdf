@@ -27,14 +27,6 @@
     validation
     (update validation ::value f)))
 
-(defn bind [f validation]
-  (if (error? validation)
-    validation
-    (f (::value validation))))
-
-(defn map-errors [f validation]
-  (update validation ::errors (fn [errors] (map f errors))))
-
 (defn combine-with [merge-fn v1 v2]
   (if (or (error? v1) (error? v2))
     {::errors (concat (::errors v1) (::errors v2))
@@ -46,6 +38,17 @@
 
 (defn combine [v1 v2]
   (combine-with (fn [_ r] r) v1 v2))
+
+;;TODO: rename
+(defn bind [f validation]
+  (if (error? validation)
+    validation
+    (combine validation (f (::value validation)))))
+
+(defn map-errors [f validation]
+  (update validation ::errors (fn [errors] (map f errors))))
+
+
 
 (defn collect [vs]
   (reduce (fn [acc v] (combine-with conj acc v)) (pure []) vs))

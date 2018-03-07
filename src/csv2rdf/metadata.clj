@@ -2,26 +2,13 @@
   (:require [csv2rdf.validation :as v]
             [clojure.spec.alpha :as s]
             [clojure.string :as string])
-  (:import (java.net URI)))
+  (:import (java.net URI URISyntaxException)))
 
 (defn eq [expected]
   (fn [x]
     (if (= expected x)
       (v/pure x)
       (v/of-error (str "Expected '" expected "' received '" x "'")))))
-
-(defn get-message [spec invalid-value]
-  (str "Invalid value: " invalid-value))
-
-(defn must [spec]
-  (fn [context value]
-    (let [v (s/conform spec value)]
-      (if (= ::s/invalid v)
-        (v/of-error (get-message spec value))
-        (v/pure v)))))
-
-(defn local-context [context value]
-  )
 
 (def ^{:metadata-spec "5.2"} context nil)
 
@@ -33,6 +20,16 @@
 
 (defn array? [x]
   (vector? x))
+
+(defn- get-json-type [x]
+  (cond (array? x) "array"
+        (number? x) "number"
+        (string? x) "string"
+        (boolean? x) "boolean"
+        (map? x) "object"
+        :else (throw (ex-info (str "Unknown JSON type for type " (type x))
+                              {:type ::json-type-error
+                               :value x}))))
 
 (def array (expect-type array? "array"))
 (def number (expect-type number? "number"))
@@ -78,6 +75,19 @@
 
 (def uri (compm string (try-parse-with #(URI. %))))
 
+(def default-uri (URI. ""))
+
+(defn ^{:metadata-spec "5.1.2"} link-property
+  "Converts link properties to URIs, or logs a warning if the URI is invalid. Link properties are resolved
+   at a higher level."
+  [x]
+  (if (string? x)
+    (try
+      (v/pure (URI. x))
+      (catch URISyntaxException _ex
+        (v/with-warning (format "Link property '%s' cannot be parsed as a URI" x) default-uri)))
+    (v/with-warning (format "Invalid link property '%s': expected string containing URI, got %s" x (get-json-type x)) default-uri)))
+
 (defn either [& desc-validation-pairs]
   (let [pairs (partition-all 2 desc-validation-pairs)]
     (fn [x]
@@ -92,7 +102,9 @@
 
 (defn each [& fs]
   (fn [x]
-    (v/collect (map (fn [f] (f x)) fs))))
+    (let [vs (map (fn [f] (f x)) fs)
+          collected (v/collect vs)]
+      collected)))
 
 (defn prefix-errors-key-name [key validation]
   (v/map-errors (fn [err] (str "Key '" key "': " err)) validation))
@@ -260,6 +272,22 @@
                 "trimMode" :all
                 }}))
 
+(defn one-of [values]
+  (fn [x]
+    (if (contains? values x)
+      (v/pure x)
+      (v/of-error (str "Expected one of " (string/join ", " values))))))
+
+(def table-direction (one-of #{"rtl" "ltr" "auto"}))
+
+(defn linked-object
+  "Object which may be specified in line in the metadata document or referenced through a URI"
+  [validator]
+  (fn [x]
+    (cond (string? x) (v/of-error "TODO: resolve URI and validate") ;;TODO: implement
+          (map? x) (validator x)
+          :else (v/of-error (str "Expected URI or object, got " (get-json-type x))))))
+
 (defn ^{:metadata-spec "5.1.4"} column-reference [x]
   ;;TODO: validation that each referenced column exists occurs at higher-level
   (cond (string? x) (v/pure x)                              ;;TODO: always return vector of column references?
@@ -280,3 +308,17 @@
                 "@id" id
                 "@type" (eq "Schema")
                 }}))
+
+(def table
+  (object-of
+    {:required {"url" link-property}
+     :optional {"notes" v/pure                              ;;TODO: The properties on these objects are interpreted equivalently to common properties as described in section 5.8 Common Properties.
+                "suppressOutput" bool
+                "tableDirection" table-direction
+                "tableSchema" (linked-object schema)
+                "transformations" v/pure                    ;;TODO: define transformation object
+                "@id" id
+                "@type" (eq "Table")
+                }
+     :defaults {"suppressOutput" false
+                "tableDirection" "auto"}}))
