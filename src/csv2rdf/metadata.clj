@@ -31,14 +31,13 @@
       (v/pure x)
       (v/of-error (str "Expected " type-name)))))
 
-(def array (expect-type vector? "array"))
+(defn array? [x]
+  (vector? x))
+
+(def array (expect-type array? "array"))
 (def number (expect-type number? "number"))
-
-(defn object [x]
-  (if (map? x)
-    (v/pure x)
-    (v/of-error "Expected object")))
-
+(def bool (expect-type boolean? "boolean"))
+(def object (expect-type map? "object"))
 (def string (expect-type string? "string"))
 
 (defn character [x]
@@ -165,23 +164,85 @@
                                                         (v/pure m)
                                                         (v/of-error "Top-level object must contain @base or @language keys"))))))
 
+(defn variable [x]
+  ;;TODO: validate according to specification
+  ;;TODO: add warning if not a string?
+  (v/pure (if (string? x) x)))
+
+(defn natural-language [x]
+  ;;TODO: implement!
+  (v/pure x))
+
+(defn id [x]
+  ;;TODO: implement!
+  (v/pure x))
+
+(def column
+  (object-of
+    {:optional {"name" variable                             ;;TODO: use first title as name if not provided, see spec
+                "suppressOutput" bool
+                "titles" natural-language                   ;;TODO: should be array?
+                "virtual" bool
+                "@id" id
+                }}))
+
+(defn get-duplicate-names [columns]
+  (->> columns
+       (map #(get % "name"))
+       (frequencies)
+       (filter (fn [[n count]] (> count 1)))
+       (map first)))
+
+(defn ^{:metadata-spec "5.5"} validate-column-names [columns]
+  ;;columns property: The name properties of the column descriptions MUST be unique within a given table description.
+  (let [duplicate-names (get-duplicate-names columns)]
+    (if (seq duplicate-names)
+      (v/of-error (str "Duplicate names for columns: " (string/join ", " duplicate-names)))
+      (v/pure nil))))
+
+(defn column-name [column]
+  (get column "name"))
+
+(defn ^{:metadata-spec "5.6"} validate-virtual-columns [columns]
+  ;;virtual property: If present, a virtual column MUST appear after all other non-virtual column definitions.
+  (let [non-virtual? (fn [col] (= false (get col "virtual")))
+        virtual-columns (drop-while non-virtual? columns)
+        invalid-columns (filter non-virtual? virtual-columns)]
+    (if (seq invalid-columns)
+      (let [first-virtual (first virtual-columns)           ;;NOTE: must exist
+            msg (format "Non-virtual columns %s defined after first virtual column %s - All virtual columns must exist after all non-virtual columns"
+                        (string/join ", " (map column-name invalid-columns))
+                        (column-name first-virtual))]
+        (v/of-error msg))
+      (v/pure nil))))
+
+(defn validate-columns [columns]
+  (let [names-val (validate-column-names columns)
+        virtual-val (validate-virtual-columns columns)]
+    (v/combine names-val virtual-val)))
+
+(defn columns [x]
+  (v/bind (fn [cols]
+            (v/fmap (constantly cols) (validate-columns cols)))
+          ((array-of column) x)))
+
 (def dialect
   (object-of
     {:optional {"commentPrefix" character
                 "delimiter" character
-                "doubleQuote" boolean
+                "doubleQuote" bool
                 "encoding" encoding
-                "header" boolean
+                "header" bool
                 "headerRowCount" non-negative
                 "lineTerminators" (either "single" (compm string (fn [x] (v/pure [x])))
                                           "array" (array-of string))
                 "quoteChar" character
-                "skipBlankRows" boolean
+                "skipBlankRows" bool
                 "skipColumns" non-negative
-                "skipInitialSpace" boolean
+                "skipInitialSpace" bool
                 "skipRows" non-negative
                 "trimMode" trim-mode
-                "@id" v/pure                                ;;TODO: validate
+                "@id" id
                 "@type" (eq "Dialect")
                 }
      :defaults {"commentPrefix" \#
@@ -197,4 +258,21 @@
                 "skipInitialSpace" false
                 "skipRows" 0
                 "trimMode" :all
+                }}))
+
+(defn ^{:metadata-spec "5.1.4"} column-reference [x]
+  ;;TODO: validation that each referenced column exists occurs at higher-level
+  (cond (string? x) (v/pure x)                              ;;TODO: always return vector of column references?
+        (array? x) (cond (= 0 (count x)) (v/with-warning "Column references should not be empty" nil)
+                          (not-every? string? x) (v/with-warning "Column references should all be strings" nil)
+                          :else (v/pure x))))
+(def foreign-key
+  (object-of
+    {:required {"columnReference" column-reference
+                "reference"       object                    ;;TODO: specify reference
+                }}))
+(def schema
+  (object-of
+    {:optional {"columns" columns
+                "foreignKeys" (array-of foreign-key)        ;;TODO: validate foreign keys
                 }}))

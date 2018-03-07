@@ -44,6 +44,9 @@
      ::warnings (concat (::warnings v1) (::warnings v2))
      ::value (merge-fn (::value v1) (::value v2))}))
 
+(defn combine [v1 v2]
+  (combine-with (fn [_ r] r) v1 v2))
+
 (defn collect [vs]
   (reduce (fn [acc v] (combine-with conj acc v)) (pure []) vs))
 
