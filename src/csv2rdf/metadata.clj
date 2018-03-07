@@ -324,8 +324,25 @@
 ;;TODO: The properties on these objects are interpreted equivalently to common properties as described in section 5.8 Common Properties.
 (def note v/pure)
 
-;;TODO: implement!
-(def transformation v/pure)
+(def transformation-source-types #{"json" "rdf"})
+
+(defn validate-transformation-source [s]
+  (if (contains? transformation-source-types s)
+    (v/pure (keyword s))
+    (v/with-warning (str "Expected one of " (string/join ", " transformation-source-types)) nil)))
+
+(def transformation-source
+  (compm string validate-transformation-source))
+
+(def transformation
+  (object-of
+    {:required {"url" link-property
+                "scriptFormat" link-property
+                "targetFormat" link-property}
+     :optional {"source" transformation-source
+                "titles" natural-language
+                "@id" id
+                "@type" "Template"}}))
 
 (def table
   (object-of
