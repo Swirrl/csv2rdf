@@ -32,6 +32,7 @@
       (v/of-error (str "Expected " type-name)))))
 
 (def array (expect-type vector? "array"))
+(def number (expect-type number? "number"))
 
 (defn object [x]
   (if (map? x)
@@ -39,6 +40,13 @@
     (v/of-error "Expected object")))
 
 (def string (expect-type string? "string"))
+
+(defn character [x]
+  (if (string? x)
+    (if (= 1 (.length x))
+      (v/pure (.charAt x 0))
+      (v/of-error "Expected single character"))
+    (v/of-error "Expected string")))
 
 (defn of-length [len]
   (fn [arr]
@@ -87,16 +95,23 @@
   (fn [x]
     (v/collect (map (fn [f] (f x)) fs))))
 
+(defn prefix-errors-key-name [key validation]
+  (v/map-errors (fn [err] (str "Key '" key "': " err)) validation))
+
 (defn required-key [k vf]
   (fn [m]
     (if (contains? m k)
-      (v/fmap (fn [v] [k v]) (vf (get m k)))
+      (->> (vf (get m k))
+           (prefix-errors-key-name k)
+           (v/fmap (fn [v] [k v])))
       (v/of-error (str "Missing required key '" k "'")))))
 
 (defn optional-key [k vf & {:keys [default]}]
   (fn [m]
     (if (contains? m k)
-      (v/fmap (fn [v] [k v]) (vf (get m k)))
+      (->> (vf (get m k))
+           (prefix-errors-key-name k)
+           (v/fmap (fn [v] [k v])))
       (v/pure [k default]))))
 
 (defn object-of [{:keys [required optional defaults]}]
@@ -113,6 +128,31 @@
   ;;TODO: validate valid language tag
   (v/pure x))
 
+(defn encoding [x]
+  ;;TODO: validate encoding string
+  (string x))
+
+;;TODO: merge with tabular.csv.dialect/parse-trim
+(def trim-modes {"true" :all "false" :none "start" :start "end" :end})
+
+(defn mapping [m]
+  (fn [k]
+    (if (contains? m k)
+      (v/pure (get m k))
+      (v/of-error (str "Expected one of " (string/join ", " (keys m)))))))
+
+(def trim-mode (either "boolean" (compm boolean (fn [b] (v/pure (if b :all :none))))
+                        "trim mode" (mapping trim-modes)))
+
+(defn where [pred desc]
+  (fn [x]
+    (if (pred x)
+      (v/pure x)
+      (v/of-error (str "Expected '" x "' to be " desc)))))
+
+(defn non-negative [x]
+  (compm number (where pos? "positive")))
+
 (def csvw-ns "http://www.w3.org/ns/csvw")
 
 (def top-level-object (either "ns" (eq csvw-ns)
@@ -125,3 +165,36 @@
                                                         (v/pure m)
                                                         (v/of-error "Top-level object must contain @base or @language keys"))))))
 
+(def dialect
+  (object-of
+    {:optional {"commentPrefix" character
+                "delimiter" character
+                "doubleQuote" boolean
+                "encoding" encoding
+                "header" boolean
+                "headerRowCount" non-negative
+                "lineTerminators" (either "single" (compm string (fn [x] (v/pure [x])))
+                                          "array" (array-of string))
+                "quoteChar" character
+                "skipBlankRows" boolean
+                "skipColumns" non-negative
+                "skipInitialSpace" boolean
+                "skipRows" non-negative
+                "trimMode" trim-mode
+                "@id" v/pure                                ;;TODO: validate
+                "@type" (eq "Dialect")
+                }
+     :defaults {"commentPrefix" \#
+                "delimiter" \,
+                "doubleQuote" true
+                "encoding" "utf-8"
+                "header" true
+                "headerRowCount" 1
+                "lineTerminators" ["\r\n", "\n"]
+                "quoteChar" \"
+                "skipBlankRows" false
+                "skipColumns" 0
+                "skipInitialSpace" false
+                "skipRows" 0
+                "trimMode" :all
+                }}))

@@ -32,6 +32,9 @@
     validation
     (f (::value validation))))
 
+(defn map-errors [f validation]
+  (update validation ::errors (fn [errors] (map f errors))))
+
 (defn combine-with [merge-fn v1 v2]
   (if (or (error? v1) (error? v2))
     {::errors (concat (::errors v1) (::errors v2))
