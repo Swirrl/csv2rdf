@@ -32,6 +32,23 @@
                                :value x}))))
 
 (def array (expect-type array? "array"))
+
+(defn validate-array [arr {:keys [length min-length] :as opts}]
+  (cond
+    (and (some? length) (not= length (count arr)))
+    (v/of-error (format "Expected array to contain %d elements " length))
+
+    (and (some? min-length) (< (count arr) min-length))
+    (v/of-error (format "Expected array to contain at least %d elements" min-length))
+
+    :else (v/pure arr)))
+
+(defn array-with [opts]
+  (fn [x]
+    (->> (array x)
+         (v/bind (fn [arr]
+                   (validate-array arr opts))))))
+
 (def number (expect-type number? "number"))
 (def bool (expect-type boolean? "boolean"))
 (def object (expect-type map? "object"))
@@ -44,25 +61,20 @@
       (v/of-error "Expected single character"))
     (v/of-error "Expected string")))
 
-(defn of-length [len]
-  (fn [arr]
-    (if (= len (count arr))
-      (v/pure arr)
-      (v/of-error (str "Expected length " len)))))
-
 (defn compm [& fs]
   (reduce (fn [acc f]
             (fn [v]
               (v/bind f (acc v)))) v/pure fs))
 
-(defn array-of [f & {:keys [length]}]
-  (let [len-v (if (some? length) (of-length length) v/pure)]
-    (compm array len-v (fn [arr]
-                         (v/collect (map f arr))))))
+(defn array-of
+  ([validator] (array-of validator {}))
+  ([f opts]
+   (compm (array-with opts)
+          (fn [arr]
+            (v/collect (map f arr))))))
 
 (defn tuple [& fs]
-  (compm array
-         (of-length (count fs))
+  (compm (array-with {:length (count fs)})
          (fn [arr]
            (v/collect (map (fn [f x] (f x)) fs arr)))))
 
@@ -309,16 +321,34 @@
                 "@type" (eq "Schema")
                 }}))
 
+;;TODO: The properties on these objects are interpreted equivalently to common properties as described in section 5.8 Common Properties.
+(def note v/pure)
+
+;;TODO: implement!
+(def transformation v/pure)
+
 (def table
   (object-of
     {:required {"url" link-property}
-     :optional {"notes" v/pure                              ;;TODO: The properties on these objects are interpreted equivalently to common properties as described in section 5.8 Common Properties.
+     :optional {"notes" (array-of note)
                 "suppressOutput" bool
                 "tableDirection" table-direction
                 "tableSchema" (linked-object schema)
-                "transformations" v/pure                    ;;TODO: define transformation object
+                "transformations" (array-of transformation)
                 "@id" id
                 "@type" (eq "Table")
                 }
      :defaults {"suppressOutput" false
                 "tableDirection" "auto"}}))
+
+(def table-group
+  (object-of
+    {:required {"tables" (array-of table {:min-length 1})}
+     :optional {"dialect"         (linked-object dialect)
+                "notes"           (array-of note)
+                "tableDirection"  table-direction
+                "tableSchema"     (linked-object schema)
+                "transformations" (array-of transformation)
+                "@id"             id
+                "@type"           (eq "TableGroup")}
+     :defaults {"tableDirection" "auto"}}))
