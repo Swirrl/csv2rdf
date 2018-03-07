@@ -1,5 +1,6 @@
 (ns csv2rdf.metadata
   (:require [csv2rdf.validation :as v]
+            [csv2rdf.metadata.datatype :as datatype]
             [clojure.spec.alpha :as s]
             [clojure.string :as string])
   (:import (java.net URI URISyntaxException)))
@@ -173,8 +174,7 @@
       (v/pure x)
       (v/of-error (str "Expected '" x "' to be " desc)))))
 
-(defn non-negative [x]
-  (compm number (where pos? "positive")))
+(def non-negative (compm number (where pos? "positive")))
 
 (def csvw-ns "http://www.w3.org/ns/csvw")
 
@@ -369,3 +369,42 @@
                 "@id"             id
                 "@type"           (eq "TableGroup")}
      :defaults {"tableDirection" "auto"}}))
+
+(def datatype-name
+  (compm string (one-of datatype/type-names)))
+
+(defn datatype-format [x]
+  ;;TODO: implement!
+  (v/pure x)
+  )
+
+(def datatype-bound
+  (either "number" number
+          "string" string))
+
+(defn validate-derived-datatype [dt]
+  ;;TODO: implement!
+  (v/pure dt))
+
+(def derived-datatype
+  (compm
+    (object-of
+      {:optional {"base"         datatype-name
+                  "format"       datatype-format
+                  "length"       non-negative
+                  "minLength"    non-negative
+                  "maxLength"    non-negative
+                  "minimum"      datatype-bound
+                  "maximum"      datatype-bound
+                  "minInclusive" datatype-bound
+                  "maxInclusive" datatype-bound
+                  "minExclusive" datatype-bound
+                  "maxExclusive" datatype-bound
+                  "@id"          id
+                  "@type"        (eq "Datatype")
+                  }})
+    validate-derived-datatype))
+
+(def datatype
+  (either "datatype name" datatype-name
+          "derived datatype" derived-datatype))

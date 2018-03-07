@@ -6,7 +6,8 @@
    ["anyURI"
     "base64Binary"
     "boolean"
-    ["date" ["dateTime"]]
+    "date"
+    ["dateTime" ["dateTimeStamp"]]
     ["decimal" [["integer"
                  [["long"
                    [["int"
@@ -34,6 +35,18 @@
       "json"]]
     "time"]])
 
+(def ^{:metadata-spec "5.11.1"} aliases
+  {"number" "double"
+   "binary" "base64Binary"
+   "datetime" "dateTime"
+   "any" "anyAtomicType"})
+
+(def ^{:doc "All known type names"} type-names
+  (into #{} (concat (flatten type-hierarchy) (keys aliases))))
+
+(defn resolve-type-name [type-name]
+  (get aliases type-name type-name))
+
 (defn is-leaf? [x] (string? x))
 (defn is-inner? [x] (and (vector? x) (= 2 (count x))))
 (defn children [node]
@@ -44,11 +57,12 @@
 (defn find-root
   ([type-name] (find-root type-name type-hierarchy))
   ([type-name node]
-   (loop [q [node]]
-     (if-let [node (first q)]
-       (if (= type-name (node-name node))
-         node
-         (recur (concat (rest q) (children node))))))))
+   (let [type-name (resolve-type-name type-name)]
+     (loop [q [node]]
+       (if-let [node (first q)]
+         (if (= type-name (node-name node))
+           node
+           (recur (concat (rest q) (children node)))))))))
 
 (defn node-subtypes [node]
   (if (is-leaf? node)
@@ -60,7 +74,8 @@
     (node-subtypes root)))
 
 (defn is-subtype? [supertype-name type-name]
-  (boolean (some #(= type-name %) (subtypes supertype-name))))
+  (let [type-name (resolve-type-name type-name)]
+    (boolean (some #(= type-name %) (subtypes supertype-name)))))
 
 (s/def ::base  (into #{} (flatten type-hierarchy)))
 
