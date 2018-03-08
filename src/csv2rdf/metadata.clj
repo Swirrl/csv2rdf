@@ -197,9 +197,14 @@
   ;;TODO: implement!
   (v/pure x))
 
-(defn id [x]
-  ;;TODO: implement!
-  (v/pure x))
+(def ^{:doc "An id is a link property whose value cannot begin with _:"} id
+  (compm
+    string
+    (fn [s]
+      (if (.startsWith s "_:")
+        (v/of-error "Ids cannot start with _:")
+        (v/pure s)))
+    (try-parse-with #(URI. %))))
 
 (def column
   (object-of
@@ -382,9 +387,71 @@
   (either "number" number
           "string" string))
 
-(defn validate-derived-datatype [dt]
+(defn ^{:metadata-spec "5.11.2"} validate-derived-datatype
+  [{:strs [base length minLength maxLength minimum minInclusive minExclusive maximum maxInclusive maxExclusive] :as dt}]
+  (cond
+    ;;applications MUST raise an error if both length and minLength are specified and length is less than minLength
+    (and (some? length) (some? minLength) (< length minLength))
+    (v/of-error "Length must be >= minLength")
+
+    ;;applications MUST raise an error if both length and maxLength are specified and length is greater than maxLength
+    (and (some? length) (some? maxLength) (> length maxLength))
+    (v/of-error "Length must be <= maxLength")
+
+    ;;applications MUST raise an error if minLength and maxLength are both specified and minLength is greater than maxLength
+    (and (some? minLength) (some? maxLength) (> minLength maxLength))
+    (v/of-error "minLength must be <= maxLength")
+
+    ;;applications MUST raise an error if length, maxLength, or minLength are specified and the base datatype is
+    ;;neither string, a subtype of string, nor a binary type
+    (and (or (some? length) (some? minLength) (some? maxLength))
+         (not (or (datatype/is-subtype? "string" base) (datatype/is-binary-type? base))))
+    (v/of-error "length, minLength and maxLength properties only valid on string or binary data types")
+
+    ;;Applications MUST raise an error if both minimum and minInclusive are specified and they do not have the same value
+    (and (some? minimum) (some? minInclusive) (not= minimum minInclusive))
+    (v/of-error "minimum and minInclusive must be equal when both specified")
+
+    ;;applications MUST raise an error if both maximum and maxInclusive are specified and they do not have the same value
+    (and (some? maximum) (some? maxInclusive) (not= maximum maxInclusive))
+    (v/of-error "maximum and maxInclusive must be equal when both specified")
+
+    ;;applications MUST raise an error if both minInclusive and minExclusive are specified
+    (and (some? minInclusive) (some? minExclusive))
+    (v/of-error "Cannot specify both minInclusive and minExclusive")
+
+    ;;...or if both maxInclusive and maxExclusive are specified
+    (and (some? maxInclusive) (some? maxExclusive))
+    (v/of-error "Cannot specify both maxInclusive and maxExclusive")
+
+    ;;Applications MUST raise an error if both minInclusive and maxInclusive are specified and maxInclusive is less than minInclusive
+    (and (some? minInclusive) (some? maxInclusive) (< maxInclusive minInclusive))
+    (v/of-error "minInclusive must be <= maxInclusive")
+
+    ;;...or if both minInclusive and maxExclusive are specified and maxExclusive is less than or equal to minInclusive
+    (and (some? minInclusive) (some? maxExclusive) (<= maxExclusive minInclusive))
+    (v/of-error "minInclusive must be < maxExclusive")
+
+    ;;applications MUST raise an error if both minExclusive and maxExclusive are specified and maxExclusive is less than minExclusive
+    (and (some? minExclusive) (some? maxExclusive) (< maxExclusive minExclusive))
+    (v/of-error "minExclusive must be <= maxExclusive")
+
+    ;;...or if both minExclusive and maxInclusive are specified and maxInclusive is less than or equal to minExclusive
+    (and (some? minExclusive) (some? maxInclusive) (<= maxInclusive minExclusive))
+    (v/of-error "maxInclusive must be > minExclusive")
+
+    ;;Applications MUST raise an error if minimum, minInclusive, maximum, maxInclusive, minExclusive, or maxExclusive
+    ;;are specified and the base datatype is not a numeric, date/time, or duration type
+    (and (or (some? minimum) (some? minInclusive) (some? maximum) (some? maxInclusive) (some? minExclusive) (some? maxExclusive))
+         (not (or (datatype/is-numeric-type? base) (datatype/is-date-time-type? base) (datatype/is-duration-type? base))))
+    (v/of-error "minimum, minInclusive, maximum, maxInclusvie, minExclusive, maxExclusive only valid for numeric, date/time or duration types")
+
+    :else (v/pure dt)))
+
+(defn validate-datatype-id [id]
   ;;TODO: implement!
-  (v/pure dt))
+  ;;datatype id MUST NOT be the URL of a built-in datatype.
+  )
 
 (def derived-datatype
   (compm
@@ -400,7 +467,7 @@
                   "maxInclusive" datatype-bound
                   "minExclusive" datatype-bound
                   "maxExclusive" datatype-bound
-                  "@id"          id
+                  "@id"          (compm id validate-datatype-id)
                   "@type"        (eq "Datatype")
                   }})
     validate-derived-datatype))

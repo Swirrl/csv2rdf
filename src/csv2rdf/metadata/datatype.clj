@@ -77,6 +77,20 @@
   (let [type-name (resolve-type-name type-name)]
     (boolean (some #(= type-name %) (subtypes supertype-name)))))
 
+(defn is-binary-type? [type-name]
+  (contains? #{"hexBinary" "base64Binary"} (resolve-type-name type-name)))
+
+(defn is-numeric-type? [type-name]
+  (is-subtype? "decimal" type-name))
+
+(defn is-date-time-type? [type-name]
+  (or (is-subtype? "date" type-name)
+      (is-subtype? "dateTime" type-name)
+      (is-subtype? "time" type-name)))
+
+(defn is-duration-type? [type-name]
+  (is-subtype? "duration" type-name))
+
 (s/def ::base  (into #{} (flatten type-hierarchy)))
 
 (s/def ::num-or-string (s/or :string string? :num number?))
@@ -108,6 +122,6 @@
   (cond
     (nil? value) 0
     (is-subtype? "string" base) (.count (.codePoints value))
-    (contains? #{"hexBinary" "base64Binary"} base) (alength value) ;;binary data expected to be byte array
-    :else nil                                                      ;;length undefined for type
+    (is-binary-type? base) (alength value)                  ;;binary data expected to be byte array
+    :else nil                                               ;;length undefined for type
     ))
