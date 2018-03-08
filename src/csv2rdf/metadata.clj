@@ -21,6 +21,7 @@
 
 (defn array? [x]
   (vector? x))
+(def object? map?)
 
 (defn- get-json-type [x]
   (cond (array? x) "array"
@@ -193,9 +194,18 @@
   ;;TODO: add warning if not a string?
   (v/pure (if (string? x) x)))
 
+(defn map-of [key-validator value-validator]
+  (fn [obj]
+    (let [pair-validator (tuple key-validator value-validator)
+          validations (map pair-validator obj)]
+      (v/fmap #(into {} %) (v/collect validations)))))
+
 (defn natural-language [x]
-  ;;TODO: implement!
-  (v/pure x))
+  (cond
+    (string? x) (v/pure x)
+    (array? x) ((array-of natural-language) x)
+    (object? x) ((map-of bcp47-language natural-language) x)
+    :else (v/of-error "Expected string, array or object")))
 
 (def ^{:doc "An id is a link property whose value cannot begin with _:"} id
   (compm
@@ -451,7 +461,7 @@
 (defn validate-datatype-id [id]
   ;;TODO: implement!
   ;;datatype id MUST NOT be the URL of a built-in datatype.
-  )
+  (v/pure id))
 
 (def derived-datatype
   (compm
