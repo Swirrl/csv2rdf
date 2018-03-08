@@ -5,7 +5,11 @@
             [clojure.string :as string])
   (:import [java.net URI URISyntaxException]
            [java.nio.charset Charset IllegalCharsetNameException]
-           [java.util Locale$Builder IllformedLocaleException]))
+           [java.util Locale$Builder IllformedLocaleException]
+           [java.nio CharBuffer]
+           [com.github.fge.uritemplate.parse VariableSpecParser]
+           [com.github.fge.uritemplate URITemplateParseException]
+           [java.lang.reflect InvocationTargetException]))
 
 (defn eq [expected]
   (fn [x]
@@ -176,10 +180,6 @@
             (vec (remove nil? codes)))
           ((array-of language-code) arr)))
 
-(defn bcp47-language [x]
-  ;;TODO: validate valid language tag
-  (v/pure x))
-
 (defn language-code-map-value [v]
   (cond (string? v) (language-code v)
         (array? v) (language-code-array v)
@@ -240,10 +240,33 @@
                                                         (v/pure m)
                                                         (v/of-error "Top-level object must contain @base or @language keys"))))))
 
-(defn variable [x]
-  ;;TODO: validate according to specification
-  ;;TODO: add warning if not a string?
-  (v/pure (if (string? x) x)))
+(def parse-variable-method
+  (let [m (.getDeclaredMethod VariableSpecParser "parseFullName" (into-array [CharBuffer]))]
+    (.setAccessible m true)
+    m))
+
+(defn parse-uri-template-variable [s]
+  (try
+    (.invoke parse-variable-method nil (into-array [(CharBuffer/wrap s)]))
+    (catch InvocationTargetException ex
+      (throw (.getCause ex)))))
+
+(defn uri-template-variable [s]
+  (try
+    (let [result (parse-uri-template-variable s)]
+      ;;parseFullName returns the prefix of the input that could be parsed
+      (if (= result s)
+        (v/pure s)
+        (v/of-error (str "Invalid template variable: '" s "'"))))
+    (catch URITemplateParseException _ex
+      (v/of-error (str "Invalid template variable: '" s "'")))))
+
+(defn ^{:template-spec "5.6"} column-name [x]
+  (v/bind (fn [s]
+            (if (.startsWith s "_")
+              (v/of-error "Columns names cannot begin with _")
+              (uri-template-variable s)))
+          (string x)))
 
 (def ^{:doc "An id is a link property whose value cannot begin with _:"} id
   (compm
@@ -256,11 +279,11 @@
 
 (def column
   (object-of
-    {:optional {"name" variable                             ;;TODO: use first title as name if not provided, see spec
+    {:optional {"name"           column-name                             ;;TODO: use first title as name if not provided, see spec
                 "suppressOutput" bool
-                "titles" natural-language                   ;;TODO: should be array?
-                "virtual" bool
-                "@id" id
+                "titles"         natural-language                   ;;TODO: should be array?
+                "virtual"        bool
+                "@id"            id
                 }}))
 
 (defn get-duplicate-names [columns]
@@ -277,7 +300,7 @@
       (v/of-error (str "Duplicate names for columns: " (string/join ", " duplicate-names)))
       (v/pure nil))))
 
-(defn column-name [column]
+(defn get-column-name [column]
   (get column "name"))
 
 (defn ^{:metadata-spec "5.6"} validate-virtual-columns [columns]
@@ -288,8 +311,8 @@
     (if (seq invalid-columns)
       (let [first-virtual (first virtual-columns)           ;;NOTE: must exist
             msg (format "Non-virtual columns %s defined after first virtual column %s - All virtual columns must exist after all non-virtual columns"
-                        (string/join ", " (map column-name invalid-columns))
-                        (column-name first-virtual))]
+                        (string/join ", " (map get-column-name invalid-columns))
+                        (get-column-name first-virtual))]
         (v/of-error msg))
       (v/pure nil))))
 
