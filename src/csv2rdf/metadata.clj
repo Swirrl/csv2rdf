@@ -4,7 +4,8 @@
             [clojure.spec.alpha :as s]
             [clojure.string :as string])
   (:import [java.net URI URISyntaxException]
-           [java.nio.charset Charset IllegalCharsetNameException]))
+           [java.nio.charset Charset IllegalCharsetNameException]
+           [java.util Locale$Builder IllformedLocaleException]))
 
 (defn eq [expected]
   (fn [x]
@@ -150,9 +151,50 @@
       (fn [pairs]
         (v/pure (into {} pairs))))))
 
+(defn map-of [key-validator value-validator]
+  (fn [obj]
+    (let [pair-validator (tuple key-validator value-validator)
+          validations (map pair-validator obj)]
+      (v/fmap #(into {} %) (v/collect validations)))))
+
+(defn validate-language-code [s]
+  (try
+    (do
+      (.setLanguage (Locale$Builder.) s)
+      ;;TODO: validate against known list of language codes?
+      (v/pure s))
+    (catch IllformedLocaleException _ex
+      (v/with-warning (str "Invalid language code: '" s "'") nil))))
+
+(defn language-code [x]
+  (if (string? x)
+    (validate-language-code x)
+    (v/with-warning (str "Expected language code, got " (get-json-type x)) nil)))
+
+(defn language-code-array [arr]
+  (v/fmap (fn [codes]
+            (vec (remove nil? codes)))
+          ((array-of language-code) arr)))
+
 (defn bcp47-language [x]
   ;;TODO: validate valid language tag
   (v/pure x))
+
+(defn language-code-map-value [v]
+  (cond (string? v) (language-code v)
+        (array? v) (language-code-array v)
+        :else (v/with-warning (str "Expected language code or language code array, got " (get-json-type v)) nil)))
+
+(defn ^{:metadata-spec "5.1.6"} natural-language [x]
+  (cond
+    (string? x) (validate-language-code x)
+    (array? x) (language-code-array x)
+    (object? x) (let [pair-validator (tuple language-code language-code-map-value)]
+                  (v/fmap (fn [pairs]
+                            ;;ignore any pairs with invalid key or value
+                            (into {} (remove (fn [[k v]] (or (nil? k) (nil? v))) pairs)))
+                          (v/collect (map pair-validator x))))
+    :else (v/with-warning "Expected string, array or object for natual language property" [])))
 
 (defn encoding [x]
   ;;NOTE: some valid encodings defined in https://www.w3.org/TR/encoding/
@@ -192,7 +234,7 @@
                               "local context" (each (tuple
                                                       (eq csvw-ns)
                                                       (object-of {:optional {"@base"     uri
-                                                                             "@language" bcp47-language}}))
+                                                                             "@language" (compm language-code v/warnings-as-errors)}}))
                                                     (fn [[_ns m]]
                                                       (if (or (contains? m "@base") (contains? m "@language"))
                                                         (v/pure m)
@@ -202,19 +244,6 @@
   ;;TODO: validate according to specification
   ;;TODO: add warning if not a string?
   (v/pure (if (string? x) x)))
-
-(defn map-of [key-validator value-validator]
-  (fn [obj]
-    (let [pair-validator (tuple key-validator value-validator)
-          validations (map pair-validator obj)]
-      (v/fmap #(into {} %) (v/collect validations)))))
-
-(defn natural-language [x]
-  (cond
-    (string? x) (v/pure x)
-    (array? x) ((array-of natural-language) x)
-    (object? x) ((map-of bcp47-language natural-language) x)
-    :else (v/of-error "Expected string, array or object")))
 
 (def ^{:doc "An id is a link property whose value cannot begin with _:"} id
   (compm
