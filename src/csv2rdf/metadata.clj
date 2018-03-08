@@ -108,18 +108,6 @@
         (v/with-warning (format "Link property '%s' cannot be parsed as a URI" x) default-uri)))
     (v/with-warning (format "Invalid link property '%s': expected string containing URI, got %s" x (get-json-type x)) default-uri)))
 
-(defn either [& desc-validation-pairs]
-  (let [pairs (partition-all 2 desc-validation-pairs)]
-    (fn [x]
-      (loop [ps pairs]
-        (if (seq ps)
-          (let [[_desc vf] (first ps)
-                v (vf x)]
-            (if (v/error? v)
-              (recur (rest ps))
-              v))
-          (v/of-error (str "Expected one of: " (string/join ", " (map first pairs)))))))))
-
 (defn each [& fs]
   (fn [x]
     (let [vs (map (fn [f] (f x)) fs)
@@ -217,8 +205,10 @@
       (v/pure (get m k))
       (v/of-error (str "Expected one of " (string/join ", " (keys m)))))))
 
-(def trim-mode (either "boolean" (compm boolean (fn [b] (v/pure (if b :all :none))))
-                        "trim mode" (mapping trim-modes)))
+(defn trim-mode [x]
+  (cond (boolean? x) (v/pure (if x :all :none))
+        (string? x) ((mapping trim-modes) x)
+        :else (v/of-error (str "Expected boolean or string, got " (get-json-type x)))))
 
 (defn where [pred desc]
   (fn [x]
@@ -230,15 +220,20 @@
 
 (def csvw-ns "http://www.w3.org/ns/csvw")
 
-(def top-level-object (either "ns" (eq csvw-ns)
-                              "local context" (each (tuple
-                                                      (eq csvw-ns)
-                                                      (object-of {:optional {"@base"     uri
-                                                                             "@language" (compm language-code v/warnings-as-errors)}}))
-                                                    (fn [[_ns m]]
-                                                      (if (or (contains? m "@base") (contains? m "@language"))
-                                                        (v/pure m)
-                                                        (v/of-error "Top-level object must contain @base or @language keys"))))))
+(def context-pair
+  (each (tuple
+          (eq csvw-ns)
+          (object-of {:optional {"@base"     uri
+                                 "@language" (compm language-code v/warnings-as-errors)}}))
+        (fn [[_ns m]]
+          (if (or (contains? m "@base") (contains? m "@language"))
+            (v/pure m)
+            (v/of-error "Top-level object must contain @base or @language keys")))))
+
+(defn top-level-object [x]
+  (cond (string? x) ((eq csvw-ns) x)
+        (array? x) (context-pair x)
+        :else (v/of-error (str "Expected namespace string or pair of namespace and local context definition, got " (get-json-type x)))))
 
 (def parse-variable-method
   (let [m (.getDeclaredMethod VariableSpecParser "parseFullName" (into-array [CharBuffer]))]
@@ -326,6 +321,11 @@
             (v/fmap (constantly cols) (validate-columns cols)))
           ((array-of column) x)))
 
+(defn line-terminators [x]
+  (cond (string? x) (v/pure [x])
+        (array? x) ((array-of string) x)
+        :else (v/of-error (str "Expected string or string array, got " (get-json-type x)))))
+
 (def dialect
   (object-of
     {:optional {"commentPrefix" character
@@ -334,8 +334,7 @@
                 "encoding" encoding
                 "header" bool
                 "headerRowCount" non-negative
-                "lineTerminators" (either "single" (compm string (fn [x] (v/pure [x])))
-                                          "array" (array-of string))
+                "lineTerminators" line-terminators
                 "quoteChar" character
                 "skipBlankRows" bool
                 "skipColumns" non-negative
@@ -454,9 +453,10 @@
   (v/pure x)
   )
 
-(def datatype-bound
-  (either "number" number
-          "string" string))
+(defn datatype-bound [x]
+  (if (or (number? x) (string? x))
+    (v/pure x)
+    (v/of-error (str "Expected string or number, got " (get-json-type x)))))
 
 (defn ^{:metadata-spec "5.11.2"} validate-derived-datatype
   [{:strs [base length minLength maxLength minimum minInclusive minExclusive maximum maxInclusive maxExclusive] :as dt}]
@@ -543,6 +543,7 @@
                   }})
     validate-derived-datatype))
 
-(def datatype
-  (either "datatype name" datatype-name
-          "derived datatype" derived-datatype))
+(defn datatype [x]
+  (cond (string? x) (datatype-name x)
+        (object? x) (derived-datatype x)
+        :else (v/of-error (str "Expected data type name or derived datatype object, got " (get-json-type x)))))
