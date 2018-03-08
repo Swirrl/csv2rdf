@@ -3,7 +3,8 @@
             [csv2rdf.metadata.datatype :as datatype]
             [clojure.spec.alpha :as s]
             [clojure.string :as string])
-  (:import (java.net URI URISyntaxException)))
+  (:import [java.net URI URISyntaxException]
+           [java.nio.charset Charset IllegalCharsetNameException]))
 
 (defn eq [expected]
   (fn [x]
@@ -154,8 +155,16 @@
   (v/pure x))
 
 (defn encoding [x]
-  ;;TODO: validate encoding string
-  (string x))
+  ;;NOTE: some valid encodings defined in https://www.w3.org/TR/encoding/
+  ;;may not be supported by the underlying platform, reject these as invalid
+  (v/bind (fn [s]
+            (try
+              (if (Charset/isSupported s)
+                (v/pure s)
+                (v/of-error (str "Invalid encoding: '" s "'")))
+              (catch IllegalCharsetNameException _ex
+                (v/of-error (str "Invalid encoding: '" s "'")))))
+          (string x)))
 
 ;;TODO: merge with tabular.csv.dialect/parse-trim
 (def trim-modes {"true" :all "false" :none "start" :start "end" :end})
