@@ -2,7 +2,8 @@
   (:require [csv2rdf.validation :as v]
             [csv2rdf.metadata.datatype :as datatype]
             [clojure.spec.alpha :as s]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [csv2rdf.uri-template :as template])
   (:import [java.net URI URISyntaxException]
            [java.nio.charset Charset IllegalCharsetNameException]
            [java.util Locale$Builder IllformedLocaleException]
@@ -19,16 +20,6 @@
 
 (def ^{:metadata-spec "5.2"} context nil)
 
-(defn- expect-type [type-p type-name]
-  (fn [x]
-    (if (type-p x)
-      (v/pure x)
-      (v/of-error (str "Expected " type-name)))))
-
-(defn array? [x]
-  (vector? x))
-(def object? map?)
-
 (defn- get-json-type [x]
   (cond (array? x) "array"
         (number? x) "number"
@@ -38,6 +29,16 @@
         :else (throw (ex-info (str "Unknown JSON type for type " (type x))
                               {:type ::json-type-error
                                :value x}))))
+
+(defn- expect-type [type-p type-name]
+  (fn [x]
+    (if (type-p x)
+      (v/pure x)
+      (v/of-error (str "Expected " type-name ", got " (get-json-type x))))))
+
+(defn array? [x]
+  (vector? x))
+(def object? map?)
 
 (def array (expect-type array? "array"))
 
@@ -107,6 +108,13 @@
       (catch URISyntaxException _ex
         (v/with-warning (format "Link property '%s' cannot be parsed as a URI" x) default-uri)))
     (v/with-warning (format "Invalid link property '%s': expected string containing URI, got %s" x (get-json-type x)) default-uri)))
+
+(defn ^{:metadata-spec "5.1.3"} template-property [x]
+  (v/bind (fn [s]
+            (if-let [t (template/try-parse-template s)]
+              (v/pure t)
+              (v/of-error (str "Invalid URI template: '" s "'"))))
+          (string x)))
 
 (defn each [& fs]
   (fn [x]
@@ -547,3 +555,30 @@
   (cond (string? x) (datatype-name x)
         (object? x) (derived-datatype x)
         :else (v/of-error (str "Expected data type name or derived datatype object, got " (get-json-type x)))))
+
+(defn null-value [x]
+  (cond (string? x) (v/pure [x])
+        (array? x) ((array-of string) x)
+        :else (v/of-error (str "Expected string or string array, got " (get-json-type x)))))
+
+(def inherited-properties
+  (object-of
+    {:optional {"aboutUrl" template-property
+                "datatype" datatype                         ;;TODO: The normalized value of this property becomes the datatype annotation for the described column.
+                "default" string
+                "lang" language-code
+                "null" null-value
+                "ordered" boolean
+                "propertyUrl" template-property
+                "required" boolean
+                "separator" string
+                "tableDirection" (one-of #{"ltr" "rtl" "auto" "inherit"}) ;;NOTE: different to table-direction
+                "valueUrl" template-property
+                }
+     :defaults {"default" ""
+                "lang" "und"
+                "null" [""]
+                "ordered" false
+                "required" false
+                "separator" nil
+                "tableDirection" "inherit"}}))
