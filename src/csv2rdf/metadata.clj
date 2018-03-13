@@ -38,25 +38,35 @@
 (def object? map?)
 
 (defn- get-json-type [x]
-  (cond (array? x) "array"
-        (number? x) "number"
-        (string? x) "string"
-        (boolean? x) "boolean"
-        (object? x) "object"
+  (cond (array? x) :array
+        (number? x) :number
+        (string? x) :string
+        (boolean? x) :boolean
+        (object? x) :object
         :else (throw (ex-info (str "Unknown JSON type for type " (type x))
                               {:type ::json-type-error
                                :value x}))))
 
-(defn- type-error [context expected-type value]
-  (make-error context (str "Expected " expected-type ", got " (get-json-type value))))
+(defn- get-json-type-name [x]
+  (name (get-json-type x)))
 
-(defn- expect-type [type-p type-name]
+(defn- type-error [context permitted-types actual-type]
+  (let [c (count permitted-types)]
+    (case c
+      0 (make-error context (str "Unexpected type " (name actual-type)))
+      1 (make-error context (str "Expected " (name (first permitted-types)) " but got " (name actual-type)))
+      (let [[except-last [last]] (split-at (dec c) (map name permitted-types))
+            list (str (string/join ", " except-last) " or " last)]
+        (make-error context (str "Expected " list " but got " (name actual-type)))))))
+
+(defn- expect-type [expected-type]
   (fn [context x]
-    (if (type-p x)
-      (v/pure x)
-      (type-error context type-name x))))
+    (let [actual-type (get-json-type x)]
+      (if (= expected-type actual-type)
+        (v/pure x)
+        (type-error context [expected-type] actual-type)))))
 
-(def array (expect-type array? "array"))
+(def array (expect-type :array))
 
 (defn validate-array [context arr {:keys [length min-length] :as opts}]
   (cond
@@ -74,10 +84,21 @@
          (v/bind (fn [arr]
                    (validate-array context arr opts))))))
 
-(def number (expect-type number? "number"))
-(def bool (expect-type boolean? "boolean"))
-(def object (expect-type map? "object"))
-(def string (expect-type string? "string"))
+(defn any "Matches any value successfully"
+  [_context x]
+  (v/pure x))
+
+(def number (expect-type :number))
+(def bool (expect-type :boolean))
+(def object (expect-type :object))
+(def string (expect-type :string))
+
+(defn variant [tag-validators]
+  {:pre [(pos? (count tag-validators))]}
+  (fn [context x]
+    (if-let [validator (get tag-validators (get-json-type x))]
+      (validator context x)
+      (type-error context (keys tag-validators) (get-json-type x)))))
 
 (defn character [context x]
   (->> (string context x)
@@ -125,7 +146,7 @@
       (v/pure (URI. x))
       (catch URISyntaxException _ex
         (make-warning context (format "Link property '%s' cannot be parsed as a URI" x) default-uri)))
-    (make-warning context (format "Invalid link property '%s': expected string containing URI, got %s" x (get-json-type x)) default-uri)))
+    (make-warning context (format "Invalid link property '%s': expected string containing URI, got %s" x (get-json-type-name x)) default-uri)))
 
 (defn ^{:metadata-spec "5.1.3"} template-property [context x]
   (->> (string context x)
@@ -175,7 +196,7 @@
 (defn language-code [context x]
   (if (string? x)
     (validate-language-code context x)
-    (make-warning context (str "Expected language code, got " (get-json-type x)) nil)))
+    (make-warning context (str "Expected language code, got " (get-json-type-name x)) nil)))
 
 (defn language-code-array [context arr]
   (v/fmap (fn [codes]
@@ -185,7 +206,7 @@
 (defn language-code-map-value [context v]
   (cond (string? v) (language-code context v)
         (array? v) (language-code-array context v)
-        :else (make-warning context (str "Expected language code or language code array, got " (get-json-type v)) nil)))
+        :else (make-warning context (str "Expected language code or language code array, got " (get-json-type-name v)) nil)))
 
 (defn ^{:metadata-spec "5.1.6"} natural-language [context x]
   (cond
@@ -219,10 +240,8 @@
       (v/pure (get m k))
       (make-error context (str "Expected one of " (string/join ", " (keys m)))))))
 
-(defn trim-mode [context x]
-  (cond (boolean? x) (v/pure (if x :all :none))
-        (string? x) ((mapping trim-modes) x)
-        :else (make-error context (str "Expected boolean or string, got " (get-json-type x)))))
+(def trim-mode (variant {:string (mapping trim-modes)
+                         :boolean (fn [_context b] (if b :all :none))}))
 
 (defn where [pred desc]
   (fn [context x]
@@ -248,7 +267,7 @@
 (defn top-level-object [context x]
   (cond (string? x) ((eq csvw-ns) x)
         (array? x) (context-pair x)
-        :else (make-error context (str "Expected namespace string or pair of namespace and local context definition, got " (get-json-type x)))))
+        :else (make-error context (str "Expected namespace string or pair of namespace and local context definition, got " (get-json-type-name x)))))
 
 (def parse-variable-method
   (let [m (.getDeclaredMethod VariableSpecParser "parseFullName" (into-array [CharBuffer]))]
@@ -334,10 +353,9 @@
             (v/fmap (constantly cols) (validate-columns context cols)))
           ((array-of column) context x)))
 
-(defn line-terminators [context x]
-  (cond (string? x) (v/pure [x])
-        (array? x) ((array-of string) context x)
-        :else (make-error context (str "Expected string or string array, got " (get-json-type x)))))
+(def line-terminators
+  (variant {:string any
+            :array (array-of string)}))
 
 (def dialect
   (object-of
@@ -386,7 +404,7 @@
   (fn [context x]
     (cond (string? x) (make-error context "TODO: resolve URI and validate") ;;TODO: implement
           (map? x) (validator context x)
-          :else (make-error context (str "Expected URI or object, got " (get-json-type x))))))
+          :else (make-error context (str "Expected URI or object, got " (get-json-type-name x))))))
 
 (defn ^{:metadata-spec "5.1.4"} column-reference [context x]
   ;;TODO: validation that each referenced column exists occurs at higher-level
@@ -408,9 +426,6 @@
                 "@id" id
                 "@type" (eq "Schema")
                 }}))
-
-(defn any [context x]
-  (v/pure x))
 
 ;;TODO: The properties on these objects are interpreted equivalently to common properties as described in section 5.8 Common Properties.
 (def note any)
@@ -467,10 +482,7 @@
 ;;TODO: implement!
 (def datatype-format any)
 
-(defn datatype-bound [context x]
-  (if (or (number? x) (string? x))
-    (v/pure x)
-    (make-error context (str "Expected string or number, got " (get-json-type x)))))
+(def datatype-bound (variant {:number any :string any}))
 
 (defn ^{:metadata-spec "5.11.2"} validate-derived-datatype
   [context {:strs [base length minLength maxLength minimum minInclusive minExclusive maximum maxInclusive maxExclusive] :as dt}]
@@ -559,12 +571,9 @@
 (defn datatype [context x]
   (cond (string? x) (datatype-name x)
         (object? x) (derived-datatype x)
-        :else (make-error context (str "Expected data type name or derived datatype object, got " (get-json-type x)))))
+        :else (make-error context (str "Expected data type name or derived datatype object, got " (get-json-type-name x)))))
 
-(defn null-value [context x]
-  (cond (string? x) (v/pure [x])
-        (array? x) ((array-of string) x)
-        :else (make-error context (str "Expected string or string array, got " (get-json-type x)))))
+(def null-value (variant {:string any :array (array-of string)}))
 
 (def inherited-properties
   (object-of
