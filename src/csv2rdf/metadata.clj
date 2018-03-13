@@ -12,75 +12,93 @@
            [com.github.fge.uritemplate URITemplateParseException]
            [java.lang.reflect InvocationTargetException]))
 
+(defn make-error [{:keys [path] :as context} msg]
+  (v/of-error (str "Error at path " path ": " msg)))
+
+(defn make-warning [{:keys [path] :as context} msg value]
+  (v/with-warning (str "At path " path ": " msg) value))
+
+(defn append-path [context path-element]
+  (update context :path conj path-element))
+
+(defn make-context [base-uri]
+  {:base-uri base-uri :path []})
+
 (defn eq [expected]
-  (fn [x]
+  (fn [context x]
     (if (= expected x)
       (v/pure x)
-      (v/of-error (str "Expected '" expected "' received '" x "'")))))
+      (make-error context (str "Expected '" expected "' received '" x "'")))))
 
 (def ^{:metadata-spec "5.2"} context nil)
+
+(defn array? [x]
+  (vector? x))
+
+(def object? map?)
 
 (defn- get-json-type [x]
   (cond (array? x) "array"
         (number? x) "number"
         (string? x) "string"
         (boolean? x) "boolean"
-        (map? x) "object"
+        (object? x) "object"
         :else (throw (ex-info (str "Unknown JSON type for type " (type x))
                               {:type ::json-type-error
                                :value x}))))
 
+(defn- type-error [context expected-type value]
+  (make-error context (str "Expected " expected-type ", got " (get-json-type value))))
+
 (defn- expect-type [type-p type-name]
-  (fn [x]
+  (fn [context x]
     (if (type-p x)
       (v/pure x)
-      (v/of-error (str "Expected " type-name ", got " (get-json-type x))))))
-
-(defn array? [x]
-  (vector? x))
-(def object? map?)
+      (type-error context type-name x))))
 
 (def array (expect-type array? "array"))
 
-(defn validate-array [arr {:keys [length min-length] :as opts}]
+(defn validate-array [context arr {:keys [length min-length] :as opts}]
   (cond
     (and (some? length) (not= length (count arr)))
-    (v/of-error (format "Expected array to contain %d elements " length))
+    (make-error context (format "Expected array to contain %d elements" length))
 
     (and (some? min-length) (< (count arr) min-length))
-    (v/of-error (format "Expected array to contain at least %d elements" min-length))
+    (make-error context (format "Expected array to contain at least %d elements" min-length))
 
     :else (v/pure arr)))
 
 (defn array-with [opts]
-  (fn [x]
-    (->> (array x)
+  (fn [context x]
+    (->> (array context x)
          (v/bind (fn [arr]
-                   (validate-array arr opts))))))
+                   (validate-array context arr opts))))))
 
 (def number (expect-type number? "number"))
 (def bool (expect-type boolean? "boolean"))
 (def object (expect-type map? "object"))
 (def string (expect-type string? "string"))
 
-(defn character [x]
-  (if (string? x)
-    (if (= 1 (.length x))
-      (v/pure (.charAt x 0))
-      (v/of-error "Expected single character"))
-    (v/of-error "Expected string")))
+(defn character [context x]
+  (->> (string context x)
+       (v/bind (fn [s]
+                 (if (= 1 (.length s))
+                   (v/pure (.charAt s 0))
+                   (make-error context "Expected single character"))))))
 
-(defn compm [& fs]
-  (reduce (fn [acc f]
-            (fn [v]
-              (v/bind f (acc v)))) v/pure fs))
+(defn compm [& validators]
+  (reduce (fn [acc validator]
+            (fn [context value]
+              (v/bind (fn [v] (validator context v)) (acc context value)))) (fn [_c v] (v/pure v)) validators))
 
 (defn array-of
-  ([validator] (array-of validator {}))
-  ([f opts]
-   (compm (array-with opts)
-          (fn [arr]
-            (v/collect (map f arr))))))
+  ([element-validator] (array-of element-validator {}))
+  ([element-validator opts]
+   (fn [context x]
+     (v/bind (fn [arr]
+               (v/collect (map-indexed (fn [idx v]
+                                         (element-validator (append-path context idx) v)) arr)))
+             ((array-with opts) context x)))))
 
 (defn tuple [& fs]
   (compm (array-with {:length (count fs)})
@@ -88,11 +106,11 @@
            (v/collect (map (fn [f x] (f x)) fs arr)))))
 
 (defn try-parse-with [f]
-  (fn [x]
+  (fn [context x]
     (try
       (v/pure (f x))
       (catch Exception ex
-        (v/of-error (.getMessage ex))))))
+        (make-error context (.getMessage ex))))))
 
 (def uri (compm string (try-parse-with #(URI. %))))
 
@@ -101,43 +119,37 @@
 (defn ^{:metadata-spec "5.1.2"} link-property
   "Converts link properties to URIs, or logs a warning if the URI is invalid. Link properties are resolved
    at a higher level."
-  [x]
+  [context x]
   (if (string? x)
     (try
       (v/pure (URI. x))
       (catch URISyntaxException _ex
-        (v/with-warning (format "Link property '%s' cannot be parsed as a URI" x) default-uri)))
-    (v/with-warning (format "Invalid link property '%s': expected string containing URI, got %s" x (get-json-type x)) default-uri)))
+        (make-warning context (format "Link property '%s' cannot be parsed as a URI" x) default-uri)))
+    (make-warning context (format "Invalid link property '%s': expected string containing URI, got %s" x (get-json-type x)) default-uri)))
 
-(defn ^{:metadata-spec "5.1.3"} template-property [x]
-  (v/bind (fn [s]
-            (if-let [t (template/try-parse-template s)]
-              (v/pure t)
-              (v/of-error (str "Invalid URI template: '" s "'"))))
-          (string x)))
+(defn ^{:metadata-spec "5.1.3"} template-property [context x]
+  (->> (string context x)
+       (v/bind (fn [s]
+                 (if-let [t (template/try-parse-template s)]
+                   (v/pure t)
+                   (make-error context (str "Invalid URI template: '" s "'")))))))
 
-(defn each [& fs]
-  (fn [x]
-    (let [vs (map (fn [f] (f x)) fs)
-          collected (v/collect vs)]
-      collected)))
+(defn each [& validators]
+  (fn [context x]
+    (let [vs (map (fn [validator] (validator context x)) validators)]
+      (v/collect vs))))
 
-(defn prefix-errors-key-name [key validation]
-  (v/map-errors (fn [err] (str "Key '" key "': " err)) validation))
-
-(defn required-key [k vf]
-  (fn [m]
+(defn required-key [k value-validator]
+  (fn [context m]
     (if (contains? m k)
-      (->> (vf (get m k))
-           (prefix-errors-key-name k)
+      (->> (value-validator (append-path context k) (get m k))
            (v/fmap (fn [v] [k v])))
-      (v/of-error (str "Missing required key '" k "'")))))
+      (make-error context (str "Missing required key '" k "'")))))
 
-(defn optional-key [k vf & {:keys [default]}]
-  (fn [m]
+(defn optional-key [k value-validator & {:keys [default]}]
+  (fn [context m]
     (if (contains? m k)
-      (->> (vf (get m k))
-           (prefix-errors-key-name k)
+      (->> (value-validator (append-path context k) (get m k))
            (v/fmap (fn [v] [k v])))
       (v/pure [k default]))))
 
@@ -151,78 +163,72 @@
       (fn [pairs]
         (v/pure (into {} pairs))))))
 
-(defn map-of [key-validator value-validator]
-  (fn [obj]
-    (let [pair-validator (tuple key-validator value-validator)
-          validations (map pair-validator obj)]
-      (v/fmap #(into {} %) (v/collect validations)))))
-
-(defn validate-language-code [s]
+(defn validate-language-code [context s]
   (try
     (do
       (.setLanguage (Locale$Builder.) s)
       ;;TODO: validate against known list of language codes?
       (v/pure s))
     (catch IllformedLocaleException _ex
-      (v/with-warning (str "Invalid language code: '" s "'") nil))))
+      (make-warning context (str "Invalid language code: '" s "'") nil))))
 
-(defn language-code [x]
+(defn language-code [context x]
   (if (string? x)
-    (validate-language-code x)
-    (v/with-warning (str "Expected language code, got " (get-json-type x)) nil)))
+    (validate-language-code context x)
+    (make-warning context (str "Expected language code, got " (get-json-type x)) nil)))
 
-(defn language-code-array [arr]
+(defn language-code-array [context arr]
   (v/fmap (fn [codes]
             (vec (remove nil? codes)))
-          ((array-of language-code) arr)))
+          ((array-of language-code) context arr)))
 
-(defn language-code-map-value [v]
-  (cond (string? v) (language-code v)
-        (array? v) (language-code-array v)
-        :else (v/with-warning (str "Expected language code or language code array, got " (get-json-type v)) nil)))
+(defn language-code-map-value [context v]
+  (cond (string? v) (language-code context v)
+        (array? v) (language-code-array context v)
+        :else (make-warning context (str "Expected language code or language code array, got " (get-json-type v)) nil)))
 
-(defn ^{:metadata-spec "5.1.6"} natural-language [x]
+(defn ^{:metadata-spec "5.1.6"} natural-language [context x]
   (cond
-    (string? x) (validate-language-code x)
-    (array? x) (language-code-array x)
+    (string? x) (validate-language-code context x)
+    (array? x) (language-code-array context x)
     (object? x) (let [pair-validator (tuple language-code language-code-map-value)]
                   (v/fmap (fn [pairs]
                             ;;ignore any pairs with invalid key or value
                             (into {} (remove (fn [[k v]] (or (nil? k) (nil? v))) pairs)))
                           (v/collect (map pair-validator x))))
-    :else (v/with-warning "Expected string, array or object for natual language property" [])))
+    :else (make-warning context "Expected string, array or object for natual language property" [])))
 
-(defn encoding [x]
+(defn encoding [context x]
   ;;NOTE: some valid encodings defined in https://www.w3.org/TR/encoding/
   ;;may not be supported by the underlying platform, reject these as invalid
-  (v/bind (fn [s]
-            (try
-              (if (Charset/isSupported s)
-                (v/pure s)
-                (v/of-error (str "Invalid encoding: '" s "'")))
-              (catch IllegalCharsetNameException _ex
-                (v/of-error (str "Invalid encoding: '" s "'")))))
-          (string x)))
+  (->> (string context x)
+       (v/bind (fn [s]
+                 (try
+                   (if (Charset/isSupported s)
+                     (v/pure s)
+                     (make-error context (str "Invalid encoding: '" s "'")))
+                   (catch IllegalCharsetNameException _ex
+                     (make-error context (str "Invalid encoding: '" s "'"))))))))
 
 ;;TODO: merge with tabular.csv.dialect/parse-trim
 (def trim-modes {"true" :all "false" :none "start" :start "end" :end})
 
 (defn mapping [m]
-  (fn [k]
+  (fn [context k]
     (if (contains? m k)
       (v/pure (get m k))
-      (v/of-error (str "Expected one of " (string/join ", " (keys m)))))))
+      (make-error context (str "Expected one of " (string/join ", " (keys m)))))))
 
-(defn trim-mode [x]
+(defn trim-mode [context x]
   (cond (boolean? x) (v/pure (if x :all :none))
         (string? x) ((mapping trim-modes) x)
-        :else (v/of-error (str "Expected boolean or string, got " (get-json-type x)))))
+        :else (make-error context (str "Expected boolean or string, got " (get-json-type x)))))
 
 (defn where [pred desc]
-  (fn [x]
+  (fn [context x]
     (if (pred x)
       (v/pure x)
-      (v/of-error (str "Expected '" x "' to be " desc)))))
+      (make-error context (str "Expected '" x "' to be " desc)))))
 
 (def non-negative (compm number (where pos? "positive")))
 
@@ -232,16 +238,17 @@
   (each (tuple
           (eq csvw-ns)
           (object-of {:optional {"@base"     uri
-                                 "@language" (compm language-code v/warnings-as-errors)}}))
+                                 "@language" (fn [context x]
+                                               (v/warnings-as-errors (language-code context x)))}}))
         (fn [[_ns m]]
           (if (or (contains? m "@base") (contains? m "@language"))
             (v/pure m)
             (v/of-error "Top-level object must contain @base or @language keys")))))
 
-(defn top-level-object [x]
+(defn top-level-object [context x]
   (cond (string? x) ((eq csvw-ns) x)
         (array? x) (context-pair x)
-        :else (v/of-error (str "Expected namespace string or pair of namespace and local context definition, got " (get-json-type x)))))
+        :else (make-error context (str "Expected namespace string or pair of namespace and local context definition, got " (get-json-type x)))))
 
 (def parse-variable-method
   (let [m (.getDeclaredMethod VariableSpecParser "parseFullName" (into-array [CharBuffer]))]
@@ -254,31 +261,29 @@
     (catch InvocationTargetException ex
       (throw (.getCause ex)))))
 
-(defn uri-template-variable [s]
+(defn uri-template-variable [context s]
   (try
     (let [result (parse-uri-template-variable s)]
       ;;parseFullName returns the prefix of the input that could be parsed
       (if (= result s)
         (v/pure s)
-        (v/of-error (str "Invalid template variable: '" s "'"))))
+        (make-error context (str "Invalid template variable: '" s "'"))))
     (catch URITemplateParseException _ex
-      (v/of-error (str "Invalid template variable: '" s "'")))))
+      (make-error context (str "Invalid template variable: '" s "'")))))
 
-(defn ^{:template-spec "5.6"} column-name [x]
+(defn ^{:template-spec "5.6"} column-name [context x]
   (v/bind (fn [s]
             (if (.startsWith s "_")
-              (v/of-error "Columns names cannot begin with _")
-              (uri-template-variable s)))
-          (string x)))
+              (make-error context "Columns names cannot begin with _")
+              (uri-template-variable context s)))
+          (string context x)))
 
-(def ^{:doc "An id is a link property whose value cannot begin with _:"} id
-  (compm
-    string
-    (fn [s]
-      (if (.startsWith s "_:")
-        (v/of-error "Ids cannot start with _:")
-        (v/pure s)))
-    (try-parse-with #(URI. %))))
+(defn ^{:doc "An id is a link property whose value cannot begin with _:"} id [context x]
+  (->> (string context x)
+       (v/bind (fn [s]
+                 (if (.startsWith s "_:")
+                   (make-error context "Ids cannot start with _:")
+                   ((try-parse-with #(URI. %)) context s))))))
 
 (def column
   (object-of
@@ -296,17 +301,17 @@
        (filter (fn [[n count]] (> count 1)))
        (map first)))
 
-(defn ^{:metadata-spec "5.5"} validate-column-names [columns]
+(defn ^{:metadata-spec "5.5"} validate-column-names [context columns]
   ;;columns property: The name properties of the column descriptions MUST be unique within a given table description.
   (let [duplicate-names (get-duplicate-names columns)]
     (if (seq duplicate-names)
-      (v/of-error (str "Duplicate names for columns: " (string/join ", " duplicate-names)))
+      (make-error context (str "Duplicate names for columns: " (string/join ", " duplicate-names)))
       (v/pure nil))))
 
 (defn get-column-name [column]
   (get column "name"))
 
-(defn ^{:metadata-spec "5.6"} validate-virtual-columns [columns]
+(defn ^{:metadata-spec "5.6"} validate-virtual-columns [context columns]
   ;;virtual property: If present, a virtual column MUST appear after all other non-virtual column definitions.
   (let [non-virtual? (fn [col] (= false (get col "virtual")))
         virtual-columns (drop-while non-virtual? columns)
@@ -316,23 +321,23 @@
             msg (format "Non-virtual columns %s defined after first virtual column %s - All virtual columns must exist after all non-virtual columns"
                         (string/join ", " (map get-column-name invalid-columns))
                         (get-column-name first-virtual))]
-        (v/of-error msg))
+        (make-error context msg))
       (v/pure nil))))
 
-(defn validate-columns [columns]
-  (let [names-val (validate-column-names columns)
-        virtual-val (validate-virtual-columns columns)]
+(defn validate-columns [context columns]
+  (let [names-val (validate-column-names context columns)
+        virtual-val (validate-virtual-columns context columns)]
     (v/combine names-val virtual-val)))
 
-(defn columns [x]
+(defn columns [context x]
   (v/bind (fn [cols]
-            (v/fmap (constantly cols) (validate-columns cols)))
-          ((array-of column) x)))
+            (v/fmap (constantly cols) (validate-columns context cols)))
+          ((array-of column) context x)))
 
-(defn line-terminators [x]
+(defn line-terminators [context x]
   (cond (string? x) (v/pure [x])
-        (array? x) ((array-of string) x)
-        :else (v/of-error (str "Expected string or string array, got " (get-json-type x)))))
+        (array? x) ((array-of string) context x)
+        :else (make-error context (str "Expected string or string array, got " (get-json-type x)))))
 
 (def dialect
   (object-of
@@ -368,27 +373,27 @@
                 }}))
 
 (defn one-of [values]
-  (fn [x]
+  (fn [context x]
     (if (contains? values x)
       (v/pure x)
-      (v/of-error (str "Expected one of " (string/join ", " values))))))
+      (make-error context (str "Expected one of " (string/join ", " values))))))
 
 (def table-direction (one-of #{"rtl" "ltr" "auto"}))
 
 (defn linked-object
   "Object which may be specified in line in the metadata document or referenced through a URI"
   [validator]
-  (fn [x]
-    (cond (string? x) (v/of-error "TODO: resolve URI and validate") ;;TODO: implement
-          (map? x) (validator x)
-          :else (v/of-error (str "Expected URI or object, got " (get-json-type x))))))
+  (fn [context x]
+    (cond (string? x) (make-error context "TODO: resolve URI and validate") ;;TODO: implement
+          (map? x) (validator context x)
+          :else (make-error context (str "Expected URI or object, got " (get-json-type x))))))
 
-(defn ^{:metadata-spec "5.1.4"} column-reference [x]
+(defn ^{:metadata-spec "5.1.4"} column-reference [context x]
   ;;TODO: validation that each referenced column exists occurs at higher-level
   (cond (string? x) (v/pure x)                              ;;TODO: always return vector of column references?
-        (array? x) (cond (= 0 (count x)) (v/with-warning "Column references should not be empty" nil)
-                          (not-every? string? x) (v/with-warning "Column references should all be strings" nil)
-                          :else (v/pure x))))
+        (array? x) (cond (= 0 (count x)) (make-warning context "Column references should not be empty" nil)
+                         (not-every? string? x) (make-warning context "Column references should all be strings" nil)
+                         :else (v/pure x))))
 (def foreign-key
   (object-of
     {:required {"columnReference" column-reference
@@ -404,15 +409,18 @@
                 "@type" (eq "Schema")
                 }}))
 
+(defn any [context x]
+  (v/pure x))
+
 ;;TODO: The properties on these objects are interpreted equivalently to common properties as described in section 5.8 Common Properties.
-(def note v/pure)
+(def note any)
 
 (def transformation-source-types #{"json" "rdf"})
 
-(defn validate-transformation-source [s]
+(defn validate-transformation-source [context s]
   (if (contains? transformation-source-types s)
     (v/pure (keyword s))
-    (v/with-warning (str "Expected one of " (string/join ", " transformation-source-types)) nil)))
+    (make-warning context (str "Expected one of " (string/join ", " transformation-source-types)) nil)))
 
 (def transformation-source
   (compm string validate-transformation-source))
@@ -456,81 +464,78 @@
 (def datatype-name
   (compm string (one-of datatype/type-names)))
 
-(defn datatype-format [x]
-  ;;TODO: implement!
-  (v/pure x)
-  )
+;;TODO: implement!
+(def datatype-format any)
 
-(defn datatype-bound [x]
+(defn datatype-bound [context x]
   (if (or (number? x) (string? x))
     (v/pure x)
-    (v/of-error (str "Expected string or number, got " (get-json-type x)))))
+    (make-error context (str "Expected string or number, got " (get-json-type x)))))
 
 (defn ^{:metadata-spec "5.11.2"} validate-derived-datatype
-  [{:strs [base length minLength maxLength minimum minInclusive minExclusive maximum maxInclusive maxExclusive] :as dt}]
+  [context {:strs [base length minLength maxLength minimum minInclusive minExclusive maximum maxInclusive maxExclusive] :as dt}]
   (cond
     ;;applications MUST raise an error if both length and minLength are specified and length is less than minLength
     (and (some? length) (some? minLength) (< length minLength))
-    (v/of-error "Length must be >= minLength")
+    (make-error context "Length must be >= minLength")
 
     ;;applications MUST raise an error if both length and maxLength are specified and length is greater than maxLength
     (and (some? length) (some? maxLength) (> length maxLength))
-    (v/of-error "Length must be <= maxLength")
+    (make-error context "Length must be <= maxLength")
 
     ;;applications MUST raise an error if minLength and maxLength are both specified and minLength is greater than maxLength
     (and (some? minLength) (some? maxLength) (> minLength maxLength))
-    (v/of-error "minLength must be <= maxLength")
+    (make-error context "minLength must be <= maxLength")
 
     ;;applications MUST raise an error if length, maxLength, or minLength are specified and the base datatype is
     ;;neither string, a subtype of string, nor a binary type
     (and (or (some? length) (some? minLength) (some? maxLength))
          (not (or (datatype/is-subtype? "string" base) (datatype/is-binary-type? base))))
-    (v/of-error "length, minLength and maxLength properties only valid on string or binary data types")
+    (make-error context "length, minLength and maxLength properties only valid on string or binary data types")
 
     ;;Applications MUST raise an error if both minimum and minInclusive are specified and they do not have the same value
     (and (some? minimum) (some? minInclusive) (not= minimum minInclusive))
-    (v/of-error "minimum and minInclusive must be equal when both specified")
+    (make-error context "minimum and minInclusive must be equal when both specified")
 
     ;;applications MUST raise an error if both maximum and maxInclusive are specified and they do not have the same value
     (and (some? maximum) (some? maxInclusive) (not= maximum maxInclusive))
-    (v/of-error "maximum and maxInclusive must be equal when both specified")
+    (make-error context "maximum and maxInclusive must be equal when both specified")
 
     ;;applications MUST raise an error if both minInclusive and minExclusive are specified
     (and (some? minInclusive) (some? minExclusive))
-    (v/of-error "Cannot specify both minInclusive and minExclusive")
+    (make-error context "Cannot specify both minInclusive and minExclusive")
 
     ;;...or if both maxInclusive and maxExclusive are specified
     (and (some? maxInclusive) (some? maxExclusive))
-    (v/of-error "Cannot specify both maxInclusive and maxExclusive")
+    (make-error context "Cannot specify both maxInclusive and maxExclusive")
 
     ;;Applications MUST raise an error if both minInclusive and maxInclusive are specified and maxInclusive is less than minInclusive
     (and (some? minInclusive) (some? maxInclusive) (< maxInclusive minInclusive))
-    (v/of-error "minInclusive must be <= maxInclusive")
+    (make-error context "minInclusive must be <= maxInclusive")
 
     ;;...or if both minInclusive and maxExclusive are specified and maxExclusive is less than or equal to minInclusive
     (and (some? minInclusive) (some? maxExclusive) (<= maxExclusive minInclusive))
-    (v/of-error "minInclusive must be < maxExclusive")
+    (make-error context "minInclusive must be < maxExclusive")
 
     ;;applications MUST raise an error if both minExclusive and maxExclusive are specified and maxExclusive is less than minExclusive
     (and (some? minExclusive) (some? maxExclusive) (< maxExclusive minExclusive))
-    (v/of-error "minExclusive must be <= maxExclusive")
+    (make-error context "minExclusive must be <= maxExclusive")
 
     ;;...or if both minExclusive and maxInclusive are specified and maxInclusive is less than or equal to minExclusive
     (and (some? minExclusive) (some? maxInclusive) (<= maxInclusive minExclusive))
-    (v/of-error "maxInclusive must be > minExclusive")
+    (make-error context "maxInclusive must be > minExclusive")
 
     ;;Applications MUST raise an error if minimum, minInclusive, maximum, maxInclusive, minExclusive, or maxExclusive
     ;;are specified and the base datatype is not a numeric, date/time, or duration type
     (and (or (some? minimum) (some? minInclusive) (some? maximum) (some? maxInclusive) (some? minExclusive) (some? maxExclusive))
          (not (or (datatype/is-numeric-type? base) (datatype/is-date-time-type? base) (datatype/is-duration-type? base))))
-    (v/of-error "minimum, minInclusive, maximum, maxInclusvie, minExclusive, maxExclusive only valid for numeric, date/time or duration types")
+    (make-error context "minimum, minInclusive, maximum, maxInclusvie, minExclusive, maxExclusive only valid for numeric, date/time or duration types")
 
     :else (v/pure dt)))
 
-(defn validate-datatype-id [id]
-  ;;TODO: implement!
-  ;;datatype id MUST NOT be the URL of a built-in datatype.
-  (v/pure id))
+;;TODO: implement!
+;;datatype id MUST NOT be the URL of a built-in datatype.
+(def validate-datatype-id any)
 
 (def derived-datatype
   (compm
@@ -551,15 +556,15 @@
                   }})
     validate-derived-datatype))
 
-(defn datatype [x]
+(defn datatype [context x]
   (cond (string? x) (datatype-name x)
         (object? x) (derived-datatype x)
-        :else (v/of-error (str "Expected data type name or derived datatype object, got " (get-json-type x)))))
+        :else (make-error context (str "Expected data type name or derived datatype object, got " (get-json-type x)))))
 
-(defn null-value [x]
+(defn null-value [context x]
   (cond (string? x) (v/pure [x])
         (array? x) ((array-of string) x)
-        :else (v/of-error (str "Expected string or string array, got " (get-json-type x)))))
+        :else (make-error context (str "Expected string or string array, got " (get-json-type x)))))
 
 (def inherited-properties
   (object-of
