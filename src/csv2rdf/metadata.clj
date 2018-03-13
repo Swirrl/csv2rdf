@@ -170,22 +170,54 @@
            (v/fmap (fn [v] [k v])))
       (make-error context (str "Missing required key '" k "'")))))
 
-(defn optional-key [k value-validator & {:keys [default]}]
+(defn optional-key [k value-validator]
   (fn [context m]
     (if (contains? m k)
       (->> (value-validator (append-path context k) (get m k))
            (v/fmap (fn [v] [k v])))
-      (v/pure [k default]))))
+      (v/pure [k nil]))))
 
-(defn object-of [{:keys [required optional defaults]}]
+(defn common-property-key? [k]
+  ;;TODO: improve?
+  (.contains k ":"))
+
+(defn common-property-pair [context [k v]]
+  (if (common-property-key? k)
+    (v/pure [k v])
+    (make-error context (str "Invalid common property key '" k "'"))))
+
+(defn invalid-key-pair [context [k _]]
+  (make-error context (str "Invalid key '" k "'")))
+
+(defn map-keys [f m]
+  (into {} (map (fn [[k v]] [(f k) v]) m)))
+
+(defn partition-keys [source-map ref-map]
+  (let [ref-keys (keys ref-map)]
+    [(select-keys source-map ref-keys) (apply dissoc source-map ref-keys)]))
+
+(defn object-of [{:keys [required optional allow-common-properties?]}]
   (let [required-keys (map (fn [[k v]] (required-key k v)) required)
-        optional-keys (map (fn [[k v]] (optional-key k v :default (get defaults k))) optional)
-        keys-f (apply each (concat required-keys optional-keys))]
-    (compm
-      object
-      keys-f
-      (fn [pairs]
-        (v/pure (into {} pairs))))))
+        optional-keys (map (fn [[k v]] (optional-key k v)) optional)]
+    (fn [context x]
+      (->> (object context x)
+           (v/bind (fn [obj]
+                     (let [[required-obj opt-obj] (partition-keys obj required)
+                           [optional-obj remaining-obj] (partition-keys opt-obj optional)
+                           required-validations (map (fn [validator] (validator context required-obj)) required-keys)
+                           optional-validations (map (fn [validator] (validator context optional-obj)) optional-keys)
+                           declared-pairs-validation (v/collect (concat required-validations optional-validations))
+                           declared-validation (v/fmap (fn [pairs]
+                                                         (map-keys keyword (into {} pairs)))
+                                                       declared-pairs-validation)]
+                       (if allow-common-properties?
+                         (let [common-pairs-validation (v/collect (map (fn [p] (common-property-pair context p)) remaining-obj))
+                               common-validation (v/fmap #(into {} %) common-pairs-validation)]
+                           (v/fmap (fn [[declared common]]
+                                     (assoc declared ::common-properties common))
+                                   (v/collect [declared-validation common-validation])))
+                         (let [invalid-validation (v/collect (map (fn [p] (invalid-key-pair context p)) remaining-obj))]
+                           (v/combine invalid-validation declared-validation))))))))))
 
 (defn validate-language-code [context s]
   (try
@@ -307,15 +339,6 @@
                    (make-error context "Ids cannot start with _:")
                    ((try-parse-with #(URI. %)) context s))))))
 
-(def column
-  (object-of
-    {:optional {"name"           column-name                             ;;TODO: use first title as name if not provided, see spec
-                "suppressOutput" bool
-                "titles"         natural-language                   ;;TODO: should be array?
-                "virtual"        bool
-                "@id"            id
-                }}))
-
 (defn get-duplicate-names [columns]
   (->> columns
        (map #(get % "name"))
@@ -360,39 +383,6 @@
   (variant {:string any
             :array (array-of string)}))
 
-(def dialect
-  (object-of
-    {:optional {"commentPrefix" character
-                "delimiter" character
-                "doubleQuote" bool
-                "encoding" encoding
-                "header" bool
-                "headerRowCount" non-negative
-                "lineTerminators" line-terminators
-                "quoteChar" character
-                "skipBlankRows" bool
-                "skipColumns" non-negative
-                "skipInitialSpace" bool
-                "skipRows" non-negative
-                "trimMode" trim-mode
-                "@id" id
-                "@type" (eq "Dialect")
-                }
-     :defaults {"commentPrefix" \#
-                "delimiter" \,
-                "doubleQuote" true
-                "encoding" "utf-8"
-                "header" true
-                "headerRowCount" 1
-                "lineTerminators" ["\r\n", "\n"]
-                "quoteChar" \"
-                "skipBlankRows" false
-                "skipColumns" 0
-                "skipInitialSpace" false
-                "skipRows" 0
-                "trimMode" :all
-                }}))
-
 (defn one-of [values]
   (fn [context x]
     (if (contains? values x)
@@ -417,21 +407,6 @@
                          :else (v/pure x))
         :else (make-warning context (type-error-message [:string :array] (get-json-type x)) nil)))
 
-(def foreign-key
-  (object-of
-    {:required {"columnReference" column-reference
-                "reference"       object                    ;;TODO: specify reference
-                }}))
-(def schema
-  (object-of
-    {:optional {"columns" columns
-                "foreignKeys" (array-of foreign-key)        ;;TODO: validate foreign keys
-                "primaryKey" column-reference               ;;TODO: validators MUST check that each row has a unique combination of values of cells in the indicated columns
-                "rowTitles" column-reference
-                "@id" id
-                "@type" (eq "Schema")
-                }}))
-
 ;;TODO: The properties on these objects are interpreted equivalently to common properties as described in section 5.8 Common Properties.
 (def note any)
 
@@ -444,42 +419,6 @@
 
 (def transformation-source
   (compm string validate-transformation-source))
-
-(def transformation
-  (object-of
-    {:required {"url" link-property
-                "scriptFormat" link-property
-                "targetFormat" link-property}
-     :optional {"source" transformation-source
-                "titles" natural-language
-                "@id" id
-                "@type" "Template"}}))
-
-(def table
-  (object-of
-    {:required {"url" link-property}
-     :optional {"notes" (array-of note)
-                "suppressOutput" bool
-                "tableDirection" table-direction
-                "tableSchema" (object-property schema)
-                "transformations" (array-of transformation)
-                "@id" id
-                "@type" (eq "Table")
-                }
-     :defaults {"suppressOutput" false
-                "tableDirection" "auto"}}))
-
-(def table-group
-  (object-of
-    {:required {"tables" (array-of table {:min-length 1})}
-     :optional {"dialect"         (object-property dialect)
-                "notes"           (array-of note)
-                "tableDirection"  table-direction
-                "tableSchema"     (object-property schema)
-                "transformations" (array-of transformation)
-                "@id"             id
-                "@type"           (eq "TableGroup")}
-     :defaults {"tableDirection" "auto"}}))
 
 (def datatype-name
   (compm string (one-of datatype/type-names)))
@@ -581,23 +520,132 @@
 (def null-value (variant {:string any :array (array-of string)}))
 
 (def inherited-properties
+  {"aboutUrl" template-property
+   "datatype" datatype                         ;;TODO: The normalized value of this property becomes the datatype annotation for the described column.
+   "default" string
+   "lang" language-code
+   "null" null-value
+   "ordered" boolean
+   "propertyUrl" template-property
+   "required" boolean
+   "separator" string
+   "tableDirection" (one-of #{"ltr" "rtl" "auto" "inherit"}) ;;NOTE: different to table-direction
+   "valueUrl" template-property
+   })
+
+(def inherited-defaults
+  {"default" ""
+   "lang" "und"
+   "null" [""]
+   "ordered" false
+   "required" false
+   "separator" nil
+   "tableDirection" "inherit"})
+
+(defn validate-metadata [context declared-keys m]
+  (let [validate-kvp (fn [[k v]]
+                       (cond (contains? declared-keys k)
+                             (let [value-validator (get declared-keys k)
+                                   value-validation (value-validator (append-path context k) v)]
+                               (v/fmap (fn [value] [[(keyword k)] value]) value-validation))
+
+                             (common-property-key? k)
+                             (v/pure [[::common-properties k] v])
+
+                             :else (make-error context (str "Invalid metadata key '" k "'"))))
+        pairs-validation (v/collect (map validate-kvp m))]
+    (v/fmap (fn [pairs]
+              (reduce (fn [acc [k v]]
+                        (assoc-in acc k v))
+                      {}
+                      pairs))
+            pairs-validation)))
+
+(defn metadata-of [{:keys [required optional]}]
+  (object-of {:required required
+              :optional (merge inherited-properties optional)
+              :allow-common-properties? true}))
+
+(def column
+  (metadata-of
+    {:optional {"name"           column-name                             ;;TODO: use first title as name if not provided, see spec
+                "suppressOutput" bool
+                "titles"         natural-language                   ;;TODO: should be array?
+                "virtual"        bool
+                "@id"            id
+                "@type" (eq "Column")}}))
+
+;;NOTE: transformations may contain common properties but not inherited properties?
+(def transformation
   (object-of
-    {:optional {"aboutUrl" template-property
-                "datatype" datatype                         ;;TODO: The normalized value of this property becomes the datatype annotation for the described column.
-                "default" string
-                "lang" language-code
-                "null" null-value
-                "ordered" boolean
-                "propertyUrl" template-property
-                "required" boolean
-                "separator" string
-                "tableDirection" (one-of #{"ltr" "rtl" "auto" "inherit"}) ;;NOTE: different to table-direction
-                "valueUrl" template-property
-                }
-     :defaults {"default" ""
-                "lang" "und"
-                "null" [""]
-                "ordered" false
-                "required" false
-                "separator" nil
-                "tableDirection" "inherit"}}))
+    {:required {"url" link-property
+                "scriptFormat" link-property
+                "targetFormat" link-property}
+     :optional {"source" transformation-source
+                "titles" natural-language
+                "@id" id
+                "@type" (eq "Template")}
+     :allow-common-properties? false}))
+
+(def table-defaults
+  {"suppressOutput" false
+   "tableDirection" "auto"})
+
+(def foreign-key
+  (object-of
+    {:required {"columnReference" column-reference
+                "reference"       object                    ;;TODO: specify reference
+                }}))
+
+(def schema
+  (metadata-of
+    {:optional {"columns" columns
+                "foreignKeys" (array-of foreign-key)        ;;TODO: validate foreign keys
+                "primaryKey" column-reference               ;;TODO: validators MUST check that each row has a unique combination of values of cells in the indicated columns
+                "rowTitles" column-reference
+                "@id" id
+                "@type" (eq "Schema")}}))
+
+(def table
+  (metadata-of
+    {:required {"url" link-property}
+     :optional {"notes" (array-of note)
+                "suppressOutput" bool
+                "tableDirection" table-direction
+                "tableSchema" (object-property schema)
+                "transformations" (array-of transformation)
+                "@id" id
+                "@type" (eq "Table")}}))
+
+(def dialect
+  (object-of
+    {:optional {"commentPrefix" character
+                "delimiter" character
+                "doubleQuote" bool
+                "encoding" encoding
+                "header" bool
+                "headerRowCount" non-negative
+                "lineTerminators" line-terminators
+                "quoteChar" character
+                "skipBlankRows" bool
+                "skipColumns" non-negative
+                "skipInitialSpace" bool
+                "skipRows" non-negative
+                "trimMode" trim-mode
+                "@id" id
+                "@type" (eq "Dialect")}
+     :allow-common-properties? false}))
+
+(def table-group-defaults
+  {"tableDirection" "auto"})
+
+(def table-group
+  (metadata-of
+    {:required {"tables" (array-of table {:min-length 1})}
+     :optional {"dialect"         (object-property dialect)
+                "notes"           (array-of note)
+                "tableDirection"  table-direction
+                "tableSchema"     (object-property schema)
+                "transformations" (array-of transformation)
+                "@id"             id
+                "@type"           (eq "TableGroup")}}))
