@@ -50,14 +50,17 @@
 (defn- get-json-type-name [x]
   (name (get-json-type x)))
 
-(defn- type-error [context permitted-types actual-type]
+(defn type-error-message [permitted-types actual-type]
   (let [c (count permitted-types)]
     (case c
-      0 (make-error context (str "Unexpected type " (name actual-type)))
-      1 (make-error context (str "Expected " (name (first permitted-types)) " but got " (name actual-type)))
+      0 (str "Unexpected type " (name actual-type))
+      1 (str "Expected " (name (first permitted-types)) " but got " (name actual-type))
       (let [[except-last [last]] (split-at (dec c) (map name permitted-types))
             list (str (string/join ", " except-last) " or " last)]
-        (make-error context (str "Expected " list " but got " (name actual-type)))))))
+        (str "Expected " list " but got " (name actual-type))))))
+
+(defn- type-error [context permitted-types actual-type]
+  (make-error context (type-error-message permitted-types actual-type)))
 
 (defn- expect-type [expected-type]
   (fn [context x]
@@ -398,7 +401,7 @@
 
 (def table-direction (one-of #{"rtl" "ltr" "auto"}))
 
-(defn linked-object
+(defn object-property
   "Object which may be specified in line in the metadata document or referenced through a URI"
   [validator]
   (fn [context x]
@@ -411,7 +414,9 @@
   (cond (string? x) (v/pure x)                              ;;TODO: always return vector of column references?
         (array? x) (cond (= 0 (count x)) (make-warning context "Column references should not be empty" nil)
                          (not-every? string? x) (make-warning context "Column references should all be strings" nil)
-                         :else (v/pure x))))
+                         :else (v/pure x))
+        :else (make-warning context (type-error-message [:string :array] (get-json-type x)) nil)))
+
 (def foreign-key
   (object-of
     {:required {"columnReference" column-reference
@@ -456,7 +461,7 @@
      :optional {"notes" (array-of note)
                 "suppressOutput" bool
                 "tableDirection" table-direction
-                "tableSchema" (linked-object schema)
+                "tableSchema" (object-property schema)
                 "transformations" (array-of transformation)
                 "@id" id
                 "@type" (eq "Table")
@@ -467,10 +472,10 @@
 (def table-group
   (object-of
     {:required {"tables" (array-of table {:min-length 1})}
-     :optional {"dialect"         (linked-object dialect)
+     :optional {"dialect"         (object-property dialect)
                 "notes"           (array-of note)
                 "tableDirection"  table-direction
-                "tableSchema"     (linked-object schema)
+                "tableSchema"     (object-property schema)
                 "transformations" (array-of transformation)
                 "@id"             id
                 "@type"           (eq "TableGroup")}
