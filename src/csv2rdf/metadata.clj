@@ -28,13 +28,16 @@
   (update context :path conj path-element))
 
 (defn make-context [base-uri]
-  {:base-uri base-uri :path [] :default-language nil})
+  {:base-uri base-uri :path [] :language nil})
+
+(defn language-code-or-default [{:keys [language] :as context}]
+  (or language "und"))
 
 (defn update-from-local-context
   "Updates the context from a parsed local context definition"
   [context local-context]
   (let [key-mapping {base-key     :base-uri
-                     language-key :default-language}
+                     language-key :language}
         from-local (util/select-keys-as local-context key-mapping)
         local (util/filter-values some? from-local)]
     (merge context local)))
@@ -262,21 +265,53 @@
             (vec (remove nil? codes)))
           ((array-of language-code) context arr)))
 
-(defn language-code-map-value [context v]
+(defn language-code->array [code]
+  (if (some? code) code []))
+
+(defn ^{:metadata-spec "6.6"} normalise-language-code-natural-language-property [context code]
+  (v/pure {(language-code-or-default context) (language-code->array code)}))
+
+(defn ^{:metadata-spec "6.6"} normalise-language-code-array-natural-language-property [context codes]
+  (v/pure {(language-code-or-default context) codes}))
+
+(defn ^{:metadata-spec "5.1.6"} language-code-map-value
+  "Validates a value in a natual language property defined as an object. Values can be either strings or string
+   arrays. Returns nil if the value is invalid."
+  [context v]
   (cond (string? v) (language-code context v)
         (array? v) (language-code-array context v)
         :else (make-warning context (str "Expected language code or language code array, got " (get-json-type-name v)) nil)))
 
-(defn ^{:metadata-spec "5.1.6"} natural-language [context x]
+(defn ^{:metadata-spec "5.1.6"} language-object-pair
+  "Validates a language code -> string or string array pair within a natural language property defined as an object.
+   Returns a validation containing a pair language code -> string array if valid or nil if invalid. A pair is invalid
+   if either the key or value is invalid."
+  [context [code-key value]]
+  (v/bind (fn [code]
+            (v/fmap (fn [value]
+                      ;;return nil to indicate pair is invalid if either code or value is invalid
+                      ;;if value is mapped to single language code, lift it into an array
+                      (cond (nil? code) nil
+                            (nil? value) nil
+                            (string? value) [code [value]]
+                            :else [code value]))
+                    (language-code-map-value (append-path context code) value)))
+          (language-code context code-key)))
+
+(defn language-code-object [context obj]
+  (v/fmap (fn [pairs]
+            (into {} (remove nil? pairs)))
+          (v/collect (map (fn [pair] (language-object-pair context pair)) obj))))
+
+(defn ^{:metadata-spec "5.1.6"} natural-language
+  "Parses a natural language property according to the specification. Normalises the result into a map of language
+   codes to an array of associated values. Uses the default language if none specified in the context."
+  [context x]
   (cond
-    (string? x) (validate-language-code context x)
-    (array? x) (language-code-array context x)
-    (object? x) (let [pair-validator (tuple language-code language-code-map-value)]
-                  (v/fmap (fn [pairs]
-                            ;;ignore any pairs with invalid key or value
-                            (into {} (remove (fn [[k v]] (or (nil? k) (nil? v))) pairs)))
-                          (v/collect (map pair-validator x))))
-    :else (make-warning context "Expected string, array or object for natual language property" [])))
+    (string? x) ((compm language-code normalise-language-code-natural-language-property) context x)
+    (array? x) ((compm language-code-array normalise-language-code-array-natural-language-property) context x)
+    (object? x) (language-code-object context x)
+    :else (make-warning context "Expected string, array or object for natual language property" {(language-code-or-default context) []})))
 
 (defn encoding [context x]
   ;;NOTE: some valid encodings defined in https://www.w3.org/TR/encoding/
