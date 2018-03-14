@@ -28,7 +28,7 @@
   (update context :path conj path-element))
 
 (defn make-context [base-uri]
-  {:base-uri base-uri :path [] :default-language "und"})
+  {:base-uri base-uri :path [] :default-language nil})
 
 (defn update-from-local-context
   "Updates the context from a parsed local context definition"
@@ -156,7 +156,15 @@
 
 (def default-uri (URI. ""))
 
-(defn ^{:metadata-spec "5.1.2"} link-property
+(defn resolve-uri [{:keys [base-uri] :as context} uri]
+  (.resolve base-uri uri))
+
+(defn ^{:metadata-spec "6.3"} normalise-link-property
+  "Normalises a link property URI by resolving it against the current base URI."
+  [context uri]
+  (v/pure (resolve-uri context uri)))
+
+(defn ^{:metadata-spec "5.1.2"} parse-link-property
   "Converts link properties to URIs, or logs a warning if the URI is invalid. Link properties are resolved
    at a higher level."
   [context x]
@@ -166,6 +174,8 @@
       (catch URISyntaxException _ex
         (make-warning context (format "Link property '%s' cannot be parsed as a URI" x) default-uri)))
     (make-warning context (format "Invalid link property '%s': expected string containing URI, got %s" x (get-json-type-name x)) default-uri)))
+
+(def link-property (compm parse-link-property normalise-link-property))
 
 (defn ^{:metadata-spec "5.1.3"} template-property [context x]
   (->> (string context x)
@@ -321,6 +331,48 @@
     (catch URITemplateParseException _ex
       (make-error context (str "Invalid template variable: '" s "'")))))
 
+(def csvw-ns "http://www.w3.org/ns/csvw")
+
+(defn validate-object-context-pair [context [_ns m]]
+  (if (or (contains? m base-key) (contains? m language-key))
+    (v/pure m)
+    (make-error context "Top-level object must contain @base or @language keys")))
+
+(def parse-context-pair (tuple
+                          (eq csvw-ns)
+                          (object-of {:optional {"@base"     uri
+                                                 "@language" (fn [context x]
+                                                               (v/warnings-as-errors (language-code context x)))}})))
+
+(def context-pair (compm parse-context-pair validate-object-context-pair))
+
+(def object-context (variant {:string (eq csvw-ns) :array context-pair}))
+
+(defn contextual-object
+  "Returns a validator for an object which may contain a @context key mapped to a context definition.
+   If the key exists, and contain a local context definition for the object, this is used to update the
+   validation context used to parse the object and its children."
+  [context-required? object-validator]
+  (let [context-validator (if context-required?
+                            (required-key "@context" object-context)
+                            (optional-key "@context" object-context))]
+    (fn [context x]
+      (->> (object context x)
+           (v/bind (fn [obj]
+                     (v/bind (fn [context-pair]
+                               (cond
+                                 ;;if no context then validate entire object
+                                 (nil? context-pair) (object-validator context obj)
+
+                                 ;;context is literal containing csvw-ns so remove it and validate rest of object
+                                 (string? (second context-pair)) (object-validator context (dissoc obj "@context"))
+
+                                 ;;context is pair containing csvw-ns and local context definition
+                                 :else (let [local-context (second context-pair)
+                                             updated-context (update-from-local-context context local-context)]
+                                         (object-validator updated-context (dissoc obj "@context")))))
+                             (context-validator context obj))))))))
+
 (defn ^{:template-spec "5.6"} column-name [context x]
   (v/bind (fn [s]
             (if (.startsWith s "_")
@@ -382,13 +434,30 @@
 
 (def table-direction (one-of #{"rtl" "ltr" "auto"}))
 
-(defn object-property
+(defn resolve-linked-object-property-object [context object-uri]
+  (try
+    (v/pure (util/read-json object-uri))
+    (catch Exception ex
+      (make-error context (format "Failed to resolve linked object property at URI %s: %s" object-uri (.getMessage ex))))))
+
+(defn ^{:metadata-spec "6.4"} linked-object-property [context object-uri object-validator]
+  (->> (resolve-linked-object-property-object context object-uri)
+       (v/bind (fn [obj]
+                 ((contextual-object false object-validator) context obj)))
+       (v/fmap (fn [obj]
+                 (if (contains? obj id-key)
+                   obj
+                   (assoc obj id-key object-uri))))))
+
+(defn ^{:metadata-spec "5.1.5"} object-property
   "Object which may be specified in line in the metadata document or referenced through a URI"
   [validator]
   (fn [context x]
-    (cond (string? x) (make-error context "TODO: resolve URI and validate") ;;TODO: implement
+    (cond (string? x) (v/bind (fn [object-uri]
+                                (linked-object-property context object-uri validator))
+                              (link-property context x))
           (map? x) (validator context x)
-          :else (make-error context (str "Expected URI or object, got " (get-json-type-name x))))))
+          :else (make-warning context (str "Expected URI or object, got " (get-json-type-name x)) {}))))
 
 (defn ^{:metadata-spec "5.1.4"} column-reference [context x]
   ;;TODO: validation that each referenced column exists occurs at higher-level
@@ -642,48 +711,6 @@
                 "transformations" (array-of transformation)
                 "@id"             id
                 "@type"           (eq "TableGroup")}}))
-
-(def csvw-ns "http://www.w3.org/ns/csvw")
-
-(defn validate-object-context-pair [context [_ns m]]
-  (if (or (contains? m base-key) (contains? m language-key))
-    (v/pure m)
-    (make-error context "Top-level object must contain @base or @language keys")))
-
-(def parse-context-pair (tuple
-                          (eq csvw-ns)
-                          (object-of {:optional {"@base"     uri
-                                                 "@language" (fn [context x]
-                                                               (v/warnings-as-errors (language-code context x)))}})))
-
-(def context-pair (compm parse-context-pair validate-object-context-pair))
-
-(def object-context (variant {:string (eq csvw-ns) :array context-pair}))
-
-(defn contextual-object
-  "Returns a validator for an object which may contain a @context key mapped to a context definition.
-   If the key exists, and contain a local context definition for the object, this is used to update the
-   validation context used to parse the object and its children."
-  [context-required? object-validator]
-  (let [context-validator (if context-required?
-                            (required-key "@context" object-context)
-                            (optional-key "@context" object-context))]
-    (fn [context x]
-      (->> (object context x)
-           (v/bind (fn [obj]
-                     (v/bind (fn [context-pair]
-                               (cond
-                                 ;;if no context then validate entire object
-                                 (nil? context-pair) (object-validator context obj)
-
-                                 ;;context is literal containing csvw-ns so remove it and validate rest of object
-                                 (string? (second context-pair)) (object-validator context (dissoc obj "@context"))
-
-                                 ;;context is pair containing csvw-ns and local context definition
-                                 :else (let [local-context (second context-pair)
-                                             updated-context (update-from-local-context context local-context)]
-                                         (object-validator updated-context (dissoc obj "@context")))))
-                             (context-validator context obj))))))))
 
 (defn parse-file [f]
   (let [json (util/read-json f)
