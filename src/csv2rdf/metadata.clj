@@ -3,7 +3,8 @@
             [csv2rdf.metadata.datatype :as datatype]
             [clojure.spec.alpha :as s]
             [clojure.string :as string]
-            [csv2rdf.uri-template :as template])
+            [csv2rdf.uri-template :as template]
+            [csv2rdf.util :as util])
   (:import [java.net URI URISyntaxException]
            [java.nio.charset Charset IllegalCharsetNameException]
            [java.util Locale$Builder IllformedLocaleException]
@@ -11,6 +12,11 @@
            [com.github.fge.uritemplate.parse VariableSpecParser]
            [com.github.fge.uritemplate URITemplateParseException]
            [java.lang.reflect InvocationTargetException]))
+
+(def id-key (keyword "@id"))
+(def base-key (keyword "@base"))
+(def language-key (keyword "@language"))
+(def context-key (keyword "@context"))
 
 (defn make-error [{:keys [path] :as context} msg]
   (v/of-error (str "Error at path " path ": " msg)))
@@ -22,7 +28,16 @@
   (update context :path conj path-element))
 
 (defn make-context [base-uri]
-  {:base-uri base-uri :path []})
+  {:base-uri base-uri :path [] :default-language "und"})
+
+(defn update-from-local-context
+  "Updates the context from a parsed local context definition"
+  [context local-context]
+  (let [key-mapping {base-key     :base-uri
+                     language-key :default-language}
+        from-local (util/select-keys-as local-context key-mapping)
+        local (util/filter-values some? from-local)]
+    (merge context local)))
 
 (defn eq [expected]
   (fn [context x]
@@ -124,10 +139,11 @@
                                          (element-validator (append-path context idx) v)) arr)))
              ((array-with opts) context x)))))
 
-(defn tuple [& fs]
-  (compm (array-with {:length (count fs)})
-         (fn [arr]
-           (v/collect (map (fn [f x] (f x)) fs arr)))))
+(defn tuple [& validators]
+  (fn [context x]
+    (->> ((array-with {:length (count validators)}) context x)
+         (v/bind (fn [arr]
+                   (v/collect (map (fn [validator x] (validator context x)) validators arr)))))))
 
 (defn try-parse-with [f]
   (fn [context x]
@@ -175,7 +191,7 @@
     (if (contains? m k)
       (->> (value-validator (append-path context k) (get m k))
            (v/fmap (fn [v] [k v])))
-      (v/pure [k nil]))))
+      (v/pure nil))))
 
 (defn common-property-key? [k]
   ;;TODO: improve?
@@ -189,26 +205,24 @@
 (defn invalid-key-pair [context [k _]]
   (make-error context (str "Invalid key '" k "'")))
 
-(defn map-keys [f m]
-  (into {} (map (fn [[k v]] [(f k) v]) m)))
-
-(defn partition-keys [source-map ref-map]
-  (let [ref-keys (keys ref-map)]
-    [(select-keys source-map ref-keys) (apply dissoc source-map ref-keys)]))
-
 (defn object-of [{:keys [required optional allow-common-properties?]}]
   (let [required-keys (map (fn [[k v]] (required-key k v)) required)
         optional-keys (map (fn [[k v]] (optional-key k v)) optional)]
     (fn [context x]
       (->> (object context x)
            (v/bind (fn [obj]
-                     (let [[required-obj opt-obj] (partition-keys obj required)
-                           [optional-obj remaining-obj] (partition-keys opt-obj optional)
+                     (let [[required-obj opt-obj] (util/partition-keys obj required)
+                           [optional-obj remaining-obj] (util/partition-keys opt-obj optional)
                            required-validations (map (fn [validator] (validator context required-obj)) required-keys)
                            optional-validations (map (fn [validator] (validator context optional-obj)) optional-keys)
                            declared-pairs-validation (v/collect (concat required-validations optional-validations))
                            declared-validation (v/fmap (fn [pairs]
-                                                         (map-keys keyword (into {} pairs)))
+                                                         ;;optional keys not declared in the input are nil so remove them
+                                                         ;;convert keys to keywords
+                                                         (->> pairs
+                                                              (remove nil?)
+                                                              (map (fn [[k v]] [(keyword k) v]))
+                                                              (into {})))
                                                        declared-pairs-validation)]
                        (if allow-common-properties?
                          (let [common-pairs-validation (v/collect (map (fn [p] (common-property-pair context p)) remaining-obj))
@@ -286,24 +300,6 @@
 
 (def non-negative (compm number (where pos? "positive")))
 
-(def csvw-ns "http://www.w3.org/ns/csvw")
-
-(def context-pair
-  (each (tuple
-          (eq csvw-ns)
-          (object-of {:optional {"@base"     uri
-                                 "@language" (fn [context x]
-                                               (v/warnings-as-errors (language-code context x)))}}))
-        (fn [[_ns m]]
-          (if (or (contains? m "@base") (contains? m "@language"))
-            (v/pure m)
-            (v/of-error "Top-level object must contain @base or @language keys")))))
-
-(defn top-level-object [context x]
-  (cond (string? x) ((eq csvw-ns) x)
-        (array? x) (context-pair x)
-        :else (make-error context (str "Expected namespace string or pair of namespace and local context definition, got " (get-json-type-name x)))))
-
 (def parse-variable-method
   (let [m (.getDeclaredMethod VariableSpecParser "parseFullName" (into-array [CharBuffer]))]
     (.setAccessible m true)
@@ -341,7 +337,7 @@
 
 (defn get-duplicate-names [columns]
   (->> columns
-       (map #(get % "name"))
+       (map :name)
        (frequencies)
        (filter (fn [[n count]] (> count 1)))
        (map first)))
@@ -353,31 +349,26 @@
       (make-error context (str "Duplicate names for columns: " (string/join ", " duplicate-names)))
       (v/pure nil))))
 
-(defn get-column-name [column]
-  (get column "name"))
-
 (defn ^{:metadata-spec "5.6"} validate-virtual-columns [context columns]
   ;;virtual property: If present, a virtual column MUST appear after all other non-virtual column definitions.
-  (let [non-virtual? (fn [col] (= false (get col "virtual")))
+  (let [non-virtual? (fn [col] (= false (:virtual col)))
         virtual-columns (drop-while non-virtual? columns)
         invalid-columns (filter non-virtual? virtual-columns)]
     (if (seq invalid-columns)
       (let [first-virtual (first virtual-columns)           ;;NOTE: must exist
             msg (format "Non-virtual columns %s defined after first virtual column %s - All virtual columns must exist after all non-virtual columns"
-                        (string/join ", " (map get-column-name invalid-columns))
-                        (get-column-name first-virtual))]
+                        (string/join ", " (map :name invalid-columns))
+                        (:name first-virtual))]
         (make-error context msg))
       (v/pure nil))))
 
 (defn validate-columns [context columns]
   (let [names-val (validate-column-names context columns)
         virtual-val (validate-virtual-columns context columns)]
-    (v/combine names-val virtual-val)))
-
-(defn columns [context x]
-  (v/bind (fn [cols]
-            (v/fmap (constantly cols) (validate-columns context cols)))
-          ((array-of column) context x)))
+    ;;TODO: validate column names
+    ;;names cannot be validated until default applied
+    #_(v/combine names-val virtual-val)
+    virtual-val))
 
 (def line-terminators
   (variant {:string any
@@ -512,10 +503,7 @@
                   }})
     validate-derived-datatype))
 
-(defn datatype [context x]
-  (cond (string? x) (datatype-name x)
-        (object? x) (derived-datatype x)
-        :else (make-error context (str "Expected data type name or derived datatype object, got " (get-json-type-name x)))))
+(def ^{:metadata-spec "5.7"} datatype (variant {:string datatype-name :object derived-datatype}))
 
 (def null-value (variant {:string any :array (array-of string)}))
 
@@ -574,6 +562,11 @@
                 "virtual"        bool
                 "@id"            id
                 "@type" (eq "Column")}}))
+
+(defn columns [context x]
+  (v/bind (fn [cols]
+            (v/fmap (constantly cols) (validate-columns context cols)))
+          ((array-of column) context x)))
 
 ;;NOTE: transformations may contain common properties but not inherited properties?
 (def transformation
@@ -649,3 +642,50 @@
                 "transformations" (array-of transformation)
                 "@id"             id
                 "@type"           (eq "TableGroup")}}))
+
+(def csvw-ns "http://www.w3.org/ns/csvw")
+
+(defn validate-object-context-pair [context [_ns m]]
+  (if (or (contains? m base-key) (contains? m language-key))
+    (v/pure m)
+    (make-error context "Top-level object must contain @base or @language keys")))
+
+(def parse-context-pair (tuple
+                          (eq csvw-ns)
+                          (object-of {:optional {"@base"     uri
+                                                 "@language" (fn [context x]
+                                                               (v/warnings-as-errors (language-code context x)))}})))
+
+(def context-pair (compm parse-context-pair validate-object-context-pair))
+
+(def object-context (variant {:string (eq csvw-ns) :array context-pair}))
+
+(defn contextual-object
+  "Returns a validator for an object which may contain a @context key mapped to a context definition.
+   If the key exists, and contain a local context definition for the object, this is used to update the
+   validation context used to parse the object and its children."
+  [context-required? object-validator]
+  (let [context-validator (if context-required?
+                            (required-key "@context" object-context)
+                            (optional-key "@context" object-context))]
+    (fn [context x]
+      (->> (object context x)
+           (v/bind (fn [obj]
+                     (v/bind (fn [context-pair]
+                               (cond
+                                 ;;if no context then validate entire object
+                                 (nil? context-pair) (object-validator context obj)
+
+                                 ;;context is literal containing csvw-ns so remove it and validate rest of object
+                                 (string? (second context-pair)) (object-validator context (dissoc obj "@context"))
+
+                                 ;;context is pair containing csvw-ns and local context definition
+                                 :else (let [local-context (second context-pair)
+                                             updated-context (update-from-local-context context local-context)]
+                                         (object-validator updated-context (dissoc obj "@context")))))
+                             (context-validator context obj))))))))
+
+(defn parse-file [f]
+  (let [json (util/read-json f)
+        context (make-context (.toURI f))]
+    ((contextual-object true table) context json)))

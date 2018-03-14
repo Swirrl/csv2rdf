@@ -19,11 +19,16 @@
 (defn with-warning [warning-message value]
   {::errors [] ::warnings [warning-message] ::value value})
 
-(defn warnings-as-errors [validation]
-  {::errors (concat (::errors validation) (::warnings validation)) ::warnings [] ::value nil})
-
 (defn error? [validation]
   (not (empty? (::errors validation))))
+
+(defn has-warnings? [validation]
+  (not (empty? (::warnings validation))))
+
+(defn warnings-as-errors [validation]
+  (if (or (error? validation) (has-warnings? validation))
+    {::errors (concat (::errors validation) (::warnings validation)) ::warnings [] ::value nil}
+    validation))
 
 (defn fmap [f validation]
   (if (error? validation)
