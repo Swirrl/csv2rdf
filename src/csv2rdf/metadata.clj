@@ -260,26 +260,28 @@
     (validate-language-code context x)
     (make-warning context (str "Expected language code, got " (get-json-type-name x)) nil)))
 
-(defn language-code-array [context arr]
+(defn natural-language-string [context x]
+  (if (string? x)
+    (v/pure x)
+    (make-warning context (type-error-message [:string] (get-json-type x)) nil)))
+
+(defn natural-language-array [context arr]
   (v/fmap (fn [codes]
             (vec (remove nil? codes)))
-          ((array-of language-code) context arr)))
+          ((array-of natural-language-string) context arr)))
 
-(defn language-code->array [code]
-  (if (some? code) code []))
+(defn ^{:metadata-spec "6.6"} normalise-string-natural-language-property [context code]
+  (v/pure {(language-code-or-default context) [code]}))
 
-(defn ^{:metadata-spec "6.6"} normalise-language-code-natural-language-property [context code]
-  (v/pure {(language-code-or-default context) (language-code->array code)}))
-
-(defn ^{:metadata-spec "6.6"} normalise-language-code-array-natural-language-property [context codes]
+(defn ^{:metadata-spec "6.6"} normalise-array-natural-language-property [context codes]
   (v/pure {(language-code-or-default context) codes}))
 
 (defn ^{:metadata-spec "5.1.6"} language-code-map-value
   "Validates a value in a natual language property defined as an object. Values can be either strings or string
-   arrays. Returns nil if the value is invalid."
+   arrays, and returns an array if valid. Returns nil if the value is not a string or array."
   [context v]
-  (cond (string? v) (language-code context v)
-        (array? v) (language-code-array context v)
+  (cond (string? v) (v/pure [v])
+        (array? v) (natural-language-array context v)
         :else (make-warning context (str "Expected language code or language code array, got " (get-json-type-name v)) nil)))
 
 (defn ^{:metadata-spec "5.1.6"} language-object-pair
@@ -290,11 +292,8 @@
   (v/bind (fn [code]
             (v/fmap (fn [value]
                       ;;return nil to indicate pair is invalid if either code or value is invalid
-                      ;;if value is mapped to single language code, lift it into an array
-                      (cond (nil? code) nil
-                            (nil? value) nil
-                            (string? value) [code [value]]
-                            :else [code value]))
+                      (if (and (some? code) (some? value))
+                        [code value]))
                     (language-code-map-value (append-path context code) value)))
           (language-code context code-key)))
 
@@ -308,8 +307,8 @@
    codes to an array of associated values. Uses the default language if none specified in the context."
   [context x]
   (cond
-    (string? x) ((compm language-code normalise-language-code-natural-language-property) context x)
-    (array? x) ((compm language-code-array normalise-language-code-array-natural-language-property) context x)
+    (string? x) (normalise-string-natural-language-property context x)
+    (array? x) ((compm natural-language-array normalise-array-natural-language-property) context x)
     (object? x) (language-code-object context x)
     :else (make-warning context "Expected string, array or object for natual language property" {(language-code-or-default context) []})))
 
