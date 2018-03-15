@@ -4,6 +4,9 @@
             [clojure.spec.alpha :as s]
             [clojure.string :as string]
             [csv2rdf.uri-template :as template]
+            [csv2rdf.metadata.validator :refer :all]
+            [csv2rdf.metadata.context :refer :all]
+            [csv2rdf.metadata.json :refer :all]
             [csv2rdf.util :as util])
   (:import [java.net URI URISyntaxException]
            [java.nio.charset Charset IllegalCharsetNameException]
@@ -13,154 +16,9 @@
            [com.github.fge.uritemplate URITemplateParseException]
            [java.lang.reflect InvocationTargetException]))
 
-(def id-key (keyword "@id"))
-(def base-key (keyword "@base"))
-(def language-key (keyword "@language"))
-(def context-key (keyword "@context"))
-
-(defn make-error [{:keys [path] :as context} msg]
-  (v/of-error (str "Error at path " path ": " msg)))
-
-(defn make-warning [{:keys [path] :as context} msg value]
-  (v/with-warning (str "At path " path ": " msg) value))
-
-(defn append-path [context path-element]
-  (update context :path conj path-element))
-
-(defn make-context [base-uri]
-  {:base-uri base-uri :path [] :language nil})
-
-(defn language-code-or-default [{:keys [language] :as context}]
-  (or language "und"))
-
-(defn update-from-local-context
-  "Updates the context from a parsed local context definition"
-  [context local-context]
-  (let [key-mapping {base-key     :base-uri
-                     language-key :language}
-        from-local (util/select-keys-as local-context key-mapping)
-        local (util/filter-values some? from-local)]
-    (merge context local)))
-
-(defn eq [expected]
-  (fn [context x]
-    (if (= expected x)
-      (v/pure x)
-      (make-error context (str "Expected '" expected "' received '" x "'")))))
-
 (def ^{:metadata-spec "5.2"} context nil)
 
-(defn array? [x]
-  (vector? x))
-
-(def object? map?)
-
-(defn- get-json-type [x]
-  (cond (array? x) :array
-        (number? x) :number
-        (string? x) :string
-        (boolean? x) :boolean
-        (object? x) :object
-        :else (throw (ex-info (str "Unknown JSON type for type " (type x))
-                              {:type ::json-type-error
-                               :value x}))))
-
-(defn- get-json-type-name [x]
-  (name (get-json-type x)))
-
-(defn type-error-message [permitted-types actual-type]
-  (let [c (count permitted-types)]
-    (case c
-      0 (str "Unexpected type " (name actual-type))
-      1 (str "Expected " (name (first permitted-types)) " but got " (name actual-type))
-      (let [[except-last [last]] (split-at (dec c) (map name permitted-types))
-            list (str (string/join ", " except-last) " or " last)]
-        (str "Expected " list " but got " (name actual-type))))))
-
-(defn- type-error [context permitted-types actual-type]
-  (make-error context (type-error-message permitted-types actual-type)))
-
-(defn- expect-type [expected-type]
-  (fn [context x]
-    (let [actual-type (get-json-type x)]
-      (if (= expected-type actual-type)
-        (v/pure x)
-        (type-error context [expected-type] actual-type)))))
-
-(def array (expect-type :array))
-
-(defn validate-array [context arr {:keys [length min-length] :as opts}]
-  (cond
-    (and (some? length) (not= length (count arr)))
-    (make-error context (format "Expected array to contain %d elements" length))
-
-    (and (some? min-length) (< (count arr) min-length))
-    (make-error context (format "Expected array to contain at least %d elements" min-length))
-
-    :else (v/pure arr)))
-
-(defn array-with [opts]
-  (fn [context x]
-    (->> (array context x)
-         (v/bind (fn [arr]
-                   (validate-array context arr opts))))))
-
-(defn any "Matches any value successfully"
-  [_context x]
-  (v/pure x))
-
-(def number (expect-type :number))
-(def bool (expect-type :boolean))
-(def object (expect-type :object))
-(def string (expect-type :string))
-
-(defn variant [tag-validators]
-  {:pre [(pos? (count tag-validators))]}
-  (fn [context x]
-    (if-let [validator (get tag-validators (get-json-type x))]
-      (validator context x)
-      (type-error context (keys tag-validators) (get-json-type x)))))
-
-(defn character [context x]
-  (->> (string context x)
-       (v/bind (fn [s]
-                 (if (= 1 (.length s))
-                   (v/pure (.charAt s 0))
-                   (make-error context "Expected single character"))))))
-
-(defn compm [& validators]
-  (reduce (fn [acc validator]
-            (fn [context value]
-              (v/bind (fn [v] (validator context v)) (acc context value)))) (fn [_c v] (v/pure v)) validators))
-
-(defn array-of
-  ([element-validator] (array-of element-validator {}))
-  ([element-validator opts]
-   (fn [context x]
-     (v/bind (fn [arr]
-               (v/collect (map-indexed (fn [idx v]
-                                         (element-validator (append-path context idx) v)) arr)))
-             ((array-with opts) context x)))))
-
-(defn tuple [& validators]
-  (fn [context x]
-    (->> ((array-with {:length (count validators)}) context x)
-         (v/bind (fn [arr]
-                   (v/collect (map (fn [validator x] (validator context x)) validators arr)))))))
-
-(defn try-parse-with [f]
-  (fn [context x]
-    (try
-      (v/pure (f x))
-      (catch Exception ex
-        (make-error context (.getMessage ex))))))
-
-(def uri (compm string (try-parse-with #(URI. %))))
-
 (def default-uri (URI. ""))
-
-(defn resolve-uri [{:keys [base-uri] :as context} uri]
-  (.resolve base-uri uri))
 
 (defn ^{:metadata-spec "6.3"} normalise-link-property
   "Normalises a link property URI by resolving it against the current base URI."
@@ -183,28 +41,13 @@
 (defn ^{:metadata-spec "5.1.3"} template-property [context x]
   (->> (string context x)
        (v/bind (fn [s]
-                 (if-let [t (template/try-parse-template s)]
-                   (v/pure t)
-                   (make-error context (str "Invalid URI template: '" s "'")))))))
+                 ))))
 
-(defn each [& validators]
-  (fn [context x]
-    (let [vs (map (fn [validator] (validator context x)) validators)]
-      (v/collect vs))))
-
-(defn required-key [k value-validator]
-  (fn [context m]
-    (if (contains? m k)
-      (->> (value-validator (append-path context k) (get m k))
-           (v/fmap (fn [v] [k v])))
-      (make-error context (str "Missing required key '" k "'")))))
-
-(defn optional-key [k value-validator]
-  (fn [context m]
-    (if (contains? m k)
-      (->> (value-validator (append-path context k) (get m k))
-           (v/fmap (fn [v] [k v])))
-      (v/pure nil))))
+(def template-property
+  (variant {:string (fn [context s]
+                      (if-let [t (template/try-parse-template s)]
+                        (v/pure t)
+                        (make-warning context (str "Invalid URI template: '" s "'") invalid)))}))
 
 (defn common-property-key? [k]
   ;;TODO: improve?
@@ -220,34 +63,35 @@
   [context [k _]]
   (make-warning context (str "Invalid key '" k "'") nil))
 
-(defn object-of [{:keys [required optional allow-common-properties?]}]
+(defn validate-object-of [{:keys [required optional allow-common-properties?]}]
   (let [required-keys (map (fn [[k v]] (required-key k v)) required)
         optional-keys (map (fn [[k v]] (optional-key k v)) optional)]
-    (fn [context x]
-      (->> (object context x)
-           (v/bind (fn [obj]
-                     (let [[required-obj opt-obj] (util/partition-keys obj required)
-                           [optional-obj remaining-obj] (util/partition-keys opt-obj optional)
-                           required-validations (map (fn [validator] (validator context required-obj)) required-keys)
-                           optional-validations (map (fn [validator] (validator context optional-obj)) optional-keys)
-                           declared-pairs-validation (v/collect (concat required-validations optional-validations))
-                           declared-validation (v/fmap (fn [pairs]
-                                                         ;;optional keys not declared in the input are nil so remove them
-                                                         ;;convert keys to keywords
-                                                         (->> pairs
-                                                              (remove nil?)
-                                                              (map (fn [[k v]] [(keyword k) v]))
-                                                              (into {})))
-                                                       declared-pairs-validation)]
-                       (if allow-common-properties?
-                         (let [common-pairs-validation (v/collect (map (fn [p] (common-property-pair context p)) remaining-obj))
-                               common-validation (v/fmap (fn [pairs]
-                                                           (into {} (remove nil? pairs))) common-pairs-validation)]
-                           (v/fmap (fn [[declared common]]
-                                     (assoc declared ::common-properties common))
-                                   (v/collect [declared-validation common-validation])))
-                         (let [invalid-validation (v/collect (map (fn [p] (invalid-key-pair context p)) remaining-obj))]
-                           (v/combine invalid-validation declared-validation))))))))))
+    (fn [context obj]
+      (let [[required-obj opt-obj] (util/partition-keys obj required)
+            [optional-obj remaining-obj] (util/partition-keys opt-obj optional)
+            required-validations (map (fn [validator] (validator context required-obj)) required-keys)
+            optional-validations (map (fn [validator] (validator context optional-obj)) optional-keys)
+            declared-pairs-validation (v/collect (concat required-validations optional-validations))
+            declared-validation (v/fmap (fn [pairs]
+                                          ;;optional keys not declared in the input are nil so remove them
+                                          ;;convert keys to keywords
+                                          (->> pairs
+                                               (remove nil?)
+                                               (map (fn [[k v]] [(keyword k) v]))
+                                               (into {})))
+                                        declared-pairs-validation)]
+        (if allow-common-properties?
+          (let [common-pairs-validation (v/collect (map (fn [p] (common-property-pair context p)) remaining-obj))
+                common-validation (v/fmap (fn [pairs]
+                                            (into {} (remove nil? pairs))) common-pairs-validation)]
+            (v/fmap (fn [[declared common]]
+                      (assoc declared ::common-properties common))
+                    (v/collect [declared-validation common-validation])))
+          (let [invalid-validation (v/collect (map (fn [p] (invalid-key-pair context p)) remaining-obj))]
+            (v/combine invalid-validation declared-validation)))))))
+
+(defn object-of [opts]
+  (variant {:object (validate-object-of opts)}))
 
 (defn validate-language-code [context s]
   (try
@@ -256,36 +100,26 @@
       ;;TODO: validate against known list of language codes?
       (v/pure s))
     (catch IllformedLocaleException _ex
-      (make-warning context (str "Invalid language code: '" s "'") nil))))
+      (make-warning context (str "Invalid language code: '" s "'") invalid))))
 
 (defn language-code [context x]
   (if (string? x)
     (validate-language-code context x)
-    (make-warning context (str "Expected language code, got " (get-json-type-name x)) nil)))
-
-(defn natural-language-string [context x]
-  (if (string? x)
-    (v/pure x)
-    (make-warning context (type-error-message [:string] (get-json-type x)) nil)))
-
-(defn natural-language-array [context arr]
-  (v/fmap (fn [codes]
-            (vec (remove nil? codes)))
-          ((array-of natural-language-string) context arr)))
+    (make-warning context (str "Expected language code, got " (get-json-type-name x)) invalid)))
 
 (defn ^{:metadata-spec "6.6"} normalise-string-natural-language-property [context code]
-  (v/pure {(language-code-or-default context) [code]}))
+  {(language-code-or-default context) [code]})
 
 (defn ^{:metadata-spec "6.6"} normalise-array-natural-language-property [context codes]
-  (v/pure {(language-code-or-default context) codes}))
+  {(language-code-or-default context) codes})
 
 (defn ^{:metadata-spec "5.1.6"} language-code-map-value
   "Validates a value in a natual language property defined as an object. Values can be either strings or string
-   arrays, and returns an array if valid. Returns nil if the value is not a string or array."
+   arrays, and returns an array if valid."
   [context v]
   (cond (string? v) (v/pure [v])
-        (array? v) (natural-language-array context v)
-        :else (make-warning context (str "Expected language code or language code array, got " (get-json-type-name v)) nil)))
+        (array? v) ((array-of string) context v)
+        :else (make-warning context (str "Expected string or array, got " (get-json-type-name v)) [])))
 
 (defn ^{:metadata-spec "5.1.6"} language-object-pair
   "Validates a language code -> string or string array pair within a natural language property defined as an object.
@@ -293,16 +127,15 @@
    if either the key or value is invalid."
   [context [code-key value]]
   (v/bind (fn [code]
-            (v/fmap (fn [value]
-                      ;;return nil to indicate pair is invalid if either code or value is invalid
-                      (if (and (some? code) (some? value))
-                        [code value]))
-                    (language-code-map-value (append-path context code) value)))
+            (if (invalid? code)
+              (v/pure code)
+              (v/fmap (fn [value] [code value])
+                      (language-code-map-value (append-path context code) value))))
           (language-code context code-key)))
 
-(defn language-code-object [context obj]
+(defn natural-language-object [context obj]
   (v/fmap (fn [pairs]
-            (into {} (remove nil? pairs)))
+            (into {} (remove invalid? pairs)))
           (v/collect (map (fn [pair] (language-object-pair context pair)) obj))))
 
 (defn ^{:metadata-spec "5.1.6"} natural-language
@@ -310,22 +143,23 @@
    codes to an array of associated values. Uses the default language if none specified in the context."
   [context x]
   (cond
-    (string? x) (normalise-string-natural-language-property context x)
-    (array? x) ((compm natural-language-array normalise-array-natural-language-property) context x)
-    (object? x) (language-code-object context x)
+    (string? x) (v/pure (normalise-string-natural-language-property context x))
+    (array? x) (v/fmap #(normalise-array-natural-language-property context %)
+                       ((array-of string) context x))
+    (object? x) (natural-language-object context x)
     :else (make-warning context "Expected string, array or object for natual language property" {(language-code-or-default context) []})))
 
-(defn encoding [context x]
+(defn validate-encoding [context s]
   ;;NOTE: some valid encodings defined in https://www.w3.org/TR/encoding/
   ;;may not be supported by the underlying platform, reject these as invalid
-  (->> (string context x)
-       (v/bind (fn [s]
-                 (try
-                   (if (Charset/isSupported s)
-                     (v/pure s)
-                     (make-error context (str "Invalid encoding: '" s "'")))
-                   (catch IllegalCharsetNameException _ex
-                     (make-error context (str "Invalid encoding: '" s "'"))))))))
+  (try
+    (if (Charset/isSupported s)
+      (v/pure s)
+      (make-warning context (str "Invalid encoding: '" s "'") invalid))
+    (catch IllegalCharsetNameException _ex
+      (make-warning context (str "Invalid encoding: '" s "'") invalid))))
+
+(def encoding (variant {:string validate-encoding}))
 
 ;;TODO: merge with tabular.csv.dialect/parse-trim
 (def trim-modes {"true" :all "false" :none "start" :start "end" :end})
@@ -334,18 +168,18 @@
   (fn [context k]
     (if (contains? m k)
       (v/pure (get m k))
-      (make-error context (str "Expected one of " (string/join ", " (keys m)))))))
+      (make-warning context (str "Expected one of " (string/join ", " (keys m))) invalid))))
 
-(def trim-mode (variant {:string (mapping trim-modes)
-                         :boolean (fn [_context b] (if b :all :none))}))
+(def trim-mode (variant {:string  (mapping trim-modes)
+                         :boolean (fn [_context b] (v/pure (if b :all :none)))}))
 
 (defn where [pred desc]
   (fn [context x]
     (if (pred x)
       (v/pure x)
-      (make-error context (str "Expected '" x "' to be " desc)))))
+      (make-warning context (str "Expected '" x "' to be " desc) invalid))))
 
-(def non-negative (compm number (where pos? "positive")))
+(def non-negative (variant {:number (where util/non-negative? "non-negative")} ))
 
 (def parse-variable-method
   (let [m (.getDeclaredMethod VariableSpecParser "parseFullName" (into-array [CharBuffer]))]
@@ -364,9 +198,9 @@
       ;;parseFullName returns the prefix of the input that could be parsed
       (if (= result s)
         (v/pure s)
-        (make-error context (str "Invalid template variable: '" s "'"))))
+        (make-warning context (str "Invalid template variable: '" s "'") invalid)))
     (catch URITemplateParseException _ex
-      (make-error context (str "Invalid template variable: '" s "'")))))
+      (make-warning context (str "Invalid template variable: '" s "'") invalid))))
 
 (def csvw-ns "http://www.w3.org/ns/csvw")
 
@@ -377,15 +211,14 @@
 
 (def parse-context-pair (tuple
                           (eq csvw-ns)
-                          (object-of {:optional {"@base"     uri
-                                                 "@language" (fn [context x]
-                                                               (v/warnings-as-errors (language-code context x)))}})))
+                          (object-of {:optional {"@base"     (strict uri)
+                                                 "@language" (strict language-code)}})))
 
 (def context-pair (compm parse-context-pair validate-object-context-pair))
 
 (def object-context (variant {:string (eq csvw-ns) :array context-pair}))
 
-(defn contextual-object
+(defn validate-contextual-object
   "Returns a validator for an object which may contain a @context key mapped to a context definition.
    If the key exists, and contain a local context definition for the object, this is used to update the
    validation context used to parse the object and its children."
@@ -393,36 +226,39 @@
   (let [context-validator (if context-required?
                             (required-key "@context" object-context)
                             (optional-key "@context" object-context))]
-    (fn [context x]
-      (->> (object context x)
-           (v/bind (fn [obj]
-                     (v/bind (fn [context-pair]
-                               (cond
-                                 ;;if no context then validate entire object
-                                 (nil? context-pair) (object-validator context obj)
+    (fn [context obj]
+      (v/bind (fn [context-pair]
+                (cond
+                  ;;if no context then validate entire object
+                  (nil? context-pair) (object-validator context obj)
 
-                                 ;;context is literal containing csvw-ns so remove it and validate rest of object
-                                 (string? (second context-pair)) (object-validator context (dissoc obj "@context"))
+                  ;;context is literal containing csvw-ns so remove it and validate rest of object
+                  (string? (second context-pair)) (object-validator context (dissoc obj "@context"))
 
-                                 ;;context is pair containing csvw-ns and local context definition
-                                 :else (let [local-context (second context-pair)
-                                             updated-context (update-from-local-context context local-context)]
-                                         (object-validator updated-context (dissoc obj "@context")))))
-                             (context-validator context obj))))))))
+                  ;;context is pair containing csvw-ns and local context definition
+                  :else (let [local-context (second context-pair)
+                              updated-context (update-from-local-context context local-context)]
+                          (object-validator updated-context (dissoc obj "@context")))))
+              (context-validator context obj)))))
 
-(defn ^{:template-spec "5.6"} column-name [context x]
-  (v/bind (fn [s]
-            (if (.startsWith s "_")
-              (make-error context "Columns names cannot begin with _")
-              (uri-template-variable context s)))
-          (string context x)))
+(defn contextual-object [context-required? object-validator]
+  (variant {:object (validate-contextual-object context-required? object-validator)}))
 
-(defn ^{:doc "An id is a link property whose value cannot begin with _:"} id [context x]
-  (->> (string context x)
-       (v/bind (fn [s]
-                 (if (.startsWith s "_:")
-                   (make-error context "Ids cannot start with _:")
-                   ((try-parse-with #(URI. %)) context s))))))
+(defn validate-column-name [context s]
+  (if (.startsWith s "_")
+    (make-warning context "Columns names cannot begin with _" invalid)
+    (uri-template-variable context s)))
+
+(def ^{:template-spec "5.6"} column-name
+  (variant {:string validate-column-name}))
+
+(defn validate-id [context s]
+  (if (.startsWith s "_:")
+    (make-warning context "Ids cannot start with _:" invalid)
+    ((try-parse-with #(URI. %)) context s)))
+
+(def ^{:doc "An id is a link property whose value cannot begin with _:"} id
+  (variant {:string validate-id}))
 
 (defn get-duplicate-names [columns]
   (->> columns
@@ -467,7 +303,7 @@
   (fn [context x]
     (if (contains? values x)
       (v/pure x)
-      (make-error context (str "Expected one of " (string/join ", " values))))))
+      (make-warning context (str "Expected one of " (string/join ", " values)) invalid))))
 
 (def table-direction (one-of #{"rtl" "ltr" "auto"}))
 
@@ -477,45 +313,43 @@
     (catch Exception ex
       (make-error context (format "Failed to resolve linked object property at URI %s: %s" object-uri (.getMessage ex))))))
 
-(defn ^{:metadata-spec "6.4"} linked-object-property [context object-uri object-validator]
-  (->> (resolve-linked-object-property-object context object-uri)
-       (v/bind (fn [obj]
-                 ((contextual-object false object-validator) context obj)))
-       (v/fmap (fn [obj]
-                 (if (contains? obj id-key)
-                   obj
-                   (assoc obj id-key object-uri))))))
+(defn ^{:metadata-spec "6.4"} linked-object-property [object-validator]
+  (fn [context object-uri]
+    (->> (resolve-linked-object-property-object context object-uri)
+         (v/bind (fn [obj]
+                   ((contextual-object false object-validator) context obj)))
+         (v/fmap (fn [obj]
+                   ;;TODO: error if resolved JSON document is not an object? Specification does not mention this
+                   ;;case but requires an empty object in other error cases. Add @id key as required due to normalisation
+                   (cond (invalid? obj) {id-key object-uri}
+                         (contains? obj id-key) obj
+                         :else (assoc obj id-key object-uri)))))))
 
 (defn ^{:metadata-spec "5.1.5"} object-property
   "Object which may be specified in line in the metadata document or referenced through a URI"
   [validator]
   (fn [context x]
-    (cond (string? x) (v/bind (fn [object-uri]
-                                (linked-object-property context object-uri validator))
-                              (link-property context x))
+    (cond (string? x) ((compm link-property (linked-object-property validator)) context x)
           (map? x) (validator context x)
           :else (make-warning context (str "Expected URI or object, got " (get-json-type-name x)) {}))))
 
-(defn ^{:metadata-spec "5.1.4"} column-reference [context x]
-  ;;TODO: validation that each referenced column exists occurs at higher-level
-  (cond (string? x) (v/pure x)                              ;;TODO: always return vector of column references?
-        (array? x) (cond (= 0 (count x)) (make-warning context "Column references should not be empty" nil)
-                         (not-every? string? x) (make-warning context "Column references should all be strings" nil)
-                         :else (v/pure x))
-        :else (make-warning context (type-error-message [:string :array] (get-json-type x)) nil)))
+(defn column-reference-array [context arr]
+  (cond (= 0 (count arr)) (make-warning context "Column references should not be empty" invalid)
+        (not-every? string? arr) (make-warning context "Column references should all be strings" invalid)
+        :else (v/pure arr)))
+
+;;TODO: validation that each referenced column exists occurs at higher-level
+(def ^{:metadata-spec "5.1.4"}  column-reference
+  (variant {:string (fn [_context s] (v/pure [s]))
+            :array column-reference-array}))
 
 ;;TODO: The properties on these objects are interpreted equivalently to common properties as described in section 5.8 Common Properties.
 (def note any)
 
 (def transformation-source-types #{"json" "rdf"})
 
-(defn validate-transformation-source [context s]
-  (if (contains? transformation-source-types s)
-    (v/pure (keyword s))
-    (make-warning context (str "Expected one of " (string/join ", " transformation-source-types)) nil)))
-
-(def transformation-source
-  (compm string validate-transformation-source))
+(def ^{:metadata-spec "5.10.2"} transformation-source
+  (variant {:string (one-of transformation-source-types)}))
 
 (def datatype-name
   (compm string (one-of datatype/type-names)))
