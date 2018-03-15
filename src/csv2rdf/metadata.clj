@@ -213,10 +213,12 @@
 (defn common-property-pair [context [k v]]
   (if (common-property-key? k)
     (v/pure [k v])
-    (make-error context (str "Invalid common property key '" k "'"))))
+    (make-warning context (str "Invalid common property key '" k "'") nil)))
 
-(defn invalid-key-pair [context [k _]]
-  (make-error context (str "Invalid key '" k "'")))
+(defn ^{:metadata-spec "4"} invalid-key-pair
+  "Generates a warning for any invalid keys found in a metadata document."
+  [context [k _]]
+  (make-warning context (str "Invalid key '" k "'") nil))
 
 (defn object-of [{:keys [required optional allow-common-properties?]}]
   (let [required-keys (map (fn [[k v]] (required-key k v)) required)
@@ -239,7 +241,8 @@
                                                        declared-pairs-validation)]
                        (if allow-common-properties?
                          (let [common-pairs-validation (v/collect (map (fn [p] (common-property-pair context p)) remaining-obj))
-                               common-validation (v/fmap #(into {} %) common-pairs-validation)]
+                               common-validation (v/fmap (fn [pairs]
+                                                           (into {} (remove nil? pairs))) common-pairs-validation)]
                            (v/fmap (fn [[declared common]]
                                      (assoc declared ::common-properties common))
                                    (v/collect [declared-validation common-validation])))
