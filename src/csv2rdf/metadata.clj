@@ -351,8 +351,8 @@
 (def ^{:metadata-spec "5.10.2"} transformation-source
   (variant {:string (one-of transformation-source-types)}))
 
-(def datatype-name
-  (compm string (one-of datatype/type-names)))
+(def ^{:metadata-spec "5.11.2"} datatype-name
+  (variant {:string (one-of datatype/type-names)}))
 
 ;;TODO: implement!
 (def datatype-format any)
@@ -443,7 +443,12 @@
                   }})
     validate-derived-datatype))
 
-(def ^{:metadata-spec "5.7"} datatype (variant {:string datatype-name :object derived-datatype}))
+(defn ^{:metadata-spec "5.7"} normalise-datatype-name [_context type-name]
+  (v/pure {"base" type-name}))
+
+(def ^{:metadata-spec "5.7"} datatype
+  (variant {:string (compm datatype-name normalise-datatype-name)
+            :object derived-datatype}))
 
 (def null-value (variant {:string any :array (array-of string)}))
 
