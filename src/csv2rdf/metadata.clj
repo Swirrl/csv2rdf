@@ -36,7 +36,7 @@
         (make-warning context (format "Link property '%s' cannot be parsed as a URI" x) default-uri)))
     (make-warning context (format "Invalid link property '%s': expected string containing URI, got %s" x (get-json-type-name x)) default-uri)))
 
-(def link-property (compm parse-link-property normalise-link-property))
+(def link-property (chain parse-link-property normalise-link-property))
 
 (defn ^{:metadata-spec "5.1.3"} template-property [context x]
   (->> (string context x)
@@ -213,7 +213,7 @@
                           (object-of {:optional {"@base"     (strict uri)
                                                  "@language" (strict language-code)}})))
 
-(def context-pair (compm parse-context-pair validate-object-context-pair))
+(def context-pair (chain parse-context-pair validate-object-context-pair))
 
 (def object-context (variant {:string (eq csvw-ns) :array context-pair}))
 
@@ -327,7 +327,7 @@
 (defn ^{:metadata-spec "5.1.5"} object-property
   "Object which may be specified in line in the metadata document or referenced through a URI"
   [object-validator]
-  (variant {:string (compm link-property (linked-object-property object-validator))
+  (variant {:string (chain link-property (linked-object-property object-validator))
             :object object-validator
             :default {}}))
 
@@ -423,7 +423,7 @@
 (def validate-datatype-id any)
 
 (def derived-datatype
-  (compm
+  (chain
     (object-of
       {:optional {"base"         datatype-name
                   "format"       datatype-format
@@ -436,7 +436,7 @@
                   "maxInclusive" datatype-bound
                   "minExclusive" datatype-bound
                   "maxExclusive" datatype-bound
-                  "@id"          (compm id validate-datatype-id)
+                  "@id"          (chain id validate-datatype-id)
                   "@type"        (eq "Datatype")
                   }})
     validate-derived-datatype))
@@ -445,7 +445,7 @@
   (v/pure {"base" type-name}))
 
 (def ^{:metadata-spec "5.7"} datatype
-  (variant {:string (compm datatype-name normalise-datatype-name)
+  (variant {:string (chain datatype-name normalise-datatype-name)
             :object derived-datatype}))
 
 (def null-value (variant {:string any :array (array-of string)}))

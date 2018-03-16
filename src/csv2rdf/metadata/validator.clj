@@ -142,7 +142,11 @@
             actual-type (mjson/get-json-type x)]
         (make-warning context (type-error-message valid-types actual-type) (or default invalid))))))
 
-(defn compm [& validators]
+(defn chain
+  "Composes a sequence of validators into a validator which applies each validator in turn.
+   The resulting validator returns invalid on any intermediate invalid result and does not
+   call any subsequent validators in the chain."
+  [& validators]
   (reduce (fn [acc validator]
             (fn [context value]
               (v/bind (fn [v]
