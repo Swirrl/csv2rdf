@@ -113,13 +113,12 @@
 (defn ^{:metadata-spec "6.6"} normalise-array-natural-language-property [context codes]
   {(language-code-or-default context) codes})
 
-(defn ^{:metadata-spec "5.1.6"} language-code-map-value
-  "Validates a value in a natual language property defined as an object. Values can be either strings or string
-   arrays, and returns an array if valid."
-  [context v]
-  (cond (string? v) (v/pure [v])
-        (array? v) ((array-of string) context v)
-        :else (make-warning context (str "Expected string or array, got " (get-json-type-name v)) [])))
+(def ^{:metadata-spec "5.1.6"
+        :doc "Validates a value in a natual language property defined as an object. Values can
+        be either strings or string arrays, and returns an array if valid."} language-code-map-value
+  (variant {:string (fn [_context s] (v/pure [s]))
+            :array (array-of string)
+            :default []}))
 
 (defn ^{:metadata-spec "5.1.6"} language-object-pair
   "Validates a language code -> string or string array pair within a natural language property defined as an object.
@@ -327,11 +326,10 @@
 
 (defn ^{:metadata-spec "5.1.5"} object-property
   "Object which may be specified in line in the metadata document or referenced through a URI"
-  [validator]
-  (fn [context x]
-    (cond (string? x) ((compm link-property (linked-object-property validator)) context x)
-          (map? x) (validator context x)
-          :else (make-warning context (str "Expected URI or object, got " (get-json-type-name x)) {}))))
+  [object-validator]
+  (variant {:string (compm link-property (linked-object-property object-validator))
+            :object object-validator
+            :default {}}))
 
 (defn column-reference-array [context arr]
   (cond (= 0 (count arr)) (make-warning context "Column references should not be empty" invalid)

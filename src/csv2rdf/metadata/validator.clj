@@ -133,12 +133,14 @@
                                      (v/pure (if (every? valid? t) t invalid)))
                                    tuple-validation))))))))
 
-(defn variant [tag-validators]
+(defn variant [{:keys [default] :as tag-validators}]
   {:pre [(pos? (count tag-validators))]}
   (fn [context x]
     (if-let [validator (get tag-validators (mjson/get-json-type x))]
       (validator context x)
-      (make-warning context (type-error-message (keys tag-validators) (mjson/get-json-type x)) invalid))))
+      (let [valid-types (keys (dissoc tag-validators :default))
+            actual-type (mjson/get-json-type x)]
+        (make-warning context (type-error-message valid-types actual-type) (or default invalid))))))
 
 (defn compm [& validators]
   (reduce (fn [acc validator]
