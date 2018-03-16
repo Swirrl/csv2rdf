@@ -174,13 +174,21 @@
               (value-validator (append-path context k) (get m k)))
       (make-error context (str "Missing required key '" k "'")))))
 
-(defn optional-key [k value-validator]
-  (fn [context m]
-    (if (contains? m k)
-      (let [value-validation (value-validator (append-path context k) (get m k))]
-        (v/bind (fn [v]
-                  (if (invalid? v)
-                    nil
-                    (v/pure [k v])))
-                value-validation))
-      (v/pure nil))))
+(defn optional-key
+  ([k value-validator]
+   (fn [context m]
+     (if (contains? m k)
+       (let [value-validation (value-validator (append-path context k) (get m k))]
+         (v/bind (fn [v]
+                   (if (invalid? v)
+                     nil
+                     (v/pure [k v])))
+                 value-validation))
+       (v/pure nil))))
+  ([k value-validator default]
+   (fn [context m]
+     (if (contains? m k)
+       (let [value-validation (value-validator (append-path context k) (get m k))]
+         (v/fmap (fn [v] [k (if (invalid? v) default v)])
+                 value-validation))
+       (v/pure [k default])))))

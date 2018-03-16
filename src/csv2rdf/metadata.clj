@@ -63,9 +63,13 @@
   [context [k _]]
   (make-warning context (str "Invalid key '" k "'") nil))
 
-(defn validate-object-of [{:keys [required optional allow-common-properties?]}]
+(defn validate-object-of [{:keys [required optional defaults allow-common-properties?]}]
   (let [required-keys (map (fn [[k v]] (required-key k v)) required)
-        optional-keys (map (fn [[k v]] (optional-key k v)) optional)]
+        optional-keys (map (fn [[k v]]
+                             (if (contains? defaults k)
+                               (optional-key k v (get defaults k))
+                               (optional-key k v)))
+                           optional)]
     (fn [context obj]
       (let [[required-obj opt-obj] (util/partition-keys obj required)
             [optional-obj remaining-obj] (util/partition-keys opt-obj optional)
@@ -451,9 +455,10 @@
                       pairs))
             pairs-validation)))
 
-(defn metadata-of [{:keys [required optional]}]
+(defn metadata-of [{:keys [required optional defaults]}]
   (object-of {:required required
               :optional (merge inherited-properties optional)
+              :defaults defaults
               :allow-common-properties? true}))
 
 (defn ^{:metadata-spec "5.6"} validate-column-name [context s]
@@ -471,7 +476,9 @@
                 "titles"         natural-language                   ;;TODO: should be array?
                 "virtual"        bool
                 "@id"            id
-                "@type" (eq "Column")}}))
+                "@type" (eq "Column")}
+     :defaults {"suppressOutput" false
+                "virtual" false}}))
 
 (defn get-duplicate-names [columns]
   (->> columns
