@@ -85,7 +85,9 @@
                 common-validation (v/fmap (fn [pairs]
                                             (into {} (remove nil? pairs))) common-pairs-validation)]
             (v/fmap (fn [[declared common]]
-                      (assoc declared ::common-properties common))
+                      (if (empty? common)
+                        declared
+                        (assoc declared ::common-properties common)))
                     (v/collect [declared-validation common-validation])))
           (let [invalid-validation (v/collect (map (fn [p] (invalid-key-pair context p)) remaining-obj))]
             (v/combine invalid-validation declared-validation)))))))
@@ -243,14 +245,6 @@
 (defn contextual-object [context-required? object-validator]
   (variant {:object (validate-contextual-object context-required? object-validator)}))
 
-(defn validate-column-name [context s]
-  (if (.startsWith s "_")
-    (make-warning context "Columns names cannot begin with _" invalid)
-    (uri-template-variable context s)))
-
-(def ^{:template-spec "5.6"} column-name
-  (variant {:string validate-column-name}))
-
 (defn validate-id [context s]
   (if (.startsWith s "_:")
     (make-warning context "Ids cannot start with _:" invalid)
@@ -258,41 +252,6 @@
 
 (def ^{:doc "An id is a link property whose value cannot begin with _:"} id
   (variant {:string validate-id}))
-
-(defn get-duplicate-names [columns]
-  (->> columns
-       (map :name)
-       (frequencies)
-       (filter (fn [[n count]] (> count 1)))
-       (map first)))
-
-(defn ^{:metadata-spec "5.5"} validate-column-names [context columns]
-  ;;columns property: The name properties of the column descriptions MUST be unique within a given table description.
-  (let [duplicate-names (get-duplicate-names columns)]
-    (if (seq duplicate-names)
-      (make-error context (str "Duplicate names for columns: " (string/join ", " duplicate-names)))
-      (v/pure nil))))
-
-(defn ^{:metadata-spec "5.6"} validate-virtual-columns [context columns]
-  ;;virtual property: If present, a virtual column MUST appear after all other non-virtual column definitions.
-  (let [non-virtual? (fn [col] (= false (:virtual col)))
-        virtual-columns (drop-while non-virtual? columns)
-        invalid-columns (filter non-virtual? virtual-columns)]
-    (if (seq invalid-columns)
-      (let [first-virtual (first virtual-columns)           ;;NOTE: must exist
-            msg (format "Non-virtual columns %s defined after first virtual column %s - All virtual columns must exist after all non-virtual columns"
-                        (string/join ", " (map :name invalid-columns))
-                        (:name first-virtual))]
-        (make-error context msg))
-      (v/pure nil))))
-
-(defn validate-columns [context columns]
-  (let [names-val (validate-column-names context columns)
-        virtual-val (validate-virtual-columns context columns)]
-    ;;TODO: validate column names
-    ;;names cannot be validated until default applied
-    #_(v/combine names-val virtual-val)
-    virtual-val))
 
 (def line-terminators
   (variant {:string any
@@ -497,6 +456,14 @@
               :optional (merge inherited-properties optional)
               :allow-common-properties? true}))
 
+(defn ^{:metadata-spec "5.6"} validate-column-name [context s]
+  (if (.startsWith s "_")
+    (make-warning context "Columns names cannot begin with _" invalid)
+    (uri-template-variable context s)))
+
+(def ^{:metadata-spec "5.6"} column-name
+  (chain string validate-column-name))
+
 (def column
   (metadata-of
     {:optional {"name"           column-name                             ;;TODO: use first title as name if not provided, see spec
@@ -506,10 +473,50 @@
                 "@id"            id
                 "@type" (eq "Column")}}))
 
-(defn columns [context x]
-  (v/bind (fn [cols]
-            (v/fmap (constantly cols) (validate-columns context cols)))
-          ((array-of column) context x)))
+(defn get-duplicate-names [columns]
+  (->> columns
+       (map :name)
+       (frequencies)
+       (filter (fn [[n count]] (> count 1)))
+       (map first)))
+
+(defn ^{:metadata-spec "5.5"} validate-column-names [context columns]
+  ;;columns property: The name properties of the column descriptions MUST be unique within a given table description.
+  (let [duplicate-names (get-duplicate-names columns)]
+    (if (seq duplicate-names)
+      (make-error context (str "Duplicate names for columns: " (string/join ", " duplicate-names)))
+      (v/pure columns))))
+
+(defn ^{:metadata-spec "5.6"} validate-virtual-columns [context columns]
+  ;;virtual property: If present, a virtual column MUST appear after all other non-virtual column definitions.
+  (let [non-virtual? (fn [col] (= false (:virtual col)))
+        virtual-columns (drop-while non-virtual? columns)
+        invalid-columns (filter non-virtual? virtual-columns)]
+    (if (seq invalid-columns)
+      (let [first-virtual (first virtual-columns)           ;;NOTE: must exist
+            msg (format "Non-virtual columns %s defined after first virtual column %s - All virtual columns must exist after all non-virtual columns"
+                        (string/join ", " (map :name invalid-columns))
+                        (:name first-virtual))]
+        (make-error context msg))
+      (v/pure columns))))
+
+(def ^{:table-spec "4.3"} index->column-number inc)
+
+(defn ^{:metadata-spec "5.6"} get-column-name [{:keys [name titles] :as column} column-index default-language]
+  (or name
+      (first (get titles default-language))
+      (str "_col." (index->column-number column-index))))
+
+(defn set-column-name [column column-index context]
+  (assoc column :name (get-column-name column column-index (language-code-or-default context))))
+
+(defn set-column-names [context columns]
+  (->> columns
+       (map-indexed (fn [idx col] (set-column-name col idx context)))
+       (vec)
+       (v/pure)))
+
+(def columns (chain (array-of column) set-column-names validate-column-names validate-virtual-columns))
 
 ;;NOTE: transformations may contain common properties but not inherited properties?
 (def transformation
