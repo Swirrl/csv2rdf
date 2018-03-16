@@ -541,11 +541,23 @@
   {"suppressOutput" false
    "tableDirection" "auto"})
 
+(defn validate-foreign-key-reference [context reference]
+  (if (and (contains? reference :resource) (contains? reference :schemaReference))
+    (make-warning context "Foreign key reference cannot specify both resource and schemaReference keys" invalid)
+    (v/pure reference)))
+
+(def foreign-key-reference
+  (chain
+    (object-of
+      {:optional {"resource" link-property
+                  "schemaReference" link-property
+                  "columnReference" column-reference}})
+    validate-foreign-key-reference))
+
 (def foreign-key
   (object-of
     {:required {"columnReference" column-reference
-                "reference"       object                    ;;TODO: specify reference
-                }}))
+                "reference"       (object-property foreign-key-reference)}}))
 
 (def schema
   (metadata-of
