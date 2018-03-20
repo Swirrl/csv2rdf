@@ -55,6 +55,10 @@
 (defn partition-keys
   "Splits a source map into two sub-maps - the first contain the keys in both source-map and ref-map,
    the second contains the keys in source-map which do not exist in ref-map."
-  [source-map ref-map]
-  (let [ref-keys (keys ref-map)]
-    [(select-keys source-map ref-keys) (apply dissoc source-map ref-keys)]))
+  [source-map ref-keys]
+  [(select-keys source-map ref-keys) (apply dissoc source-map ref-keys)])
+
+(defn get-declared-method [cls method-name arg-types]
+  (let [m (.getDeclaredMethod cls method-name (into-array Class arg-types))]
+    (.setAccessible m true)
+    m))

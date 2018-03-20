@@ -192,3 +192,34 @@
          (v/fmap (fn [v] [k (if (invalid? v) default v)])
                  value-validation))
        (v/pure [k default])))))
+
+(defn- combine-kvp-validations [kvp-validations]
+  (v/fmap (fn [pairs]
+            (into {} (remove invalid? pairs)))
+          (v/collect kvp-validations)))
+
+(defn kvps
+  "Takes a collection of kvp specs which validate a map and return a key-value pair (or invalid).
+   Combines results for all kvps into a map."
+  [kvp-specs]
+  (fn [context m]
+    (combine-kvp-validations (map (fn [key-spec]
+                                    (key-spec context m))
+                                  kvp-specs))))
+
+(defn- kvp-validator [key-validator value-validator]
+  (fn [context [k v]]
+    (v/bind (fn [key-result]
+              (if (invalid? key-result)
+                (v/pure key-result)
+                (v/bind (fn [value-result]
+                          (if (invalid? value-result)
+                            (v/pure value-result)
+                            (v/pure [key-result value-result])))
+                        (value-validator (append-path context k) v))))
+            (key-validator context k))))
+
+(defn map-of [key-validator value-validator]
+  (let [pair-validator (kvp-validator key-validator value-validator)]
+    (fn [context m]
+      (combine-kvp-validations (map (fn [kvp] (pair-validator context kvp)) m)))))

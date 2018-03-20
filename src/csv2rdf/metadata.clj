@@ -16,6 +16,21 @@
            [com.github.fge.uritemplate URITemplateParseException]
            [java.lang.reflect InvocationTargetException]))
 
+(defn validate-language-code [context s]
+  (try
+    (do
+      (.setLanguage (Locale$Builder.) s)
+      ;;TODO: validate against known list of language codes?
+      (v/pure s))
+    (catch IllformedLocaleException _ex
+      (make-warning context (str "Invalid language code: '" s "'") invalid))))
+
+(defn language-code [context x]
+  (if (string? x)
+    (validate-language-code context x)
+    (make-warning context (str "Expected language code, got " (get-json-type-name x)) invalid)))
+
+
 (def ^{:metadata-spec "5.2"} context nil)
 
 (def default-uri (URI. ""))
@@ -53,9 +68,94 @@
   ;;TODO: improve?
   (.contains k ":"))
 
+(defn expand-compact-uri [context s]
+  (try
+    (v/pure (URI. (expand-uri-string s)))
+    (catch Exception ex
+      (make-warning context (str "Invalid compact URI: '" s "'") invalid))))
+
+(def special-common-property-value-keys ["@value" "@type" "@language" "@id"])
+
+(defn ordinary-common-property-value-key [context x]
+  (if (and (string? x) (.startsWith x "@"))
+    (make-warning context (str "Only keys " (string/join special-common-property-value-keys) " can start with an @") invalid)
+    (v/pure x)))
+
+(def ^{:metadata-spec "5.8.2"} common-property-value-type
+  (variant {:string (fn [context s]
+                      ;;TODO: normalise into data type record?
+                      (if (datatype/valid-type-name? s)
+                        (v/pure s)
+                        (expand-compact-uri context s)))}))
+
+(defn ^{:metadata-spec "5.8"} validate-common-property-value [context v]
+  (cond
+    (array? v)
+    ((array-of validate-common-property-value) context v)
+
+    (object? v)
+    (if (contains? v "@value")
+      (let [allowed-keys (util/partition-keys v ["@value" "@type" "@language"])
+            [allowed remaining] allowed-keys]
+        (cond
+          (seq remaining)
+          (make-warning context (str "Common property values specifying @value must only contain keys " (string/join ", " allowed-keys)) invalid)
+
+          (= 3 (count allowed))
+          (make-warning context "Common property values specifying @value can only contain one of @type or @language" invalid)
+
+          :else
+          (let [special-keys (kvps [(optional-key "@language" language-code)
+                                    (optional-key "@value" (variant {:string any :boolean any :number any}))
+                                    (optional-key "@type" common-property-value-type)])]
+            (special-keys context v))))
+      (let [special-keys ["@id" "@type"]           ;;NOTE: @language not allowed unless @value specified
+            [special remaining] (util/partition-keys v special-keys)
+            special-validator (kvps [(optional-key "@id" any) ;;NOTE: @id will be expanded during normalisation
+                                     (optional-key "@type" common-property-value-type)])
+            remaining-validator (map-of ordinary-common-property-value-key validate-common-property-value)]
+        (v/combine-with merge (special-validator context special) (remaining-validator context remaining))))
+
+    :else (v/pure v)))
+
+(def compact-uri (chain string expand-compact-uri))
+(def common-property-key compact-uri)
+
+(defn normalise-common-property-id [context id]
+  (v/bind (fn [uri]
+            (if (invalid? uri)
+              (v/pure uri)
+              (v/pure (resolve-uri context uri))))
+          (compact-uri context id)))
+
+(defn ^{:metadata-spec "6.1"} normalise-common-property-value [{:keys [language] :as context} v]
+  (cond
+    (array? v)
+    (v/collect (map #(normalise-common-property-value context %) v))
+
+    (string? v)
+    (if (some? language)
+      (v/pure {"@value" v "@language" language})
+      (v/pure {"@value" v}))
+
+    (and (object? v) (contains? v "@value"))
+    (v/pure v)
+
+    (object? v)
+    (let [[special common-properties] (util/partition-keys v  ["@id" "@type"])
+          special-validator (kvps [(optional-key "@id" normalise-common-property-id)
+                                   (optional-key "@type" any)])
+          common-validator (map-of common-property-key normalise-common-property-value)]
+      (v/combine-with merge (special-validator context special) (common-validator context common-properties)))
+
+    :else (v/pure v)))
+
+(def common-property-value (chain validate-common-property-value normalise-common-property-value))
+
 (defn common-property-pair [context [k v]]
   (if (common-property-key? k)
-    (v/pure [k v])
+    (let [pair-validator (tuple compact-uri common-property-value)]
+      (pair-validator context [k v]))
     (make-warning context (str "Invalid common property key '" k "'") nil)))
 
 (defn ^{:metadata-spec "4"} invalid-key-pair
@@ -71,8 +171,8 @@
                                (optional-key k v)))
                            optional)]
     (fn [context obj]
-      (let [[required-obj opt-obj] (util/partition-keys obj required)
-            [optional-obj remaining-obj] (util/partition-keys opt-obj optional)
+      (let [[required-obj opt-obj] (util/partition-keys obj (keys required))
+            [optional-obj remaining-obj] (util/partition-keys opt-obj (keys optional))
             required-validations (map (fn [validator] (validator context required-obj)) required-keys)
             optional-validations (map (fn [validator] (validator context optional-obj)) optional-keys)
             declared-pairs-validation (v/collect (concat required-validations optional-validations))
@@ -98,20 +198,6 @@
 
 (defn object-of [opts]
   (variant {:object (validate-object-of opts)}))
-
-(defn validate-language-code [context s]
-  (try
-    (do
-      (.setLanguage (Locale$Builder.) s)
-      ;;TODO: validate against known list of language codes?
-      (v/pure s))
-    (catch IllformedLocaleException _ex
-      (make-warning context (str "Invalid language code: '" s "'") invalid))))
-
-(defn language-code [context x]
-  (if (string? x)
-    (validate-language-code context x)
-    (make-warning context (str "Expected language code, got " (get-json-type-name x)) invalid)))
 
 (defn ^{:metadata-spec "6.6"} normalise-string-natural-language-property [context code]
   {(language-code-or-default context) [code]})
@@ -186,10 +272,7 @@
 
 (def non-negative (variant {:number (where util/non-negative? "non-negative")} ))
 
-(def parse-variable-method
-  (let [m (.getDeclaredMethod VariableSpecParser "parseFullName" (into-array [CharBuffer]))]
-    (.setAccessible m true)
-    m))
+(def parse-variable-method (util/get-declared-method VariableSpecParser "parseFullName" [CharBuffer]))
 
 (defn parse-uri-template-variable [s]
   (try
@@ -300,12 +383,11 @@
         :else (v/pure arr)))
 
 ;;TODO: validation that each referenced column exists occurs at higher-level
-(def ^{:metadata-spec "5.1.4"}  column-reference
+(def ^{:metadata-spec "5.1.4"} column-reference
   (variant {:string (fn [_context s] (v/pure [s]))
             :array column-reference-array}))
 
-;;TODO: The properties on these objects are interpreted equivalently to common properties as described in section 5.8 Common Properties.
-(def note any)
+(def ^{:metadata-spec "5.3"} note (map-of common-property-key common-property-value))
 
 (def transformation-source-types #{"json" "rdf"})
 

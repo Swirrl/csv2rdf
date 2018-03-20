@@ -44,6 +44,9 @@
 (def ^{:doc "All known type names"} type-names
   (into #{} (concat (flatten type-hierarchy) (keys aliases))))
 
+(defn valid-type-name? [s]
+  (contains? type-names s))
+
 (defn resolve-type-name [type-name]
   (get aliases type-name type-name))
 
