@@ -207,7 +207,7 @@
                                     (key-spec context m))
                                   kvp-specs))))
 
-(defn- kvp-validator [key-validator value-validator]
+(defn kvp [key-validator value-validator]
   (fn [context [k v]]
     (v/bind (fn [key-result]
               (if (invalid? key-result)
@@ -220,6 +220,6 @@
             (key-validator context k))))
 
 (defn map-of [key-validator value-validator]
-  (let [pair-validator (kvp-validator key-validator value-validator)]
+  (let [pair-validator (kvp key-validator value-validator)]
     (fn [context m]
       (combine-kvp-validations (map (fn [kvp] (pair-validator context kvp)) m)))))

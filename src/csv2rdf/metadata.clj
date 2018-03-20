@@ -30,9 +30,6 @@
     (validate-language-code context x)
     (make-warning context (str "Expected language code, got " (get-json-type-name x)) invalid)))
 
-
-(def ^{:metadata-spec "5.2"} context nil)
-
 (def default-uri (URI. ""))
 
 (defn ^{:metadata-spec "6.3"} normalise-link-property
@@ -53,12 +50,7 @@
 
 (def link-property (chain parse-link-property normalise-link-property))
 
-(defn ^{:metadata-spec "5.1.3"} template-property [context x]
-  (->> (string context x)
-       (v/bind (fn [s]
-                 ))))
-
-(def template-property
+(def ^{:metadata-spec "5.1.3"} template-property
   (variant {:string (fn [context s]
                       (if-let [t (template/try-parse-template s)]
                         (v/pure t)
@@ -74,12 +66,11 @@
     (catch Exception ex
       (make-warning context (str "Invalid compact URI: '" s "'") invalid))))
 
-(def special-common-property-value-keys ["@value" "@type" "@language" "@id"])
-
-(defn ordinary-common-property-value-key [context x]
-  (if (and (string? x) (.startsWith x "@"))
-    (make-warning context (str "Only keys " (string/join special-common-property-value-keys) " can start with an @") invalid)
-    (v/pure x)))
+(defn ordinary-common-property-value-key [special-keys]
+  (fn [context x]
+    (if (and (string? x) (.startsWith x "@"))
+      (make-warning context (str "Only keys " (string/join special-keys) " can start with an @") invalid)
+      (v/pure x))))
 
 (def ^{:metadata-spec "5.8.2"} common-property-value-type
   (variant {:string (fn [context s]
@@ -113,7 +104,7 @@
             [special remaining] (util/partition-keys v special-keys)
             special-validator (kvps [(optional-key "@id" any) ;;NOTE: @id will be expanded during normalisation
                                      (optional-key "@type" common-property-value-type)])
-            remaining-validator (map-of ordinary-common-property-value-key validate-common-property-value)]
+            remaining-validator (map-of (ordinary-common-property-value-key ["@id" "@type"]) validate-common-property-value)]
         (v/combine-with merge (special-validator context special) (remaining-validator context remaining))))
 
     :else (v/pure v)))
@@ -152,12 +143,6 @@
 
 (def common-property-value (chain validate-common-property-value normalise-common-property-value))
 
-(defn common-property-pair [context [k v]]
-  (if (common-property-key? k)
-    (let [pair-validator (tuple compact-uri common-property-value)]
-      (pair-validator context [k v]))
-    (make-warning context (str "Invalid common property key '" k "'") nil)))
-
 (defn ^{:metadata-spec "4"} invalid-key-pair
   "Generates a warning for any invalid keys found in a metadata document."
   [context [k _]]
@@ -185,9 +170,7 @@
                                                (into {})))
                                         declared-pairs-validation)]
         (if allow-common-properties?
-          (let [common-pairs-validation (v/collect (map (fn [p] (common-property-pair context p)) remaining-obj))
-                common-validation (v/fmap (fn [pairs]
-                                            (into {} (remove nil? pairs))) common-pairs-validation)]
+          (let [common-validation ((map-of common-property-key common-property-value) context remaining-obj)]
             (v/fmap (fn [[declared common]]
                       (if (empty? common)
                         declared
