@@ -42,5 +42,5 @@
 (def csvw-context (delay (get-csvw-context)))
 
 (defn expand-uri-string [uri-str]
-  (.invoke resolve-iri-method (Context.) (into-array Object [uri-str false false @csvw-context (HashMap.)])))
+  (util/invoke-method resolve-iri-method (Context.) [uri-str false false @csvw-context (HashMap.)]))
 

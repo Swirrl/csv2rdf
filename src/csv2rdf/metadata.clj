@@ -8,93 +8,8 @@
             [csv2rdf.metadata.dialect :refer [dialect]]
             [csv2rdf.metadata.transformation :as transformation]
             [csv2rdf.metadata.inherited :refer [metadata-of]]
-            [csv2rdf.util :as util])
-  (:import [java.nio CharBuffer]
-           [com.github.fge.uritemplate.parse VariableSpecParser]
-           [com.github.fge.uritemplate URITemplateParseException]
-           [java.lang.reflect InvocationTargetException]))
-
-(def parse-variable-method (util/get-declared-method VariableSpecParser "parseFullName" [CharBuffer]))
-
-(defn parse-uri-template-variable [s]
-  (try
-    (.invoke parse-variable-method nil (into-array [(CharBuffer/wrap s)]))
-    (catch InvocationTargetException ex
-      (throw (.getCause ex)))))
-
-(defn uri-template-variable [context s]
-  (try
-    (let [result (parse-uri-template-variable s)]
-      ;;parseFullName returns the prefix of the input that could be parsed
-      (if (= result s)
-        (v/pure s)
-        (make-warning context (str "Invalid template variable: '" s "'") invalid)))
-    (catch URITemplateParseException _ex
-      (make-warning context (str "Invalid template variable: '" s "'") invalid))))
-
-(defn ^{:metadata-spec "5.6"} validate-column-name [context s]
-  (if (.startsWith s "_")
-    (make-warning context "Columns names cannot begin with _" invalid)
-    (uri-template-variable context s)))
-
-(def ^{:metadata-spec "5.6"} column-name
-  (chain string validate-column-name))
-
-(def column
-  (metadata-of
-    {:optional {"name"           column-name                             ;;TODO: use first title as name if not provided, see spec
-                "suppressOutput" bool
-                "titles"         natural-language                   ;;TODO: should be array?
-                "virtual"        bool
-                "@id"            id
-                "@type" (eq "Column")}
-     :defaults {"suppressOutput" false
-                "virtual" false}}))
-
-(defn get-duplicate-names [columns]
-  (->> columns
-       (map :name)
-       (frequencies)
-       (filter (fn [[n count]] (> count 1)))
-       (map first)))
-
-(defn ^{:metadata-spec "5.5"} validate-column-names [context columns]
-  ;;columns property: The name properties of the column descriptions MUST be unique within a given table description.
-  (let [duplicate-names (get-duplicate-names columns)]
-    (if (seq duplicate-names)
-      (make-error context (str "Duplicate names for columns: " (string/join ", " duplicate-names)))
-      (v/pure columns))))
-
-(defn ^{:metadata-spec "5.6"} validate-virtual-columns [context columns]
-  ;;virtual property: If present, a virtual column MUST appear after all other non-virtual column definitions.
-  (let [non-virtual? (fn [col] (= false (:virtual col)))
-        virtual-columns (drop-while non-virtual? columns)
-        invalid-columns (filter non-virtual? virtual-columns)]
-    (if (seq invalid-columns)
-      (let [first-virtual (first virtual-columns)           ;;NOTE: must exist
-            msg (format "Non-virtual columns %s defined after first virtual column %s - All virtual columns must exist after all non-virtual columns"
-                        (string/join ", " (map :name invalid-columns))
-                        (:name first-virtual))]
-        (make-error context msg))
-      (v/pure columns))))
-
-(def ^{:table-spec "4.3"} index->column-number inc)
-
-(defn ^{:metadata-spec "5.6"} get-column-name [{:keys [name titles] :as column} column-index default-language]
-  (or name
-      (first (get titles default-language))
-      (str "_col." (index->column-number column-index))))
-
-(defn set-column-name [column column-index context]
-  (assoc column :name (get-column-name column column-index (language-code-or-default context))))
-
-(defn set-column-names [context columns]
-  (->> columns
-       (map-indexed (fn [idx col] (set-column-name col idx context)))
-       (vec)
-       (v/pure)))
-
-(def columns (chain (array-of column) set-column-names validate-column-names validate-virtual-columns))
+            [csv2rdf.metadata.column :as column]
+            [csv2rdf.util :as util]))
 
 (def table-defaults
   {"suppressOutput" false
@@ -150,7 +65,7 @@
 (def schema
   (chain
     (metadata-of
-      {:optional {"columns"     columns
+      {:optional {"columns"     column/columns
                   "foreignKeys" (array-of foreign-key)      ;;TODO: validate foreign keys
                   "primaryKey"  column-reference            ;;TODO: validators MUST check that each row has a unique combination of values of cells in the indicated columns
                   "rowTitles"   column-reference

@@ -2,7 +2,8 @@
   (:require [clojure.java.io :as io]
             [clojure.data.json :as json])
   (:import [java.io BufferedReader]
-           [java.net URI]))
+           [java.net URI]
+           [java.lang.reflect InvocationTargetException Method]))
 
 (defn read-lines
   "Eagerly reads the lines from the given source."
@@ -62,3 +63,13 @@
   (let [m (.getDeclaredMethod cls method-name (into-array Class arg-types))]
     (.setAccessible m true)
     m))
+
+(defn invoke-method
+  "Invokes the given Method instance with the given arguments and receiver if one is specified. Unwraps the inner
+   exception if an InvocationTargetException is thrown."
+  ([method args] (invoke-method method nil args))
+  ([^Method method receiver args]
+   (try
+     (.invoke method receiver (into-array Object args))
+     (catch InvocationTargetException ex
+       (throw (.getCause ex))))))
