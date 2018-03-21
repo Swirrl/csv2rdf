@@ -1,7 +1,12 @@
-(ns csv2rdf.tabular.csv.dialect
+(ns csv2rdf.metadata.dialect
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as string]
-            [csv2rdf.util :refer [non-negative?]]))
+            [csv2rdf.util :as util]
+            [csv2rdf.metadata.types :refer [object-of id non-negative] :as types]
+            [csv2rdf.metadata.validator :refer [make-warning invalid mapping variant any array-of string character
+                                                bool eq]]
+            [csv2rdf.validation :as v])
+  (:import [java.nio.charset Charset IllegalCharsetNameException]))
 
 (def ^{:metadata-spec "5.9"} default-dialect
   {:encoding "utf-8"
@@ -86,12 +91,12 @@
 (s/def ::doubleQuote boolean?)
 (s/def ::encoding string?)
 (s/def ::header boolean?)
-(s/def ::headerRowCount non-negative?)
+(s/def ::headerRowCount util/non-negative?)
 (s/def ::lineTerminators (s/coll-of string? :kind vector? :into []))
 (s/def ::quoteChar (s/nilable char?))                       ;;NOTE: differs from specs which allows strings
 (s/def ::skipBlankRows boolean?)
-(s/def ::skipRows non-negative?)
-(s/def ::skipColumns non-negative?)
+(s/def ::skipRows util/non-negative?)
+(s/def ::skipColumns util/non-negative?)
 (s/def ::skipInitialSpace (s/nilable boolean?))
 (s/def ::trim #{nil "true" "false" "start" "end"})
 (s/def ::trim-mode #{:none :all :start :end})
@@ -116,7 +121,49 @@
 (s/fdef expand-dialect
         :ret ::dialect)
 
-(s/fdef calculalte-dialect-options
+(s/fdef calculate-dialect-options
         :args (s/cat :dialect ::dialect)
         :ret ::options)
 
+;;metadata parsing
+
+(defn validate-encoding [context s]
+  ;;NOTE: some valid encodings defined in https://www.w3.org/TR/encoding/
+  ;;may not be supported by the underlying platform, reject these as invalid
+  (try
+    (if (Charset/isSupported s)
+      (v/pure s)
+      (make-warning context (str "Invalid encoding: '" s "'") invalid))
+    (catch IllegalCharsetNameException _ex
+      (make-warning context (str "Invalid encoding: '" s "'") invalid))))
+
+(def encoding (variant {:string validate-encoding}))
+
+;;TODO: merge with parse-trim
+(def trim-modes {"true" :all "false" :none "start" :start "end" :end})
+
+(def trim-mode (variant {:string  (mapping trim-modes)
+                         :boolean (fn [_context b] (v/pure (if b :all :none)))}))
+
+(def line-terminators
+  (variant {:string any
+            :array (array-of string)}))
+
+(def dialect
+  (object-of
+    {:optional {"commentPrefix" character
+                "delimiter" character
+                "doubleQuote" bool
+                "encoding" encoding
+                "header" bool
+                "headerRowCount" non-negative
+                "lineTerminators" line-terminators
+                "quoteChar" character
+                "skipBlankRows" bool
+                "skipColumns" non-negative
+                "skipInitialSpace" bool
+                "skipRows" non-negative
+                "trimMode" trim-mode
+                "@id" id
+                "@type" (eq "Dialect")}
+     :allow-common-properties? false}))

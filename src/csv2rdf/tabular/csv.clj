@@ -1,7 +1,7 @@
 (ns csv2rdf.tabular.csv
   (:require [clojure.java.io :as io]
             [clojure.string :as string]
-            [csv2rdf.tabular.csv.dialect :as dialect]
+            [csv2rdf.metadata.dialect :as dialect]
             [csv2rdf.tabular.csv.reader :as reader]))
 
 (defn ^{:table-spec "8.6"} get-skipped-rows-comments [skipped-rows]

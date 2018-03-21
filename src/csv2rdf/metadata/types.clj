@@ -1,6 +1,7 @@
 (ns csv2rdf.metadata.types
   (:require [csv2rdf.metadata.validator :refer [make-warning variant invalid array-of kvp kvps optional-key
-                                                any map-of string invalid? chain try-parse-with]]
+                                                required-key invalid-key-pair any map-of one-of string invalid?
+                                                chain try-parse-with where]]
             [csv2rdf.metadata.context :refer [resolve-uri expand-uri-string append-path language-code-or-default]]
             [csv2rdf.validation :as v]
             [csv2rdf.metadata.json :refer [array? object?] :as mjson]
@@ -10,6 +11,8 @@
             [csv2rdf.util :as util])
   (:import [java.util Locale$Builder IllformedLocaleException]
            [java.net URI URISyntaxException]))
+
+(def non-negative (variant {:number (where util/non-negative? "non-negative")}))
 
 (defn validate-language-code [context s]
   (try
@@ -160,6 +163,9 @@
 
 (def common-property-value (chain validate-common-property-value normalise-common-property-value))
 
+(def ^{:metadata-spec "5.3"} note (map-of common-property-key common-property-value))
+(def ^{:metadata-spec "5.3"} table-direction (one-of #{"rtl" "ltr" "auto"}))
+
 (defn validate-id [context s]
   (if (.startsWith s "_:")
     (make-warning context "Ids cannot start with _:" invalid)
@@ -167,3 +173,47 @@
 
 (def ^{:doc "An id is a link property whose value cannot begin with _:"} id
   (variant {:string validate-id}))
+
+(defn column-reference-array [context arr]
+  (cond (= 0 (count arr)) (make-warning context "Column references should not be empty" invalid)
+        (not-every? string? arr) (make-warning context "Column references should all be strings" invalid)
+        :else (v/pure arr)))
+
+;;TODO: validation that each referenced column exists occurs at higher-level
+(def ^{:metadata-spec "5.1.4"} column-reference
+  (variant {:string (fn [_context s] (v/pure [s]))
+            :array column-reference-array}))
+
+(defn validate-object-of [{:keys [required optional defaults allow-common-properties?]}]
+  (let [required-keys (map (fn [[k v]] (required-key k v)) required)
+        optional-keys (map (fn [[k v]]
+                             (if (contains? defaults k)
+                               (optional-key k v (get defaults k))
+                               (optional-key k v)))
+                           optional)]
+    (fn [context obj]
+      (let [[required-obj opt-obj] (util/partition-keys obj (keys required))
+            [optional-obj remaining-obj] (util/partition-keys opt-obj (keys optional))
+            required-validations (map (fn [validator] (validator context required-obj)) required-keys)
+            optional-validations (map (fn [validator] (validator context optional-obj)) optional-keys)
+            declared-pairs-validation (v/collect (concat required-validations optional-validations))
+            declared-validation (v/fmap (fn [pairs]
+                                          ;;optional keys not declared in the input are nil so remove them
+                                          ;;convert keys to keywords
+                                          (->> pairs
+                                               (remove nil?)
+                                               (map (fn [[k v]] [(keyword k) v]))
+                                               (into {})))
+                                        declared-pairs-validation)]
+        (if allow-common-properties?
+          (let [common-validation ((map-of common-property-key common-property-value) context remaining-obj)]
+            (v/fmap (fn [[declared common]]
+                      (if (empty? common)
+                        declared
+                        (assoc declared ::common-properties common)))
+                    (v/collect [declared-validation common-validation])))
+          (let [invalid-validation (v/collect (map (fn [p] (invalid-key-pair context p)) remaining-obj))]
+            (v/combine invalid-validation declared-validation)))))))
+
+(defn object-of [opts]
+  (variant {:object (validate-object-of opts)}))

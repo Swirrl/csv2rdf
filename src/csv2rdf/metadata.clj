@@ -6,71 +6,12 @@
             [csv2rdf.metadata.context :refer :all]
             [csv2rdf.metadata.json :refer :all]
             [csv2rdf.metadata.types :refer :all]
+            [csv2rdf.metadata.dialect :refer [dialect]]
             [csv2rdf.util :as util])
-  (:import [java.nio.charset Charset IllegalCharsetNameException]
-           [java.nio CharBuffer]
+  (:import [java.nio CharBuffer]
            [com.github.fge.uritemplate.parse VariableSpecParser]
            [com.github.fge.uritemplate URITemplateParseException]
            [java.lang.reflect InvocationTargetException]))
-
-(defn ^{:metadata-spec "4"} invalid-key-pair
-  "Generates a warning for any invalid keys found in a metadata document."
-  [context [k _]]
-  (make-warning context (str "Invalid key '" k "'") nil))
-
-(defn validate-object-of [{:keys [required optional defaults allow-common-properties?]}]
-  (let [required-keys (map (fn [[k v]] (required-key k v)) required)
-        optional-keys (map (fn [[k v]]
-                             (if (contains? defaults k)
-                               (optional-key k v (get defaults k))
-                               (optional-key k v)))
-                           optional)]
-    (fn [context obj]
-      (let [[required-obj opt-obj] (util/partition-keys obj (keys required))
-            [optional-obj remaining-obj] (util/partition-keys opt-obj (keys optional))
-            required-validations (map (fn [validator] (validator context required-obj)) required-keys)
-            optional-validations (map (fn [validator] (validator context optional-obj)) optional-keys)
-            declared-pairs-validation (v/collect (concat required-validations optional-validations))
-            declared-validation (v/fmap (fn [pairs]
-                                          ;;optional keys not declared in the input are nil so remove them
-                                          ;;convert keys to keywords
-                                          (->> pairs
-                                               (remove nil?)
-                                               (map (fn [[k v]] [(keyword k) v]))
-                                               (into {})))
-                                        declared-pairs-validation)]
-        (if allow-common-properties?
-          (let [common-validation ((map-of common-property-key common-property-value) context remaining-obj)]
-            (v/fmap (fn [[declared common]]
-                      (if (empty? common)
-                        declared
-                        (assoc declared ::common-properties common)))
-                    (v/collect [declared-validation common-validation])))
-          (let [invalid-validation (v/collect (map (fn [p] (invalid-key-pair context p)) remaining-obj))]
-            (v/combine invalid-validation declared-validation)))))))
-
-(defn object-of [opts]
-  (variant {:object (validate-object-of opts)}))
-
-(defn validate-encoding [context s]
-  ;;NOTE: some valid encodings defined in https://www.w3.org/TR/encoding/
-  ;;may not be supported by the underlying platform, reject these as invalid
-  (try
-    (if (Charset/isSupported s)
-      (v/pure s)
-      (make-warning context (str "Invalid encoding: '" s "'") invalid))
-    (catch IllegalCharsetNameException _ex
-      (make-warning context (str "Invalid encoding: '" s "'") invalid))))
-
-(def encoding (variant {:string validate-encoding}))
-
-;;TODO: merge with tabular.csv.dialect/parse-trim
-(def trim-modes {"true" :all "false" :none "start" :start "end" :end})
-
-(def trim-mode (variant {:string  (mapping trim-modes)
-                         :boolean (fn [_context b] (v/pure (if b :all :none)))}))
-
-(def non-negative (variant {:number (where util/non-negative? "non-negative")} ))
 
 (def parse-variable-method (util/get-declared-method VariableSpecParser "parseFullName" [CharBuffer]))
 
@@ -132,12 +73,6 @@
 (defn contextual-object [context-required? object-validator]
   (variant {:object (validate-contextual-object context-required? object-validator)}))
 
-(def line-terminators
-  (variant {:string any
-            :array (array-of string)}))
-
-(def table-direction (one-of #{"rtl" "ltr" "auto"}))
-
 (defn resolve-linked-object-property-object [context object-uri]
   (try
     (v/pure (util/read-json object-uri))
@@ -162,18 +97,6 @@
   (variant {:string (chain link-property (linked-object-property object-validator))
             :object object-validator
             :default {}}))
-
-(defn column-reference-array [context arr]
-  (cond (= 0 (count arr)) (make-warning context "Column references should not be empty" invalid)
-        (not-every? string? arr) (make-warning context "Column references should all be strings" invalid)
-        :else (v/pure arr)))
-
-;;TODO: validation that each referenced column exists occurs at higher-level
-(def ^{:metadata-spec "5.1.4"} column-reference
-  (variant {:string (fn [_context s] (v/pure [s]))
-            :array column-reference-array}))
-
-(def ^{:metadata-spec "5.3"} note (map-of common-property-key common-property-value))
 
 (def transformation-source-types #{"json" "rdf"})
 
@@ -481,25 +404,6 @@
                 "transformations" (array-of transformation)
                 "@id" id
                 "@type" (eq "Table")}}))
-
-(def dialect
-  (object-of
-    {:optional {"commentPrefix" character
-                "delimiter" character
-                "doubleQuote" bool
-                "encoding" encoding
-                "header" bool
-                "headerRowCount" non-negative
-                "lineTerminators" line-terminators
-                "quoteChar" character
-                "skipBlankRows" bool
-                "skipColumns" non-negative
-                "skipInitialSpace" bool
-                "skipRows" non-negative
-                "trimMode" trim-mode
-                "@id" id
-                "@type" (eq "Dialect")}
-     :allow-common-properties? false}))
 
 (def table-group-defaults
   {"tableDirection" "auto"})

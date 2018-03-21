@@ -193,6 +193,11 @@
                  value-validation))
        (v/pure [k default])))))
 
+(defn ^{:metadata-spec "4"} invalid-key-pair
+  "Generates a warning for any invalid keys found in an object."
+  [context [k _]]
+  (make-warning context (str "Invalid key '" k "'") nil))
+
 (defn- combine-kvp-validations [kvp-validations]
   (v/fmap (fn [pairs]
             (into {} (remove invalid? pairs)))
