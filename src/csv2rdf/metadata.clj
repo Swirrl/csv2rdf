@@ -466,7 +466,8 @@
                   "maxExclusive" datatype-bound
                   "@id"          (chain id validate-datatype-id)
                   "@type"        (eq "Datatype")
-                  }})
+                  }
+       :allow-common-properties? true})
     validate-derived-datatype))
 
 (defn ^{:metadata-spec "5.7"} normalise-datatype-name [_context type-name]
