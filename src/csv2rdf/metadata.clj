@@ -480,7 +480,7 @@
 
 (def inherited-properties
   {"aboutUrl" template-property
-   "datatype" datatype                         ;;TODO: The normalized value of this property becomes the datatype annotation for the described column.
+   "datatype" datatype
    "default" string
    "lang" language-code
    "null" null-value
@@ -488,9 +488,8 @@
    "propertyUrl" template-property
    "required" boolean
    "separator" string
-   "tableDirection" (one-of #{"ltr" "rtl" "auto" "inherit"}) ;;NOTE: different to table-direction
-   "valueUrl" template-property
-   })
+   "textDirection" (one-of #{"ltr" "rtl" "auto" "inherit"})
+   "valueUrl" template-property})
 
 (def inherited-defaults
   {"default" ""
@@ -499,7 +498,7 @@
    "ordered" false
    "required" false
    "separator" nil
-   "tableDirection" "inherit"})
+   "textDirection" "inherit"})
 
 (defn validate-metadata [context declared-keys m]
   (let [validate-kvp (fn [[k v]]
