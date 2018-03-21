@@ -7,6 +7,7 @@
             [csv2rdf.metadata.types :refer :all]
             [csv2rdf.metadata.dialect :refer [dialect]]
             [csv2rdf.metadata.datatype :as datatype]
+            [csv2rdf.metadata.transformation :as transformation]
             [csv2rdf.util :as util])
   (:import [java.nio CharBuffer]
            [com.github.fge.uritemplate.parse VariableSpecParser]
@@ -97,12 +98,6 @@
   (variant {:string (chain link-property (linked-object-property object-validator))
             :object object-validator
             :default {}}))
-
-(def transformation-source-types #{"json" "rdf"})
-
-(def ^{:metadata-spec "5.10.2"} transformation-source
-  (variant {:string (one-of transformation-source-types)}))
-
 
 (def null-value (variant {:string any :array (array-of string)}))
 
@@ -221,18 +216,6 @@
 
 (def columns (chain (array-of column) set-column-names validate-column-names validate-virtual-columns))
 
-;;NOTE: transformations may contain common properties but not inherited properties?
-(def transformation
-  (object-of
-    {:required {"url" link-property
-                "scriptFormat" link-property
-                "targetFormat" link-property}
-     :optional {"source" transformation-source
-                "titles" natural-language
-                "@id" id
-                "@type" (eq "Template")}
-     :allow-common-properties? false}))
-
 (def table-defaults
   {"suppressOutput" false
    "tableDirection" "auto"})
@@ -302,7 +285,7 @@
                 "suppressOutput" bool
                 "tableDirection" table-direction
                 "tableSchema" (object-property schema)
-                "transformations" (array-of transformation)
+                "transformations" (array-of transformation/transformation)
                 "@id" id
                 "@type" (eq "Table")}}))
 
@@ -316,7 +299,7 @@
                 "notes"           (array-of note)
                 "tableDirection"  table-direction
                 "tableSchema"     (object-property schema)
-                "transformations" (array-of transformation)
+                "transformations" (array-of transformation/transformation)
                 "@id"             id
                 "@type"           (eq "TableGroup")}}))
 
