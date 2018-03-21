@@ -1,8 +1,9 @@
 (ns csv2rdf.metadata.types
   (:require [csv2rdf.metadata.validator :refer [make-warning variant invalid array-of kvp kvps optional-key
                                                 required-key invalid-key-pair any map-of one-of string invalid?
-                                                chain try-parse-with where]]
-            [csv2rdf.metadata.context :refer [resolve-uri expand-uri-string append-path language-code-or-default]]
+                                                chain try-parse-with where strict make-error tuple eq uri]]
+            [csv2rdf.metadata.context :refer [resolve-uri expand-uri-string append-path language-code-or-default
+                                              base-key language-key id-key update-from-local-context]]
             [csv2rdf.validation :as v]
             [csv2rdf.metadata.json :refer [array? object?] :as mjson]
             [csv2rdf.uri-template :as template]
@@ -217,3 +218,70 @@
 
 (defn object-of [opts]
   (variant {:object (validate-object-of opts)}))
+
+(def csvw-ns "http://www.w3.org/ns/csvw")
+
+(defn validate-object-context-pair [context [_ns m]]
+  (if (or (contains? m base-key) (contains? m language-key))
+    (v/pure m)
+    (make-error context "Top-level object must contain @base or @language keys")))
+
+(def parse-context-pair (tuple
+                          (eq csvw-ns)
+                          (object-of {:optional {"@base"     (strict uri)
+                                                 "@language" (strict language-code)}})))
+
+(def context-pair (chain parse-context-pair validate-object-context-pair))
+
+(def object-context (variant {:string (eq csvw-ns) :array context-pair}))
+
+(defn validate-contextual-object
+  "Returns a validator for an object which may contain a @context key mapped to a context definition.
+   If the key exists, and contain a local context definition for the object, this is used to update the
+   validation context used to parse the object and its children."
+  [context-required? object-validator]
+  (let [context-validator (if context-required?
+                            (required-key "@context" object-context)
+                            (optional-key "@context" object-context))]
+    (fn [context obj]
+      (v/bind (fn [context-pair]
+                (cond
+                  ;;if no context then validate entire object
+                  (nil? context-pair) (object-validator context obj)
+
+                  ;;context is literal containing csvw-ns so remove it and validate rest of object
+                  (string? (second context-pair)) (object-validator context (dissoc obj "@context"))
+
+                  ;;context is pair containing csvw-ns and local context definition
+                  :else (let [local-context (second context-pair)
+                              updated-context (update-from-local-context context local-context)]
+                          (object-validator updated-context (dissoc obj "@context")))))
+              (context-validator context obj)))))
+
+(defn contextual-object [context-required? object-validator]
+  (variant {:object (validate-contextual-object context-required? object-validator)}))
+
+(defn resolve-linked-object-property-object [context object-uri]
+  (try
+    (v/pure (util/read-json object-uri))
+    (catch Exception ex
+      (make-error context (format "Failed to resolve linked object property at URI %s: %s" object-uri (.getMessage ex))))))
+
+(defn ^{:metadata-spec "6.4"} linked-object-property [object-validator]
+  (fn [context object-uri]
+    (->> (resolve-linked-object-property-object context object-uri)
+         (v/bind (fn [obj]
+                   ((contextual-object false object-validator) context obj)))
+         (v/fmap (fn [obj]
+                   ;;TODO: error if resolved JSON document is not an object? Specification does not mention this
+                   ;;case but requires an empty object in other error cases. Add @id key as required due to normalisation
+                   (cond (invalid? obj) {id-key object-uri}
+                         (contains? obj id-key) obj
+                         :else (assoc obj id-key object-uri)))))))
+
+(defn ^{:metadata-spec "5.1.5"} object-property
+  "Object which may be specified in line in the metadata document or referenced through a URI"
+  [object-validator]
+  (variant {:string (chain link-property (linked-object-property object-validator))
+            :object object-validator
+            :default {}}))
