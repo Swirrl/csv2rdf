@@ -223,3 +223,21 @@
   (let [pair-validator (kvp key-validator value-validator)]
     (fn [context m]
       (combine-kvp-validations (map (fn [kvp] (pair-validator context kvp)) m)))))
+
+(defn one-of
+  "Returns a validator which expects its input to be one of the given values. Returns a sucessful
+   validation containing the matching value if found, otherwise invalid."
+  [values]
+  (fn [context x]
+    (if (contains? values x)
+      (v/pure x)
+      (make-warning context (str "Expected one of " (string/join ", " values)) invalid))))
+
+(defn mapping
+  "Returns a validator which expects its input to be one of the keys in the map m. Returns the
+  value associated with the matching key in m if found, otherwise invalid."
+  [m]
+  (fn [context k]
+    (if (contains? m k)
+      (v/pure (get m k))
+      (make-warning context (str "Expected one of " (string/join ", " (keys m))) invalid))))

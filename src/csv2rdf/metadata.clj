@@ -68,12 +68,6 @@
 ;;TODO: merge with tabular.csv.dialect/parse-trim
 (def trim-modes {"true" :all "false" :none "start" :start "end" :end})
 
-(defn mapping [m]
-  (fn [context k]
-    (if (contains? m k)
-      (v/pure (get m k))
-      (make-warning context (str "Expected one of " (string/join ", " (keys m))) invalid))))
-
 (def trim-mode (variant {:string  (mapping trim-modes)
                          :boolean (fn [_context b] (v/pure (if b :all :none)))}))
 
@@ -156,12 +150,6 @@
 (def line-terminators
   (variant {:string any
             :array (array-of string)}))
-
-(defn one-of [values]
-  (fn [context x]
-    (if (contains? values x)
-      (v/pure x)
-      (make-warning context (str "Expected one of " (string/join ", " values)) invalid))))
 
 (def table-direction (one-of #{"rtl" "ltr" "auto"}))
 
