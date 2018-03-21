@@ -7,8 +7,7 @@
             [csv2rdf.metadata.json :refer :all]
             [csv2rdf.metadata.types :refer :all]
             [csv2rdf.util :as util])
-  (:import [java.net URI]
-           [java.nio.charset Charset IllegalCharsetNameException]
+  (:import [java.nio.charset Charset IllegalCharsetNameException]
            [java.nio CharBuffer]
            [com.github.fge.uritemplate.parse VariableSpecParser]
            [com.github.fge.uritemplate URITemplateParseException]
@@ -132,14 +131,6 @@
 
 (defn contextual-object [context-required? object-validator]
   (variant {:object (validate-contextual-object context-required? object-validator)}))
-
-(defn validate-id [context s]
-  (if (.startsWith s "_:")
-    (make-warning context "Ids cannot start with _:" invalid)
-    ((try-parse-with #(URI. %)) context s)))
-
-(def ^{:doc "An id is a link property whose value cannot begin with _:"} id
-  (variant {:string validate-id}))
 
 (def line-terminators
   (variant {:string any

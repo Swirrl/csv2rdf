@@ -1,6 +1,6 @@
 (ns csv2rdf.metadata.types
   (:require [csv2rdf.metadata.validator :refer [make-warning variant invalid array-of kvp kvps optional-key
-                                                any map-of string invalid? chain]]
+                                                any map-of string invalid? chain try-parse-with]]
             [csv2rdf.metadata.context :refer [resolve-uri expand-uri-string append-path language-code-or-default]]
             [csv2rdf.validation :as v]
             [csv2rdf.metadata.json :refer [array? object?] :as mjson]
@@ -159,3 +159,11 @@
     :else (v/pure v)))
 
 (def common-property-value (chain validate-common-property-value normalise-common-property-value))
+
+(defn validate-id [context s]
+  (if (.startsWith s "_:")
+    (make-warning context "Ids cannot start with _:" invalid)
+    ((try-parse-with #(URI. %)) context s)))
+
+(def ^{:doc "An id is a link property whose value cannot begin with _:"} id
+  (variant {:string validate-id}))
