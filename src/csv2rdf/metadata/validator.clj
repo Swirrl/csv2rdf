@@ -241,3 +241,12 @@
     (if (contains? m k)
       (v/pure (get m k))
       (make-warning context (str "Expected one of " (string/join ", " (keys m))) invalid))))
+
+(defn where
+  "Returns a validator which applies the predicate pred to the input value. Returns the value if
+   pred returns true, otherwise invalid. Desc should be a string describing pred."
+  [pred desc]
+  (fn [context x]
+    (if (pred x)
+      (v/pure x)
+      (make-warning context (str "Expected '" x "' to be " desc) invalid))))

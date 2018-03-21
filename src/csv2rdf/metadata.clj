@@ -71,12 +71,6 @@
 (def trim-mode (variant {:string  (mapping trim-modes)
                          :boolean (fn [_context b] (v/pure (if b :all :none)))}))
 
-(defn where [pred desc]
-  (fn [context x]
-    (if (pred x)
-      (v/pure x)
-      (make-warning context (str "Expected '" x "' to be " desc) invalid))))
-
 (def non-negative (variant {:number (where util/non-negative? "non-negative")} ))
 
 (def parse-variable-method (util/get-declared-method VariableSpecParser "parseFullName" [CharBuffer]))
