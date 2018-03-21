@@ -1,6 +1,6 @@
 (ns csv2rdf.metadata
   (:require [csv2rdf.validation :as v]
-            [csv2rdf.metadata.datatype :as datatype]
+            [csv2rdf.xml.datatype :as xml-datatype]
             [clojure.string :as string]
             [csv2rdf.metadata.validator :refer :all]
             [csv2rdf.metadata.context :refer :all]
@@ -29,7 +29,7 @@
 (def ^{:metadata-spec "5.8.2"} common-property-value-type
   (variant {:string (fn [context s]
                       ;;TODO: normalise into data type record?
-                      (if (datatype/valid-type-name? s)
+                      (if (xml-datatype/valid-type-name? s)
                         (v/pure s)
                         (expand-compact-uri context s)))}))
 
@@ -332,7 +332,7 @@
   (variant {:string (one-of transformation-source-types)}))
 
 (def ^{:metadata-spec "5.11.2"} datatype-name
-  (variant {:string (one-of datatype/type-names)}))
+  (variant {:string (one-of xml-datatype/type-names)}))
 
 ;;TODO: implement!
 (def datatype-format any)
@@ -357,7 +357,7 @@
     ;;applications MUST raise an error if length, maxLength, or minLength are specified and the base datatype is
     ;;neither string, a subtype of string, nor a binary type
     (and (or (some? length) (some? minLength) (some? maxLength))
-         (not (or (datatype/is-subtype? "string" base) (datatype/is-binary-type? base))))
+         (not (or (xml-datatype/is-subtype? "string" base) (xml-datatype/is-binary-type? base))))
     (make-error context "length, minLength and maxLength properties only valid on string or binary data types")
 
     ;;Applications MUST raise an error if both minimum and minInclusive are specified and they do not have the same value
@@ -395,7 +395,7 @@
     ;;Applications MUST raise an error if minimum, minInclusive, maximum, maxInclusive, minExclusive, or maxExclusive
     ;;are specified and the base datatype is not a numeric, date/time, or duration type
     (and (or (some? minimum) (some? minInclusive) (some? maximum) (some? maxInclusive) (some? minExclusive) (some? maxExclusive))
-         (not (or (datatype/is-numeric-type? base) (datatype/is-date-time-type? base) (datatype/is-duration-type? base))))
+         (not (or (xml-datatype/is-numeric-type? base) (xml-datatype/is-date-time-type? base) (xml-datatype/is-duration-type? base))))
     (make-error context "minimum, minInclusive, maximum, maxInclusvie, minExclusive, maxExclusive only valid for numeric, date/time or duration types")
 
     :else (v/pure dt)))

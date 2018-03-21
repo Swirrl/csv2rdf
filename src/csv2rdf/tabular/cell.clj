@@ -1,7 +1,7 @@
 (ns csv2rdf.tabular.cell
   (:require [clojure.string :as string]
             [csv2rdf.metadata.column :as mcolumn]
-            [csv2rdf.metadata.datatype :as mdatatype])
+            [csv2rdf.xml.datatype :as xml-datatype])
   (:import [java.util.regex Pattern]))
 
 (def column-required-message "Column value required")
@@ -50,7 +50,7 @@
 (defn ^{:table-spec "6.4.9"} validate-length
   "Validates the length of the cell value is valid for the constraints on the column metadata"
   [{:keys [value] :as cell} column]
-  (if-let [len (mdatatype/get-length (:value value) (:datatype value))]
+  (if-let [len (xml-datatype/get-length (:value value) (:datatype value))]
     (let [len-errors (->> length-relations
                           (map (fn [[k sym]] (get-length-error value sym len (get column k))))
                           (remove nil?))]

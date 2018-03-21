@@ -1,4 +1,4 @@
-(ns csv2rdf.metadata.datatype
+(ns csv2rdf.xml.datatype
   (:require [clojure.spec.alpha :as s]))
 
 (def type-hierarchy

@@ -1,10 +1,10 @@
 (ns csv2rdf.metadata.column
-  (:require [csv2rdf.metadata.datatype :as datatype]))
+  (:require [csv2rdf.xml.datatype :as xml-datatype]))
 
 (defn datatype
   "Gets the effective datatype for this column"
   [{:keys [datatype] :as col}]
-  (datatype/expand datatype))
+  (xml-datatype/expand datatype))
 
 (defn datatype-base [column]
   (:base (datatype column)))
