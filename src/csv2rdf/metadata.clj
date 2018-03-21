@@ -1,64 +1,18 @@
 (ns csv2rdf.metadata
   (:require [csv2rdf.validation :as v]
             [csv2rdf.metadata.datatype :as datatype]
-            [clojure.spec.alpha :as s]
             [clojure.string :as string]
-            [csv2rdf.uri-template :as template]
             [csv2rdf.metadata.validator :refer :all]
             [csv2rdf.metadata.context :refer :all]
             [csv2rdf.metadata.json :refer :all]
+            [csv2rdf.metadata.types :refer :all]
             [csv2rdf.util :as util])
-  (:import [java.net URI URISyntaxException]
+  (:import [java.net URI]
            [java.nio.charset Charset IllegalCharsetNameException]
-           [java.util Locale$Builder IllformedLocaleException]
            [java.nio CharBuffer]
            [com.github.fge.uritemplate.parse VariableSpecParser]
            [com.github.fge.uritemplate URITemplateParseException]
            [java.lang.reflect InvocationTargetException]))
-
-(defn validate-language-code [context s]
-  (try
-    (do
-      (.setLanguage (Locale$Builder.) s)
-      ;;TODO: validate against known list of language codes?
-      (v/pure s))
-    (catch IllformedLocaleException _ex
-      (make-warning context (str "Invalid language code: '" s "'") invalid))))
-
-(defn language-code [context x]
-  (if (string? x)
-    (validate-language-code context x)
-    (make-warning context (str "Expected language code, got " (get-json-type-name x)) invalid)))
-
-(def default-uri (URI. ""))
-
-(defn ^{:metadata-spec "6.3"} normalise-link-property
-  "Normalises a link property URI by resolving it against the current base URI."
-  [context uri]
-  (v/pure (resolve-uri context uri)))
-
-(defn ^{:metadata-spec "5.1.2"} parse-link-property
-  "Converts link properties to URIs, or logs a warning if the URI is invalid. Link properties are resolved
-   at a higher level."
-  [context x]
-  (if (string? x)
-    (try
-      (v/pure (URI. x))
-      (catch URISyntaxException _ex
-        (make-warning context (format "Link property '%s' cannot be parsed as a URI" x) default-uri)))
-    (make-warning context (format "Invalid link property '%s': expected string containing URI, got %s" x (get-json-type-name x)) default-uri)))
-
-(def link-property (chain parse-link-property normalise-link-property))
-
-(def ^{:metadata-spec "5.1.3"} template-property
-  (variant {:string (fn [context s]
-                      (if-let [t (template/try-parse-template s)]
-                        (v/pure t)
-                        (make-warning context (str "Invalid URI template: '" s "'") invalid)))}))
-
-(defn common-property-key? [k]
-  ;;TODO: improve?
-  (.contains k ":"))
 
 (defn expand-compact-uri [context s]
   (try
@@ -500,6 +454,10 @@
    "required" false
    "separator" nil
    "textDirection" "inherit"})
+
+(defn common-property-key? [k]
+  ;;TODO: improve?
+  (.contains k ":"))
 
 (defn validate-metadata [context declared-keys m]
   (let [validate-kvp (fn [[k v]]
