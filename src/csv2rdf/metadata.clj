@@ -6,66 +6,13 @@
             [csv2rdf.metadata.json :refer :all]
             [csv2rdf.metadata.types :refer :all]
             [csv2rdf.metadata.dialect :refer [dialect]]
-            [csv2rdf.metadata.datatype :as datatype]
             [csv2rdf.metadata.transformation :as transformation]
+            [csv2rdf.metadata.inherited :refer [metadata-of]]
             [csv2rdf.util :as util])
   (:import [java.nio CharBuffer]
            [com.github.fge.uritemplate.parse VariableSpecParser]
            [com.github.fge.uritemplate URITemplateParseException]
            [java.lang.reflect InvocationTargetException]))
-
-(def null-value (variant {:string any :array (array-of string)}))
-
-(def inherited-properties
-  {"aboutUrl" template-property
-   "datatype" datatype/datatype
-   "default" string
-   "lang" language-code
-   "null" null-value
-   "ordered" boolean
-   "propertyUrl" template-property
-   "required" boolean
-   "separator" string
-   "textDirection" (one-of #{"ltr" "rtl" "auto" "inherit"})
-   "valueUrl" template-property})
-
-(def inherited-defaults
-  {"default" ""
-   "lang" "und"
-   "null" [""]
-   "ordered" false
-   "required" false
-   "separator" nil
-   "textDirection" "inherit"})
-
-(defn common-property-key? [k]
-  ;;TODO: improve?
-  (.contains k ":"))
-
-(defn validate-metadata [context declared-keys m]
-  (let [validate-kvp (fn [[k v]]
-                       (cond (contains? declared-keys k)
-                             (let [value-validator (get declared-keys k)
-                                   value-validation (value-validator (append-path context k) v)]
-                               (v/fmap (fn [value] [[(keyword k)] value]) value-validation))
-
-                             (common-property-key? k)
-                             (v/pure [[::common-properties k] v])
-
-                             :else (make-error context (str "Invalid metadata key '" k "'"))))
-        pairs-validation (v/collect (map validate-kvp m))]
-    (v/fmap (fn [pairs]
-              (reduce (fn [acc [k v]]
-                        (assoc-in acc k v))
-                      {}
-                      pairs))
-            pairs-validation)))
-
-(defn metadata-of [{:keys [required optional defaults]}]
-  (object-of {:required required
-              :optional (merge inherited-properties optional)
-              :defaults defaults
-              :allow-common-properties? true}))
 
 (def parse-variable-method (util/get-declared-method VariableSpecParser "parseFullName" [CharBuffer]))
 
