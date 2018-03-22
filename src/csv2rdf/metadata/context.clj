@@ -5,10 +5,9 @@
            [java.util Map HashMap]
            [com.github.jsonldjava.core Context]))
 
-(def id-key (keyword "@id"))
-(def base-key (keyword "@base"))
-(def language-key (keyword "@language"))
-(def context-key (keyword "@context"))
+(def id-key :id)
+(def base-key :base)
+(def language-key :language)
 
 (defn make-context [base-uri]
   {:base-uri base-uri :path [] :language nil})

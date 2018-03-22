@@ -10,12 +10,12 @@
 ;;NOTE: transformations may contain common properties but not inherited properties?
 (def transformation
   (object-of
-    {:required {"url" link-property
-                "scriptFormat" link-property
-                "targetFormat" link-property}
-     :optional {"source" transformation-source
-                "titles" natural-language
-                "@id" id
-                "@type" (eq "Template")}
+    {:required {:url link-property
+                :scriptFormat link-property
+                :targetFormat link-property}
+     :optional {:source transformation-source
+                :titles natural-language
+                :id id
+                :type (eq "Template")}
      :allow-common-properties? true}))
 

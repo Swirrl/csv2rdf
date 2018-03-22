@@ -73,3 +73,6 @@
      (.invoke method receiver (into-array Object args))
      (catch InvocationTargetException ex
        (throw (.getCause ex))))))
+
+(defn map-keys [f m]
+  (into {} (map (fn [[k v]] [(f k) v]) m)))

@@ -151,19 +151,19 @@
 
 (def dialect
   (object-of
-    {:optional {"commentPrefix" character
-                "delimiter" character
-                "doubleQuote" bool
-                "encoding" encoding
-                "header" bool
-                "headerRowCount" non-negative
-                "lineTerminators" line-terminators
-                "quoteChar" character
-                "skipBlankRows" bool
-                "skipColumns" non-negative
-                "skipInitialSpace" bool
-                "skipRows" non-negative
-                "trimMode" trim-mode
-                "@id" id
-                "@type" (eq "Dialect")}
+    {:optional {:commentPrefix character
+                :delimiter character
+                :doubleQuote bool
+                :encoding encoding
+                :header bool
+                :headerRowCount non-negative
+                :lineTerminators line-terminators
+                :quoteChar character
+                :skipBlankRows bool
+                :skipColumns non-negative
+                :skipInitialSpace bool
+                :skipRows non-negative
+                :trimMode trim-mode
+                :id id
+                :type (eq "Dialect")}
      :allow-common-properties? false}))

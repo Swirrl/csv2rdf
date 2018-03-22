@@ -9,7 +9,8 @@
             [csv2rdf.uri-template :as template]
             [csv2rdf.xml.datatype :as xml-datatype]
             [clojure.string :as string]
-            [csv2rdf.util :as util])
+            [csv2rdf.util :as util]
+            [clojure.set :as set])
   (:import [java.util Locale$Builder IllformedLocaleException]
            [java.net URI URISyntaxException]))
 
@@ -185,26 +186,39 @@
   (variant {:string (fn [_context s] (v/pure [s]))
             :array column-reference-array}))
 
+(def special-keys-mapping {:id "@id" :type "@type" :language "@language" :base "@base"})
+(def special-keys (into #{} (keys special-keys-mapping)))
+
+(defn get-declared-key-mapping [declared-keys]
+  (merge (into {} (map (fn [k] [(name k) k]) (remove special-keys declared-keys)))
+         (set/map-invert special-keys-mapping)))
+
+(defn document-key [key-name]
+  (or (special-keys-mapping key-name) (name key-name)))
+
 (defn validate-object-of [{:keys [required optional defaults allow-common-properties?]}]
-  (let [required-keys (map (fn [[k v]] (required-key k v)) required)
+  (let [required-doc-keys (util/map-keys document-key required)
+        optional-doc-keys (util/map-keys document-key optional)
+        required-keys (map (fn [[k v]] (required-key k v)) required-doc-keys)
         optional-keys (map (fn [[k v]]
                              (if (contains? defaults k)
                                (optional-key k v (get defaults k))
                                (optional-key k v)))
-                           optional)]
+                           optional-doc-keys)
+        declared-keys (into #{} (concat (keys required) (keys optional)))
+        result-key-mappings (get-declared-key-mapping declared-keys)]
     (fn [context obj]
-      (let [[required-obj opt-obj] (util/partition-keys obj (keys required))
-            [optional-obj remaining-obj] (util/partition-keys opt-obj (keys optional))
+      (let [[required-obj opt-obj] (util/partition-keys obj (keys required-doc-keys))
+            [optional-obj remaining-obj] (util/partition-keys opt-obj (keys optional-doc-keys))
             required-validations (map (fn [validator] (validator context required-obj)) required-keys)
             optional-validations (map (fn [validator] (validator context optional-obj)) optional-keys)
             declared-pairs-validation (v/collect (concat required-validations optional-validations))
             declared-validation (v/fmap (fn [pairs]
                                           ;;optional keys not declared in the input are nil so remove them
-                                          ;;convert keys to keywords
-                                          (->> pairs
-                                               (remove nil?)
-                                               (map (fn [[k v]] [(keyword k) v]))
-                                               (into {})))
+                                          (let [obj-map (->> pairs
+                                                             (remove nil?)
+                                                             (into {}))]
+                                            (util/select-keys-as obj-map result-key-mappings)))
                                         declared-pairs-validation)]
         (if allow-common-properties?
           (let [common-validation ((map-of common-property-key common-property-value) context remaining-obj)]
@@ -228,8 +242,8 @@
 
 (def parse-context-pair (tuple
                           (eq csvw-ns)
-                          (object-of {:optional {"@base"     (strict uri)
-                                                 "@language" (strict language-code)}})))
+                          (object-of {:optional {base-key     (strict uri)
+                                                 language-key (strict language-code)}})))
 
 (def context-pair (chain parse-context-pair validate-object-context-pair))
 

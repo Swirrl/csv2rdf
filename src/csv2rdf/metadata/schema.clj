@@ -57,12 +57,12 @@
 (def schema
   (chain
     (metadata-of
-      {:optional {"columns"     column/columns
-                  "foreignKeys" (array-of foreign-key)      ;;TODO: validate foreign keys
-                  "primaryKey"  column-reference            ;;TODO: validators MUST check that each row has a unique combination of values of cells in the indicated columns
-                  "rowTitles"   column-reference
-                  "@id"         id
-                  "@type"       (eq "Schema")}})
+      {:optional {:columns     column/columns
+                  :foreignKeys (array-of foreign-key)      ;;TODO: validate foreign keys
+                  :primaryKey  column-reference            ;;TODO: validators MUST check that each row has a unique combination of values of cells in the indicated columns
+                  :rowTitles   column-reference
+                  :id         id
+                  :type       (eq "Schema")}})
     validate-schema-column-references))
 
 

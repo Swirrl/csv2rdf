@@ -49,14 +49,14 @@
 
 (def column
   (metadata-of
-    {:optional {"name"           column-name                             ;;TODO: use first title as name if not provided, see spec
-                "suppressOutput" bool
-                "titles"         natural-language                   ;;TODO: should be array?
-                "virtual"        bool
-                "@id"            id
-                "@type" (eq "Column")}
-     :defaults {"suppressOutput" false
-                "virtual" false}}))
+    {:optional {:name           column-name                             ;;TODO: use first title as name if not provided, see spec
+                :suppressOutput bool
+                :titles         natural-language
+                :virtual        bool
+                :id            id
+                :type (eq "Column")}
+     :defaults {:suppressOutput false
+                :virtual false}}))
 
 (defn get-duplicate-names [columns]
   (->> columns

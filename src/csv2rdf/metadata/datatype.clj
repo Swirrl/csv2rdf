@@ -13,7 +13,7 @@
 (def datatype-bound (variant {:number any :string any}))
 
 (defn ^{:metadata-spec "5.11.2"} validate-derived-datatype
-  [context {:strs [base length minLength maxLength minimum minInclusive minExclusive maximum maxInclusive maxExclusive] :as dt}]
+  [context {:keys [base length minLength maxLength minimum minInclusive minExclusive maximum maxInclusive maxExclusive] :as dt}]
   (cond
     ;;applications MUST raise an error if both length and minLength are specified and length is less than minLength
     (and (some? length) (some? minLength) (< length minLength))
@@ -80,25 +80,24 @@
 (def derived-datatype
   (chain
     (object-of
-      {:optional {"base"         datatype-name
-                  "format"       datatype-format
-                  "length"       non-negative
-                  "minLength"    non-negative
-                  "maxLength"    non-negative
-                  "minimum"      datatype-bound
-                  "maximum"      datatype-bound
-                  "minInclusive" datatype-bound
-                  "maxInclusive" datatype-bound
-                  "minExclusive" datatype-bound
-                  "maxExclusive" datatype-bound
-                  "@id"          (chain id validate-datatype-id)
-                  "@type"        (eq "Datatype")
-                  }
+      {:optional {:base         datatype-name
+                  :format       datatype-format
+                  :length       non-negative
+                  :minLength    non-negative
+                  :maxLength    non-negative
+                  :minimum      datatype-bound
+                  :maximum      datatype-bound
+                  :minInclusive datatype-bound
+                  :maxInclusive datatype-bound
+                  :minExclusive datatype-bound
+                  :maxExclusive datatype-bound
+                  :id          (chain id validate-datatype-id)
+                  :type        (eq "Datatype")}
        :allow-common-properties? true})
     validate-derived-datatype))
 
 (defn ^{:metadata-spec "5.7"} normalise-datatype-name [_context type-name]
-  (v/pure {"base" type-name}))
+  (v/pure {:base type-name}))
 
 (def ^{:metadata-spec "5.7"} datatype
   (variant {:string (chain datatype-name normalise-datatype-name)
