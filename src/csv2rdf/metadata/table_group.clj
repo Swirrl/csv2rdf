@@ -6,7 +6,8 @@
             [csv2rdf.metadata.transformation :as transformation]
             [csv2rdf.metadata.dialect :as dialect]
             [csv2rdf.metadata.table :as table]
-            [csv2rdf.validation :as v]))
+            [csv2rdf.validation :as v]
+            [csv2rdf.metadata.inherited :as inherited]))
 
 (def table-group
   (metadata-of
@@ -23,9 +24,13 @@
 (defn looks-like-table-group-json? [doc]
   (contains? doc "tables"))
 
-(defn inherit-and-apply-defaults [table-group]
-  (update table-group :tables (fn [tables]
-                                (mapv (fn [t] (table/inherit-and-apply-defaults table-group t)) tables))))
+(defn expand-properties
+  "Expands all properties for this table group by expanding the properties of its contained tables. There is no
+   parent, so any inherited properties not specified directly will use their default values."
+  [table-group]
+  (let [with-defaults (inherited/inherit-defaults table-group)]
+    (update with-defaults :tables (fn [tables]
+                                  (mapv (fn [t] (table/expand-properties with-defaults t)) tables)))))
 
 (defn parse-table-group-json [context doc]
-  (v/fmap inherit-and-apply-defaults ((contextual-object true table-group) context doc)))
+  (v/fmap expand-properties ((contextual-object true table-group) context doc)))

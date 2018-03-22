@@ -2,7 +2,7 @@
   (:require [csv2rdf.metadata.validator :refer [make-warning invalid chain array-of eq]]
             [csv2rdf.metadata.context :refer [append-path]]
             [csv2rdf.metadata.types :refer [object-of object-property link-property column-reference id]]
-            [csv2rdf.metadata.inherited :refer [metadata-of]]
+            [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
             [csv2rdf.metadata.column :as column]
             [csv2rdf.validation :as v]
             [clojure.string :as string]))
@@ -65,4 +65,9 @@
                   :type       (eq "Schema")}})
     validate-schema-column-references))
 
-
+(defn expand-properties
+  "Expands all properties for this schema by inheriting any undefined properties from its parent table."
+  [parent-table schema]
+  (let [schema (inherited/inherit parent-table schema)]
+    (update schema :columns (fn [cols]
+                              (mapv (fn [c] (column/expand-properties schema c)) cols)))))

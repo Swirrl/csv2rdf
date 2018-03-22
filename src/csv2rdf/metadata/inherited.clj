@@ -37,6 +37,9 @@
 (defn inherit-defaults [obj]
   (merge inherited-defaults obj))
 
+(defn inherit-with-defaults [parent child]
+  (inherit-defaults (inherit parent child)))
+
 (defn metadata-of [{:keys [required optional defaults]}]
   (object-of {:required required
               :optional (merge inherited-properties optional)

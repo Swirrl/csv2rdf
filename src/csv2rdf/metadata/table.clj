@@ -6,10 +6,6 @@
             [csv2rdf.metadata.transformation :as transformation]
             [csv2rdf.validation :as v]))
 
-(def table-defaults
-  {:suppressOutput false
-   :tableDirection "auto"})
-
 (def table
   (metadata-of
     {:required {:url link-property}
@@ -19,7 +15,9 @@
                 :tableSchema     (object-property schema/schema)
                 :transformations (array-of transformation/transformation)
                 :id             id
-                :type           (eq "Table")}}))
+                :type           (eq "Table")}
+     :defaults {:suppressOutput false
+                :tableDirection "auto"}}))
 
 (defn into-table-group [table]
   {:tables [table]})
@@ -27,15 +25,14 @@
 (defn looks-like-table-json? [doc]
   (contains? doc "url"))
 
-
-(defn inherit-and-apply-defaults [parent table]
-  (->> table
-       (inherited/inherit parent)
-       (inherited/inherit-defaults)
-       (merge table-defaults)))
+(defn expand-properties
+  "Expands all properties for this table by inheriting any undefined inherited properties from its parent table group."
+  [parent-table-group table]
+  (let [table (inherited/inherit-with-defaults parent-table-group table)]
+    (update table :tableSchema (fn [s] (schema/expand-properties table s)))))
 
 (defn parse-table-json [context doc]
   (v/fmap (fn [t]
-            (into-table-group (inherit-and-apply-defaults {} t)))
+            (into-table-group (expand-properties {} t)))
           ((contextual-object true table) context doc)))
 

@@ -5,7 +5,7 @@
             [csv2rdf.metadata.validator :refer [make-warning make-error chain string invalid bool eq array-of]]
             [csv2rdf.metadata.context :refer [language-code-or-default]]
             [csv2rdf.metadata.types :refer [natural-language id]]
-            [csv2rdf.metadata.inherited :refer [metadata-of]]
+            [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
             [clojure.string :as string])
   (:import [java.nio CharBuffer]
            [com.github.fge.uritemplate URITemplateParseException]
@@ -102,3 +102,9 @@
        (v/pure)))
 
 (def columns (chain (array-of column) set-column-names validate-column-names validate-virtual-columns))
+
+(defn expand-properties
+  "Expands all properties for this column by inheriting any unspecified inherited properties from its parent
+   schema."
+  [parent-schema column]
+  (inherited/inherit parent-schema column))
