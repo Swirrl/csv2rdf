@@ -91,7 +91,7 @@
 (s/def ::doubleQuote boolean?)
 (s/def ::encoding string?)
 (s/def ::header boolean?)
-(s/def ::headerRowCount util/non-negative?)
+(s/def ::headerRowCount (s/nilable util/non-negative?))
 (s/def ::lineTerminators (s/coll-of string? :kind vector? :into []))
 (s/def ::quoteChar (s/nilable char?))                       ;;NOTE: differs from specs which allows strings
 (s/def ::skipBlankRows boolean?)
