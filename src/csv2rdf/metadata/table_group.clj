@@ -1,6 +1,6 @@
 (ns csv2rdf.metadata.table-group
   (:require [csv2rdf.metadata.validator :refer [array-of eq]]
-            [csv2rdf.metadata.types :refer [object-property id table-direction note]]
+            [csv2rdf.metadata.types :refer [object-property id table-direction note contextual-object]]
             [csv2rdf.metadata.inherited :refer [metadata-of]]
             [csv2rdf.metadata.schema :as schema]
             [csv2rdf.metadata.transformation :as transformation]
@@ -21,3 +21,8 @@
                 "@id"             id
                 "@type"           (eq "TableGroup")}}))
 
+(defn looks-like-table-group-json? [doc]
+  (contains? doc "tables"))
+
+(defn parse-table-group-json [context doc]
+  ((contextual-object true table-group) context doc))
