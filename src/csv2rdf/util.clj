@@ -76,3 +76,17 @@
 
 (defn map-keys [f m]
   (into {} (map (fn [[k v]] [(f k) v]) m)))
+
+(defn equals-ignore-case?
+  "Whether two string are equal ignoring case differences. Nil references are considered equal."
+  [s1 s2]
+  (if (nil? s1)
+    (nil? s2)
+    (.equalsIgnoreCase s1 s2)))
+
+(defn assoc-if
+  "Associates v with the key k in the associative structure m if condition is truthy, otherwise returns m."
+  [m condition k v]
+  (if condition
+    (assoc m k v)
+    m))

@@ -5,7 +5,8 @@
             [csv2rdf.metadata.types :refer [object-of id non-negative] :as types]
             [csv2rdf.metadata.validator :refer [make-warning invalid mapping variant any array-of string character
                                                 bool eq]]
-            [csv2rdf.validation :as v])
+            [csv2rdf.validation :as v]
+            [csv2rdf.http :as http])
   (:import [java.nio.charset Charset IllegalCharsetNameException]))
 
 (def ^{:metadata-spec "5.9"} default-dialect
@@ -124,6 +125,23 @@
 (s/fdef calculate-dialect-options
         :args (s/cat :dialect ::dialect)
         :ret ::options)
+
+(defn ^{:table-spec "6.1.3.2"} get-default-dialect
+  "Get the default dialect updated according to the HTTP response headers returned along with the tabular file response."
+  [tabular-file-http-headers]
+  (if-let [content-type-header (get tabular-file-http-headers "Content-Type")]
+    (let [{:keys [value params]} (http/parse-header content-type-header)
+          {:keys [header charset]} params]
+      (-> default-dialect
+          (util/assoc-if (= value http/tsv-content-type) :delimiter \tab)
+          (util/assoc-if (util/equals-ignore-case? "absent" header) :header false)
+          (util/assoc-if (some? charset) :encoding charset)))
+    default-dialect))
+
+(defn get-default-options
+  ([] (get-default-options {}))
+  ([tabular-file-http-headers]
+    (dialect->options (get-default-dialect tabular-file-http-headers))))
 
 ;;metadata parsing
 

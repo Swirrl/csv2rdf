@@ -67,6 +67,13 @@
   (testing "quoteChar nil when doubleQuote set"
     (is (thrown? ExceptionInfo (dialect->options {:quoteChar nil :doubleQuote false})))))
 
+(deftest get-default-dialect-test
+  (are [headers sub-result] (= sub-result (select-keys (get-default-dialect headers) (keys sub-result)))
+       {} {:encoding "utf-8" :header nil :delimiter \,}
+    {"Content-Type" "text/tab-separated-values"} {:encoding "utf-8" :header nil :delimiter \tab}
+    {"Content-Type" "text/csv; header=absent"} {:encoding "utf-8" :header false :delimiter \,}
+    {"Content-Type" "text/csv; charset=latin-1; header=absent"} {:encoding "latin-1" :header false :delimiter \,}))
+
 (defn with-instrumentation [f]
   ;;TODO: fix dialect specs
   (let [to-instrument [] #_[`calculate-dialect-options `expand-dialect]]

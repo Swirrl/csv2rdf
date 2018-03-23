@@ -30,25 +30,28 @@
                     {:type ::invalid-link-uri
                      :link-string link-str}))))
 
+(defn parse-header
+  "Parses a header into its value and an associated map of parameter values."
+  [header-string]
+  (let [header (BasicHeader. "ignored" header-string)
+        element (first (.getElements header))
+        params (parse-parameters element)]
+    {:value (.getName element) :params params}))
+
 (defn parse-link-header
   "Parse a Link header value into a map conforming to the ::link spec. The target of the link is associated
    with the ::link-uri key, any other parameters of the link are associated with unqualified keys in the result
    map."
   [header-string]
-  (let [header (BasicHeader. "ignored" header-string)]
-    (if-let [element (first (.getElements header))]
-      (let [params (parse-parameters element)
-            link-uri (parse-link-uri (.getName element))]
-        (assoc params ::link-uri link-uri)))))
+  (let [{:keys [value params]} (parse-header header-string)]
+    (assoc params ::link-uri (parse-link-uri value))))
 
 (def ^{:table-spec "5.2"} link-header-name "Link")
+(def ^{:table-spec "6.1.3.2"} tsv-content-type "text/tab-separated-values")
 
-(defn ^{:rfc5988 "4.1"} relation-type=
-  "Whether two link relation types are equal. Relation types are compared case-insensitively."
-  [t1 t2]
-  (if (nil? t1)
-    (nil? t2)
-    (.equalsIgnoreCase t1 t2)))
+(def ^{:rfc5988 "4.1"
+       :doc "Whether two link relation types are equal. Relation types are compared case-insensitively."}
+relation-type= util/equals-ignore-case?)
 
 (defn find-links
   "Finds and parses all the Link headers in the given response. Links are returned in the same order as the
