@@ -89,7 +89,7 @@
 
 (defn ^{:metadata-spec "5.6"} get-column-name [{:keys [name titles] :as column} column-index default-language]
   (or name
-      (first (get titles default-language))
+      (some-> (first (get titles default-language)) (util/percent-encode))
       (str "_col." (index->column-number column-index))))
 
 (defn set-column-name [column column-index context]

@@ -3,7 +3,8 @@
             [clojure.data.json :as json])
   (:import [java.io BufferedReader]
            [java.net URI]
-           [java.lang.reflect InvocationTargetException Method]))
+           [java.lang.reflect InvocationTargetException Method]
+           (java.nio.charset Charset)))
 
 (defn read-lines
   "Eagerly reads the lines from the given source."
@@ -90,3 +91,44 @@
   (if condition
     (assoc m k v)
     m))
+
+(def ^{:rfc3986 "2.2"} percent-reserved-chars ":/?#[]@!$&'()*+,;=%")
+
+(defn ^{:rfc3986 "2.2"} percent-encode
+  "Percent-encodes the bytes in the given string."
+  ([s] (percent-encode s (Charset/forName "utf-8")))
+  ([s charset]
+   (let [bytes (.getBytes s charset)
+         len (alength bytes)
+         sb (StringBuilder. (+ 12 len))]
+     (loop [idx 0]
+       (if (>= idx len)
+         (str sb)
+         (let [octet (aget bytes idx)
+               ci (int octet)
+               requires-encoding? (not= -1 (.indexOf percent-reserved-chars ci))]
+           (if requires-encoding?
+             (doto sb (.append \%) (.append (Integer/toHexString ci)))
+             (.appendCodePoint sb ci))
+           (recur (inc idx))))))))
+
+(defn ^{:rfc3986 "2.2"} percent-decode
+  "Decodes a percent-encoded string. Assumes all characters in the input are in the ASCII range. Throws an
+   IllegalArgumentException if the input is malformed."
+  [s]
+  (loop [idx 0
+         sb (StringBuilder. (.length s))]
+    (if (>= idx (.length s))
+      (str sb)
+      (let [c (.charAt s idx)]
+        (if (= \% c)
+          (if (>= (+ 2 idx) (.length s))
+            (throw (IllegalArgumentException. ("Out of range at index " idx)))
+            (let [endIdx (+ 3 idx)
+                  hex (.substring s (inc idx) endIdx)
+                  decoded (try
+                            (Integer/valueOf hex 16)
+                            (catch NumberFormatException _ex
+                              (throw (IllegalArgumentException. (str "Bad hex number: " hex)))))]
+              (recur endIdx (.appendCodePoint sb decoded))))
+          (recur (inc idx) (.append sb c)))))))
