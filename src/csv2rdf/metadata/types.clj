@@ -2,8 +2,9 @@
   (:require [csv2rdf.metadata.validator :refer [make-warning variant invalid array-of kvp kvps optional-key
                                                 required-key invalid-key-pair any map-of one-of string invalid?
                                                 chain try-parse-with where strict make-error tuple eq uri]]
-            [csv2rdf.metadata.context :refer [resolve-uri expand-uri-string append-path language-code-or-default
+            [csv2rdf.metadata.context :refer [resolve-uri append-path language-code-or-default
                                               base-key language-key id-key update-from-local-context]]
+            [csv2rdf.json-ld :refer [expand-uri-string]]
             [csv2rdf.validation :as v]
             [csv2rdf.metadata.json :refer [array? object?] :as mjson]
             [csv2rdf.uri-template :as template]
