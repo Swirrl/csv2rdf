@@ -19,6 +19,9 @@
      :defaults {:suppressOutput false
                 :tableDirection "auto"}}))
 
+(defn columns [table]
+  (get-in table [:tableSchema :columns]))
+
 (defn into-table-group [table]
   {:tables [table]})
 

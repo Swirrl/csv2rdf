@@ -9,6 +9,7 @@
                             (cond
                               (map? v) (.addMapValue b var-name v)
                               (coll? v) (.addListValue b var-name v)
+                              (nil? v) b                    ;;TODO: throw exception?
                               :else (.addScalarValue b var-name v))))
                         (VariableMap/newBuilder)
                         m)]
