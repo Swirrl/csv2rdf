@@ -18,8 +18,11 @@
      ~@body
      (catch Exception ex# nil)))
 
+(defn set-fragment [uri fragment]
+  (URI. (.getScheme uri) (.getUserInfo uri) (.getHost uri) (.getPort uri) (.getPath uri) (.getQuery uri) fragment))
+
 (defn remove-fragment [uri]
-  (URI. (.getScheme uri) (.getUserInfo uri) (.getHost uri) (.getPort uri) (.getPath uri) (.getQuery uri) nil))
+  (set-fragment uri nil))
 
 (defn ->coll [x]
   (if (coll? x) x [x]))

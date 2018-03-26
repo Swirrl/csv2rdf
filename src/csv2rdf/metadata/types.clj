@@ -203,9 +203,9 @@
         required-keys (map (fn [[k v]] (required-key k v)) required-doc-keys)
         optional-keys (map (fn [[k v]]
                              (if (contains? defaults k)
-                               (optional-key k v (get defaults k))
-                               (optional-key k v)))
-                           optional-doc-keys)
+                               (optional-key (document-key k) v (get defaults k))
+                               (optional-key (document-key k) v)))
+                           optional)
         declared-keys (into #{} (concat (keys required) (keys optional)))
         result-key-mappings (get-declared-key-mapping declared-keys)]
     (fn [context obj]

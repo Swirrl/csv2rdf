@@ -71,7 +71,9 @@
                                                                    (if (some? uri-template)
                                                                      [k (template-property/resolve-uri-template-property uri-template bindings column)]))
                                                                  (select-keys column [:aboutUrl :propertyUrl :valueUrl]))))]
-                    (merge cell property-urls)))
+                    (-> cell
+                        (merge property-urls)
+                        (assoc :column column))))
                 (map vector parsed-cells columns))]
     {:number        row-number
      :source-number source-row-number
