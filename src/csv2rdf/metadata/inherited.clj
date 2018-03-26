@@ -25,7 +25,8 @@
    :ordered false
    :required false
    :separator nil
-   :textDirection "inherit"})
+   :textDirection "inherit"
+   :datatype {:base "string"}})
 
 (defn inherit
   "Inherits in the child any inherited properties defined by the parent"

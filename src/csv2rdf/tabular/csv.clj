@@ -54,7 +54,11 @@
   (let [columns (table/columns table)
         row-number (index->row-number row-index)
         cell-values (drop skipColumns cells)
-        parsed-cells (map cell/parse-cell cell-values columns)
+
+        ;;extend cells to cover any virtual columns
+        ;;TODO: handle virtual and non-virtual columns separately?
+        padded-cell-values (concat cell-values (repeat ""))
+        parsed-cells (map cell/parse-cell padded-cell-values columns)
         column-value-bindings (into {} (map (fn [cell column]
                                               ;;TODO: need 'canonical value' according to XML schema
                                               ;;see metadata spec 5.1.3
