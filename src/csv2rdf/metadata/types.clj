@@ -187,7 +187,7 @@
   (variant {:string (fn [_context s] (v/pure [s]))
             :array column-reference-array}))
 
-(def special-keys-mapping {:id "@id" :type "@type" :language "@language" :base "@base"})
+(def special-keys-mapping {:id "@id" :type "@type" :language "@language" base-key "@base"})
 (def special-keys (into #{} (keys special-keys-mapping)))
 
 (defn get-declared-key-mapping [declared-keys]

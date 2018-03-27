@@ -3,7 +3,7 @@
   (:import [java.net URI]))
 
 (def id-key :id)
-(def base-key :base)
+(def base-key (keyword "@base"))
 (def language-key :language)
 
 (defn make-context [base-uri]
