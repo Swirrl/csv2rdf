@@ -2,7 +2,8 @@
   (:require [clojure.string :as string]
             [csv2rdf.metadata.column :as mcolumn]
             [csv2rdf.xml.datatype :as xml-datatype])
-  (:import [java.util.regex Pattern]))
+  (:import [java.util.regex Pattern]
+           [java.math BigDecimal BigInteger]))
 
 (def column-required-message "Column value required")
 
@@ -31,13 +32,81 @@
       {:value nil :errors []})
     {:value value :errors []}))
 
+(defn bound-num [type-name min max]
+  {:pre [(or (some? min) (some? max))]}
+  (let [check-min (if (some? min)
+                    (fn [n]
+                      (if (>= n min)
+                        n
+                        (throw (IllegalArgumentException. (format "%s values must be >= %d" type-name min)))))
+                    identity)
+        check-max (if (some? max)
+                    (fn [n]
+                      (if (<= n max)
+                        n
+                        (throw (IllegalArgumentException. (format "%s values must be <= %d" type-name max)))))
+                    identity)]
+    (fn [n]
+      (-> n (check-min) (check-max)))))
+
+(def parse-integer #(BigInteger. %))
+(def parse-long #(Long/parseLong %))
+(def parse-int #(Integer/parseInt %))
+(def parse-short #(Short/parseShort %))
+
+(def numeric-parsers
+  {"double" #(Double/parseDouble %)
+   "float" #(Float/parseFloat %)
+   "decimal" #(BigDecimal. %)
+   "integer" parse-integer
+   "long" parse-long
+   "int" parse-int
+   "short" parse-short
+   "byte" #(Byte/parseByte %)
+   "nonNegativeInteger" (comp (bound-num "nonNegativeInteger" 0 nil) parse-integer)
+   "positiveInteger" (comp (bound-num "positiveInteger" 1 nil) parse-integer)
+   "unsignedLong" (comp (bound-num "unsignedLong" 0 (biginteger 18446744073709551615)) parse-integer)
+   "unsignedInt" (comp (bound-num "unsignedInt" 0 4294967295) parse-long)
+   "unsignedShort" (comp (bound-num "unsignedShort" 0 65535) parse-int)
+   "unsignedByte" (comp (bound-num "unsignedByte" 0 255) parse-short)
+   "nonPositiveInteger" (comp (bound-num "nonPositiveInteger" nil 0) parse-integer)
+   "negativeInteger" (comp (bound-num "negativeInteger" nil -1) parse-integer)})
+
+(defn ^{:table-spec "6.4.2"
+        :xml-schema-spec "3"} parse-number-unformatted [{:keys [value] :as cell} {:keys [base] :as datatype}]
+  (let [parser (get numeric-parsers (xml-datatype/resolve-type-name base))]
+    (try
+      (let [result (parser value)]
+        (assoc cell :value {:value result :stringValue value :datatype datatype}))
+      (catch Exception ex
+        (-> cell
+            (assoc :value {:value value :stringValue value :datatype {:base "string"}})
+            (update :errors conj (.getMessage ex)))))))
+
+(defn parse-number-format [{:keys [value] :as cell} {{:keys [pattern decimalChar groupChar]} :format :as datatype}]
+  )
+
+(defn parse-numeric [cell {:keys [format] :as datatype}]
+  (if (some? format)
+    (throw (IllegalArgumentException. "Number formats not supported")) #_(parse-number-format cell datatype)
+    (parse-number-unformatted cell datatype)))
+
 (defn ^{:table-spec "6.4.8"} parse-format [{:keys [value errors] :as cell} {:keys [lang datatype] :as column}]
   ;;TODO: implement according to the spec. So far we only expect string column types so set the lang
   ;;on the cell value
-  (if-not (= "string" (:base datatype))
-    (throw (IllegalArgumentException. "Only string base types supported"))
-    {:value {:value value :stringValue value :datatype datatype :lang lang}
-     :errors errors}))
+  ;;TODO: create protcol for parsing?
+  (let [base (:base datatype)]
+    (cond
+      ;;TODO: handle string subtypes e.g. xml, token, language etc.
+      (= "string" base)
+      {:value {:value value :stringValue value :datatype datatype :lang lang}
+       :errors errors}
+
+      (xml-datatype/is-numeric-type? base)
+      (parse-numeric cell datatype)
+
+      :else
+      (throw (IllegalArgumentException. "Only string base types supported")))))
 
 (defn get-length-error [{:keys [stringValue]} rel-sym length constraint]
   (if (some? constraint)

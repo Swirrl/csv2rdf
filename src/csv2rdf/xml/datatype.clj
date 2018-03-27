@@ -84,7 +84,7 @@
   (contains? #{"hexBinary" "base64Binary"} (resolve-type-name type-name)))
 
 (defn is-numeric-type? [type-name]
-  (is-subtype? "decimal" type-name))
+  (some #(is-subtype? % type-name) ["decimal" "double" "float"]))
 
 (defn is-date-time-type? [type-name]
   (or (is-subtype? "date" type-name)
