@@ -1,14 +1,38 @@
 (ns csv2rdf.metadata.datatype
-  (:require [csv2rdf.metadata.validator :refer [variant one-of make-error make-warning any chain eq]]
+  (:require [csv2rdf.metadata.validator :refer [variant one-of make-error make-warning any chain eq character
+                                                try-parse-with invalid? invalid type-error-message]]
+            [csv2rdf.metadata.json :refer [object?]]
             [csv2rdf.metadata.types :refer [object-of non-negative id]]
+            [csv2rdf.metadata.context :refer [append-path]]
             [csv2rdf.xml.datatype :as xml-datatype]
-            [csv2rdf.validation :as v]))
+            [csv2rdf.validation :as v]
+            [clojure.string :as string])
+  (:import (java.time.format DateTimeFormatter)))
 
 (def ^{:metadata-spec "5.11.2"} datatype-name
   (variant {:string (one-of xml-datatype/type-names)}))
 
+;;TODO: implement
+(def number-format-pattern any)
+
 ;;TODO: implement!
-(def datatype-format any)
+(def numeric-type-format
+  (object-of {:optional {:decimalChar character
+                         :groupChar character
+                         :pattern number-format-pattern}
+              :defaults {:decimalChar \.}}))
+
+(defn ^{:table-spec "6.4.2"} validate-numeric-format [context format]
+  (if (empty? format)
+    (make-warning context "Object must contain at least one of the keys decimalChar, groupChar or pattern" nil)
+    (v/pure format)))
+
+;;NOTE: numeric datatypes are the only ones that permit an object specifying the format, all other types allow only
+;;a format string. The format of the format string depends on the datatype, so this can only be validated at the datatype
+;;level, not here. See validate-derived-datatype-format
+(def ^{:table-spec "6.4.2"} datatype-format
+  (variant {:string any
+            :object (chain numeric-type-format validate-numeric-format)}))
 
 (def datatype-bound (variant {:number any :string any}))
 
@@ -77,6 +101,43 @@
 ;;datatype id MUST NOT be the URL of a built-in datatype.
 (def validate-datatype-id any)
 
+(defn ^{:table-spec "6.4.3"} validate-boolean-format [context format-string]
+  (let [values (string/split format-string #"\|")]
+    (if (= 2 (count values))
+      (v/pure (zipmap [:true-value :false-value] (map string/trim values)))
+      (make-warning context "Boolean format string should have format 'true-value|false-value'" invalid))))
+
+(defn ^{:table-spec "6.4"} validate-derived-datatype-format [context {:keys [format base] :as datatype}]
+  (let [set-format (fn [value]
+                     (if (invalid? value)
+                       (dissoc datatype :format)
+                       (assoc datatype :format value)))]
+    (cond
+      (nil? format)
+      (v/pure datatype)
+
+      (xml-datatype/is-numeric-type? base)
+      (if (string? format)
+        (v/pure (assoc datatype :format {:pattern format}))
+        (v/pure datatype))
+
+      ;;only numeric types support object format descriptions
+      (object? format)
+      (make-warning (append-path context "format") (type-error-message [:string] :object) (dissoc datatype :format))
+
+      (xml-datatype/is-boolean-type? base)
+      (v/fmap set-format
+              (validate-boolean-format (append-path context "format") format))
+
+      ;;TODO: check DateTimeFormatter works as required by the spec
+      (xml-datatype/is-date-time-type? base)
+      (v/fmap set-format
+              ((try-parse-with #(DateTimeFormatter/ofPattern %)) (append-path context "format") format))
+
+      :else
+      (v/fmap set-format
+              ((try-parse-with re-pattern) (append-path context "format") format)))))
+
 (def derived-datatype
   (chain
     (object-of
@@ -94,7 +155,8 @@
                   :id          (chain id validate-datatype-id)
                   :type        (eq "Datatype")}
        :allow-common-properties? true})
-    validate-derived-datatype))
+    validate-derived-datatype
+    validate-derived-datatype-format))
 
 (defn ^{:metadata-spec "5.7"} normalise-datatype-name [_context type-name]
   (v/pure {:base type-name}))

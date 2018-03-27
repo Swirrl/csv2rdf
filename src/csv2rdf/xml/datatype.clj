@@ -94,6 +94,9 @@
 (defn is-duration-type? [type-name]
   (is-subtype? "duration" type-name))
 
+(defn is-boolean-type? [type-name]
+  (is-subtype? "boolean" type-name))
+
 (s/def ::base  (into #{} (flatten type-hierarchy)))
 
 (s/def ::num-or-string (s/or :string string? :num number?))
