@@ -1,26 +1,26 @@
 (ns csv2rdf.metadata.datatype
   (:require [csv2rdf.metadata.validator :refer [variant one-of make-error make-warning any chain eq character
-                                                try-parse-with invalid? invalid type-error-message]]
+                                                try-parse-with invalid? invalid type-error-message string]]
             [csv2rdf.metadata.json :refer [object?]]
             [csv2rdf.metadata.types :refer [object-of non-negative id]]
             [csv2rdf.metadata.context :refer [append-path]]
             [csv2rdf.xml.datatype :as xml-datatype]
             [csv2rdf.validation :as v]
             [clojure.string :as string])
-  (:import (java.time.format DateTimeFormatter)))
+  (:import [java.time.format DateTimeFormatter]
+           [java.text DecimalFormat]))
 
 (def ^{:metadata-spec "5.11.2"} datatype-name
   (variant {:string (one-of xml-datatype/type-names)}))
 
 ;;TODO: implement
-(def number-format-pattern any)
+(def number-format-pattern (chain string (try-parse-with #(DecimalFormat. %))))
 
 ;;TODO: implement!
 (def numeric-type-format
   (object-of {:optional {:decimalChar character
                          :groupChar character
-                         :pattern number-format-pattern}
-              :defaults {:decimalChar \.}}))
+                         :pattern number-format-pattern}}))
 
 (defn ^{:table-spec "6.4.2"} validate-numeric-format [context format]
   (if (empty? format)
@@ -31,7 +31,7 @@
 ;;a format string. The format of the format string depends on the datatype, so this can only be validated at the datatype
 ;;level, not here. See validate-derived-datatype-format
 (def ^{:table-spec "6.4.2"} datatype-format
-  (variant {:string any
+  (variant {:string number-format-pattern
             :object (chain numeric-type-format validate-numeric-format)}))
 
 (def datatype-bound (variant {:number any :string any}))
