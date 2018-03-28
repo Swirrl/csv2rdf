@@ -235,20 +235,20 @@
               cell (combine-cell-values component-cells)]
           (assoc cell :list true))))))
 
-(defn ^{:table-spec "6.4"} expand-urls [cell column]
-  ;;TODO: implement!
-  cell)
+(defn ^{:table-spec "6.4"} copy-column-annotations
+  "Copy required annotations onto a cell from its column"
+  [cell column]
+  (merge cell (select-keys column [:ordered :textDirection])))
 
 (defn ^{:table-spec "6.4"} parse-cell
   "Parses a cell value in the input CSV to obtain the semantic value."
-  [value {:keys [] :as column}]
+  [value column]
   (let [cleaned (-> value
                     (replace-special-whitespace column)
                     (strip-whitespace column)
                     (column-default-if-empty column))
-        cell (parse-cell-value cleaned column)
-        expanded (expand-urls cell column)]
-    expanded))
+        cell (parse-cell-value cleaned column)]
+    (copy-column-annotations cell column)))
 
 (def value :value)
 (defn semantic-value [cell]
