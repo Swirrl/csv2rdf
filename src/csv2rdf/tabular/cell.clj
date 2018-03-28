@@ -3,7 +3,8 @@
             [csv2rdf.metadata.column :as mcolumn]
             [csv2rdf.xml.datatype :as xml-datatype])
   (:import [java.util.regex Pattern]
-           [java.math BigDecimal BigInteger]))
+           [java.math BigDecimal BigInteger]
+           [java.text DecimalFormat]))
 
 (def column-required-message "Column value required")
 
@@ -72,6 +73,14 @@
    "nonPositiveInteger" (comp (bound-num "nonPositiveInteger" nil 0) parse-integer)
    "negativeInteger" (comp (bound-num "negativeInteger" nil -1) parse-integer)})
 
+(defn add-error [cell error-message]
+  (update cell :errors conj error-message))
+
+(defn fail-parse [{:keys [value] :as cell} error-message]
+  (-> cell
+      (assoc :value {:value value :stringValue value :datatype {:base "string"}})
+      (add-error error-message)))
+
 (defn ^{:table-spec "6.4.2"
         :xml-schema-spec "3"} parse-number-unformatted [{:keys [value] :as cell} {:keys [base] :as datatype}]
   (let [parser (get numeric-parsers (xml-datatype/resolve-type-name base))]
@@ -79,16 +88,73 @@
       (let [result (parser value)]
         (assoc cell :value {:value result :stringValue value :datatype datatype}))
       (catch Exception ex
-        (-> cell
-            (assoc :value {:value value :stringValue value :datatype {:base "string"}})
-            (update :errors conj (.getMessage ex)))))))
+        (fail-parse cell (.getMessage ex))))))
 
-(defn parse-number-format [{:keys [value] :as cell} {{:keys [pattern decimalChar groupChar]} :format :as datatype}]
-  )
+(def special-floating-values
+  {"float" {"NaN" Float/NaN "INF" Float/POSITIVE_INFINITY "-INF" Float/NEGATIVE_INFINITY}
+   "double" {"NaN" Double/NaN "INF" Double/POSITIVE_INFINITY "-INF" Double/NEGATIVE_INFINITY}})
+
+(def special-floating-names (into #{} (keys (second (first special-floating-values)))))
+
+(defn get-special-floating-value [value base]
+  (if-let [result (get-in special-floating-values [base value])]
+    result
+    (throw (IllegalArgumentException. (format "Unknown numeric constant %s for type %s" value base)))))
+
+(defn parse-number-from-constructed-format [{:keys [value] :as cell} {{:keys [decimalChar groupChar]} :format base :base :as datatype}]
+  (let [is-special? (contains? special-floating-names value)
+        has-exponent? (or (.contains value "e") (.contains value "E"))
+        is-decimal-type? (xml-datatype/is-subtype? "decimal" base)
+        strip-group (fn [s] (if (some? groupChar) (.replace s (str groupChar) "") s))]
+    (cond
+      (and (some? decimalChar) (xml-datatype/is-integral-type? base))
+      (fail-parse cell (format "Cannot specify decimalChar for integral datatype %s" base))
+
+      (and is-special? is-decimal-type?)
+      (fail-parse cell (format "Cannot specify floating point value %s for decimal type %s" value base))
+
+      (and has-exponent? is-decimal-type?)
+      (fail-parse cell (format "Cannot specify exponent for type %s" base))
+
+      is-special?
+      (assoc cell :value {:value (get-special-floating-value value base) :stringValue value :datatype datatype})
+
+      (xml-datatype/is-integral-type? base)
+      (let [parser (get numeric-parsers base)]
+        (try
+          (assoc cell :value {:value (parser (strip-group value)) :stringValue value :datatype datatype})
+          (catch Exception _ex
+            (fail-parse cell (format "Failed to parse '%s' as type %s" value base)))))
+
+      :else
+      ;;remove group character, normalise decimal character to . and remove any trailing percent or mph modifier
+      ;;then parse with the type parser and modify the result according to the trailing modifier
+      (let [s (strip-group value)
+            s (.replace s (str (or decimalChar \.)) ".")
+            [s modifier] (cond (.endsWith s "%") [(.substring s 0 (dec (.length s))) :percent]
+                               (.endsWith s "\u2030") [(.substring s 0 (dec (.length s))) :mph]
+                               :else [s nil])
+            parser (get numeric-parsers base)]
+        (try
+          (let [result (parser s)
+                result (case modifier
+                         :percent (/ result 100)
+                         :mph (/ result 1000)
+                         result)]
+            (assoc cell :value {:value result :stringValue value :datatype datatype}))
+          (catch Exception _ex
+            (fail-parse cell (format "Failed to parse '%s' as type %s" value base))))))))
+
+(defn parse-number-format [{:keys [value] :as cell} {{:keys [^DecimalFormat pattern]} :format :as datatype}]
+  (if (some? pattern)
+    (if-let [result (.parse pattern value)]
+      (assoc cell :value {:value result :stringValue value :datatype datatype})
+      (fail-parse cell (format "Cannot parse value '%s' with the pattern '%s'" value (.toPattern pattern))))
+    (parse-number-from-constructed-format cell datatype)))
 
 (defn parse-numeric [cell {:keys [format] :as datatype}]
   (if (some? format)
-    (throw (IllegalArgumentException. "Number formats not supported")) #_(parse-number-format cell datatype)
+    (parse-number-format cell datatype)
     (parse-number-unformatted cell datatype)))
 
 (defn ^{:table-spec "6.4.8"} parse-format [{:keys [value errors] :as cell} {:keys [lang datatype] :as column}]

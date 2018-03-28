@@ -12,14 +12,14 @@
                  [["long"
                    [["int"
                      [["short"
-                       ["byte"]]]]]]]]
-                ["nonNegativeInteger"
-                 ["positiveInteger"
-                  ["unsignedLong"
-                   [["unsignedInt"
-                     [["unsignedShort"
-                       ["unsignedByte"]]]]]]]]
-                ["nonPositiveInteger" ["negativeInteger"]]]]
+                       ["byte"]]]]]]
+                  ["nonNegativeInteger"
+                   ["positiveInteger"
+                    ["unsignedLong"
+                     [["unsignedInt"
+                       [["unsignedShort"
+                         ["unsignedByte"]]]]]]]]
+                  ["nonPositiveInteger" ["negativeInteger"]]]]]]
     "double"
     ["duration" ["dayTimeDuration" "yearMonthDuration"]]
     "float"
@@ -85,6 +85,9 @@
 
 (defn is-numeric-type? [type-name]
   (some #(is-subtype? % type-name) ["decimal" "double" "float"]))
+
+(defn is-integral-type? [type-name]
+  (is-subtype? "integer" type-name))
 
 (defn is-date-time-type? [type-name]
   (or (is-subtype? "date" type-name)
