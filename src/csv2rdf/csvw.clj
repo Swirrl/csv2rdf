@@ -5,8 +5,8 @@
             [clojure.java.io :as io]
             [csv2rdf.metadata.dialect :as dialect]
             [csv2rdf.tabular.cell :as cell]
-            [csv2rdf.util :as util])
-  (:import [java.net URI]))
+            [csv2rdf.util :as util]
+            [csv2rdf.vocabulary :refer [rdf:nil rdf:first rdf:rest]]))
 
 (defn gen-blank-node
   "Generates a grafter representation of a new blank node"
@@ -18,10 +18,6 @@
 
 (defn cell-predicate [table-url {:keys [propertyUrl column] :as cell}]
   (or propertyUrl (column-about-url table-url column)))
-
-(def rdf:nil (URI. "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"))
-(def rdf:first (URI. "http://www.w3.org/1999/02/22-rdf-syntax-ns#first"))
-(def rdf:rest (URI. "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"))
 
 (defn rdf-list [ordered-values]
   (reduce (fn [[tail-subject tail-statements] value]
