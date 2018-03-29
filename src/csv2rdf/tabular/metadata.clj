@@ -1,6 +1,5 @@
 (ns csv2rdf.tabular.metadata
   (:require [csv2rdf.http :as http]
-            [clojure.java.io :as io]
             [clojure.data.json :as json]
             [csv2rdf.util :as util]
             [csv2rdf.uri-template :as template]
@@ -9,8 +8,7 @@
             [csv2rdf.source :as source]
             [csv2rdf.metadata :as meta]
             [csv2rdf.validation :as v])
-  (:import [java.io File FileNotFoundException]
-           [java.net URI]))
+  (:import [java.net URI]))
 
 ;;TODO: move into http namespace?
 (defn ^{:table-spec "5.3"} is-not-found-response?
@@ -36,17 +34,6 @@
   (if-let [link-header (get-metadata-link csv-response)]
     ;;TODO: URIs must be normalised (section 6.3)
     (.resolve csv-uri (::http/link-uri link-header))))
-
-;;TODO: validate JSON represents a valid metadata file? or perform at a higher level?
-(defn read-metadata-file [file]
-  (try
-    (with-open [r (io/reader file)]
-      (json/read r))
-    (catch FileNotFoundException ex
-      (throw (ex-info
-               (format "Error reading metadata file %s: not found" (.getAbsolutePath file))
-               {:type ::resolve-metadata-error
-                :metadata-file file})))))
 
 (defn try-get-linked-metadata
   "Tries to fetch the linked metadata from the given URI. Returns nil on any errors or if the request fails."
@@ -131,30 +118,6 @@
   (or
     (try-resolve-linked-metadata csv-uri csv-link)
     (try-locate-site-wide-configurations-metadata csv-uri)))
-
-(defprotocol CSVLocator
-  (locate-csv [this]))
-
-(extend-protocol CSVLocator
-  File
-  (locate-csv [file]
-    {::csv-link nil
-     ::csv-uri nil                                          ;;TODO: use file URI?
-     ::csv-source file})
-
-  URI
-  (locate-csv [uri]
-    ;;TODO: handle exceptions
-    (let [{:keys [status body] :as response} (http/get-uri uri)]
-      (if (is-not-found-response? response)
-        (throw (ex-info
-                 (format "Error resolving CSV at URI %s: not found" uri)
-                 {:type ::resolve-csv-error
-                  :csv-uri uri
-                  :status status}))
-        {::csv-link (get-metadata-link-uri uri response)
-         ::csv-uri uri
-         ::csv-source body}))))
 
 (defmulti get-metadata (fn [csv-source] (keyword (.getScheme (source/->uri csv-source)))))
 

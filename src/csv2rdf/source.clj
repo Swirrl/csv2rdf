@@ -14,7 +14,6 @@
   URI
   (->uri [uri] uri))
 
-
 (defrecord IOSource [uri io]
   URIable
   (->uri [_this] uri)
