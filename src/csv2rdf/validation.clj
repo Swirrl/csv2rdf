@@ -1,5 +1,6 @@
 (ns csv2rdf.validation
-  (:require [clojure.spec.alpha :as s]))
+  (:require [clojure.spec.alpha :as s]
+            [clojure.string :as string]))
 
 (s/def ::value (constantly true))
 (s/def ::error string?)
@@ -53,12 +54,15 @@
     validation
     (combine validation (f (::value validation)))))
 
-(defn map-errors [f validation]
-  (update validation ::errors (fn [errors] (map f errors))))
-
-
-
 (defn collect [vs]
   (reduce (fn [acc v] (combine-with conj acc v)) (pure []) vs))
+
+(defn get-value [validation message-on-invalid]
+  (if (error? validation)
+    (let [errors (::errors validation)
+          msg (string/join (concat [message-on-invalid ""] errors))]
+      (throw (ex-info msg {:type :validation-error
+                           :errors errors})))
+    (::value validation)))
 
 

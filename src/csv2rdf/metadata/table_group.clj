@@ -34,3 +34,9 @@
 
 (defn parse-table-group-json [context doc]
   (v/fmap expand-properties ((contextual-object true table-group) context doc)))
+
+(defn from-table
+  "Creates a table group from the given table"
+  [table]
+  (expand-properties {:tables         [table]
+                      :tableDirection "auto"}))

@@ -7,7 +7,9 @@
             [csv2rdf.tabular.cell :as cell]
             [csv2rdf.util :as util]
             [csv2rdf.metadata.column :as column]
-            [csv2rdf.metadata.uri-template-property :as template-property]))
+            [csv2rdf.metadata.uri-template-property :as template-property]
+            [csv2rdf.metadata.table-group :as table-group]
+            [csv2rdf.source :as source]))
 
 (defn ^{:table-spec "8.6"} get-skipped-rows-comments [skipped-rows]
   (remove nil? (map (fn [{:keys [type comment content] :as row}]
@@ -19,9 +21,10 @@
 (defn ^{:table-spec "8.7"} get-header-row-columns [header-rows]
   (let [comment-rows (filter reader/is-comment-row? header-rows)
         title-rows (remove reader/is-comment-row? header-rows)
-        columns (apply mapv (fn [& titles]
-                            {:titles (vec (remove string/blank? titles))})
-                      (map :cells title-rows))]
+        titles (apply map vector (map :cells title-rows))
+        columns (map-indexed (fn [idx titles]
+                               (column/from-titles idx titles))
+                             titles)]
     {:comments (mapv :comment comment-rows)
      :columns columns}))
 
@@ -41,11 +44,12 @@
            {:keys [columns] :as header} (get-header-row-columns header-rows)
            data-row-comments (get-data-comments data-rows)
            comments (vec (concat skipped-row-comments (:comments header) data-row-comments))
-           metadata {:tableSchema {:columns columns}}
-           metadata (if (empty? comments)
-                      metadata
-                      (assoc metadata :comments comments))]
-       metadata))))
+           schema {:columns columns}
+           table (table/from-schema (source/->uri csv-source) schema)
+           table (if (empty? comments)
+                   table
+                   (assoc table :comments comments))]
+       (table-group/from-table table)))))
 
 ;;TODO: move this
 (def index->row-number inc)

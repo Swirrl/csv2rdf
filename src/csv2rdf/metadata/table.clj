@@ -28,14 +28,23 @@
 (defn looks-like-table-json? [doc]
   (contains? doc "url"))
 
+(defn expand-children [table]
+  (update table :tableSchema (fn [s] (schema/expand-properties table s))))
+
 (defn expand-properties
   "Expands all properties for this table by inheriting any undefined inherited properties from its parent table group."
   [parent-table-group table]
   (let [table (inherited/inherit-with-defaults parent-table-group table)]
-    (update table :tableSchema (fn [s] (schema/expand-properties table s)))))
+    (expand-children table)))
 
 (defn parse-table-json [context doc]
   (v/fmap (fn [t]
             (into-table-group (expand-properties {} t)))
           ((contextual-object true table) context doc)))
 
+(defn from-schema [table-uri schema]
+  (expand-children
+    {:url            table-uri
+     :tableSchema    schema
+     :suppressOutput false
+     :tableDirection "auto"}))

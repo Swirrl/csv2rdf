@@ -4,7 +4,11 @@
             [clojure.data.json :as json]
             [csv2rdf.util :as util]
             [csv2rdf.uri-template :as template]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [csv2rdf.tabular.csv :as csv]
+            [csv2rdf.source :as source]
+            [csv2rdf.metadata :as meta]
+            [csv2rdf.validation :as v])
   (:import [java.io File FileNotFoundException]
            [java.net URI]))
 
@@ -32,9 +36,6 @@
   (if-let [link-header (get-metadata-link csv-response)]
     ;;TODO: URIs must be normalised (section 6.3)
     (.resolve csv-uri (::http/link-uri link-header))))
-
-(defprotocol MetadataSource
-  (locate-metadata [this csv]))
 
 ;;TODO: validate JSON represents a valid metadata file? or perform at a higher level?
 (defn read-metadata-file [file]
@@ -131,17 +132,6 @@
     (try-resolve-linked-metadata csv-uri csv-link)
     (try-locate-site-wide-configurations-metadata csv-uri)))
 
-(extend-protocol MetadataSource
-  File
-  (locate-metadata [file csv]
-    {::csv-source (::csv-source csv)
-     ::metadata (read-metadata-file file)})
-
-  nil
-  (locate-metadata [_ csv]
-    {::csv-source (::csv-source csv)
-     ::metadata (resolve-associated-metadata (::csv-uri csv) (::csv-link csv))}))
-
 (defprotocol CSVLocator
   (locate-csv [this]))
 
@@ -166,6 +156,23 @@
          ::csv-uri uri
          ::csv-source body}))))
 
-(defn resolve-inputs [csv-source metadata-source]
-  (let [csv (locate-csv csv-source)]
-    (locate-metadata metadata-source csv)))
+(defmulti get-metadata (fn [csv-source] (keyword (.getScheme (source/->uri csv-source)))))
+
+(defmethod get-metadata :file [csv-source]
+  (csv/extract-embedded-metadata csv-source))
+
+(defmethod get-metadata :http [csv-source]
+  ;;TODO: handle exceptions
+  (let [csv-uri (source/->uri csv-source)
+        {:keys [status body] :as response} (http/get-uri csv-uri)]
+    (if (is-not-found-response? response)
+      (throw (ex-info
+               (format "Error resolving CSV at URI %s: not found" csv-uri)
+               {:type ::resolve-csv-error
+                :csv-uri csv-uri
+                :status status}))
+      (let [metadata-link (get-metadata-link-uri csv-uri response)]
+        (if-let [metadata-doc (resolve-associated-metadata csv-uri metadata-link)]
+          (let [metadata-validation (meta/parse-metadata-json csv-uri metadata-doc)]
+            (v/get-value metadata-validation "Invalid metadata document"))
+          (csv/extract-embedded-metadata (source/io-source csv-uri body)))))))

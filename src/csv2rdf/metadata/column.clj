@@ -108,3 +108,13 @@
    schema."
   [parent-schema column]
   (inherited/inherit parent-schema column))
+
+(defn from-titles
+  "Creates a new column given the column index and the sequence of titles"
+  [column-index titles]
+  (let [normalised-titles {"und" titles}
+        column-name (get-column-name {:titles normalised-titles} column-index "und")]
+    {:name column-name
+     :titles normalised-titles
+     :virtual false
+     :suppressOutput false}))
