@@ -1,9 +1,5 @@
 (ns csv2rdf.csvw.minimal
-  (:require [grafter.rdf4j.io :as gio]
-            [csv2rdf.tabular.csv :as csv]
-            [grafter.rdf :as rdf]
-            [clojure.java.io :as io]
-            [csv2rdf.metadata.dialect :as dialect]
+  (:require [grafter.rdf :as rdf]
             [csv2rdf.tabular.cell :as cell]
             [csv2rdf.util :as util]
             [csv2rdf.vocabulary :refer [rdf:nil rdf:first rdf:rest]]))
@@ -62,19 +58,5 @@
               (minimal-cell-statements table-url default-subject cell))
             unsuppressed-cells)))
 
-(defn minimal-table-statements [{:keys [url dialect] :as table} table-group-dialect]
-  ;;TODO: pass IO stream instead of reader since dialect defines encoding
-  ;;TODO: get headers if table URL is HTTP scheme
-  (with-open [r (io/reader url)]
-    (let [dialect (or dialect table-group-dialect (dialect/get-default-dialect {}))
-          options (dialect/dialect->options (assoc dialect :doubleQuote false)) ;;TODO: fix reader to allow same escape and quote chars
-          annotated-rows (csv/annotated-rows r table options)]
-      (mapcat (fn [row] (minimal-row-statements url row)) annotated-rows))))
-
-(defn csv->minimal-rdf->file ^{:csvw-spec "4.2"} [table-group destination]
-  (let [output-tables (filter (fn [t] (= false (:suppressOutput t))) (:tables table-group))]
-    (with-open [os (io/output-stream destination)]
-      (let [writer (gio/rdf-writer os :format :ttl)]
-        (doseq [t output-tables]
-          (rdf/add writer (minimal-table-statements t (:dialect table-group))))))))
-
+(defn minimal-table-statements [{:keys [url] :as table} annotated-rows]
+  (mapcat (fn [row] (minimal-row-statements url row)) annotated-rows))
