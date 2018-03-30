@@ -54,3 +54,5 @@
 
       :else [])))
 
+(defmulti table-group-context (fn [mode _table-group] mode))
+(defmulti table-statements (fn [context table rows] (:mode context)))

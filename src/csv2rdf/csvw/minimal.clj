@@ -14,5 +14,9 @@
               (minimal-cell-statements table-url default-subject cell))
             unsuppressed-cells)))
 
-(defn minimal-table-statements [{:keys [url] :as table} annotated-rows]
+(defmethod table-statements :minimal [_context {:keys [url] :as table} annotated-rows]
   (mapcat (fn [row] (minimal-row-statements url row)) annotated-rows))
+
+(defmethod table-group-context :minimal [mode _table-group]
+  {:mode mode
+   :statements []})

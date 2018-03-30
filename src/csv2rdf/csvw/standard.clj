@@ -9,16 +9,11 @@
   ;;TODO: implement!
   [])
 
-(defn table-group-statements [{:keys [id] :as table-group}]
-  (let [tg-subject (or id (gen-blank-node "tablegroup"))]
-    {:table-group-subject tg-subject
-     :statements (cons (->Triple tg-subject rdf:type csvw:TableGroup) (notes-non-core-annotation-statements tg-subject table-group))}))
-
 (defn row-title-statements [row]
   ;;TODO: implement!
   [])
 
-(def tabular-data-file-url (URI. "test001.csv"))
+(def tabular-data-file-url (URI. "file:/data/test001.csv"))
 
 (defn cell-statements [row-subject {:keys [aboutUrl] :as cell}]
   (let [default-subject (gen-blank-node)
@@ -38,7 +33,7 @@
             (row-title-statements row)
             (mapcat (fn [cell] (cell-statements row-subject cell)) (row-unsuppressed-cells row)))))
 
-(defn table-statements [table-group-subject {:keys [id url] :as table} annotated-rows]
+(defmethod table-statements :standard [{:keys [table-group-subject] :as context} {:keys [id url] :as table} annotated-rows]
   (let [table-subject (or id (gen-blank-node "table"))
         t-4_2 (->Triple table-group-subject csvw:table table-subject)
         t-4_3 (->Triple table-subject rdf:type csvw:Table)
@@ -47,6 +42,9 @@
             (notes-non-core-annotation-statements table-subject table)
             (mapcat (fn [row] (row-statements table-subject table row)) annotated-rows))))
 
-
-
-
+(defmethod table-group-context :standard [mode {:keys [id] :as table-group}]
+  (let [tg-subject (or id (gen-blank-node "tablegroup"))
+        t (->Triple tg-subject rdf:type csvw:TableGroup)]
+    {:mode mode
+     :table-group-subject tg-subject
+     :statements (cons t (notes-non-core-annotation-statements tg-subject table-group))}))
