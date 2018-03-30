@@ -30,7 +30,7 @@
   (let [links (http/find-links csv-response)]
     (last (filter is-metadata-link? links))))
 
-(defn ^{:table-spec "5.2"} get-metadata-link-uri [csv-uri csv-response]
+(defn ^{:table-spec "5.2"} get-metadata-link-uri [^URI csv-uri csv-response]
   (if-let [link-header (get-metadata-link csv-response)]
     ;;TODO: URIs must be normalised (section 6.3)
     (.resolve csv-uri (::http/link-uri link-header))))
@@ -59,14 +59,14 @@
       (if (linked-metadata-references-data-file? csv-url metadata)
         metadata))))
 
-(def ^{:table-spec "5.3"} well-known-site-wide-configuration-uri (URI. "/.well-known/csvm"))
+(def ^{:table-spec "5.3"} ^URI well-known-site-wide-configuration-uri (URI. "/.well-known/csvm"))
 
 (defn ^{:template-spec "5.3"} parse-response-location-templates [body]
   ;;TODO: handle non-string body types?
   ;;NOTE: specification states "This file MUST contain a URI template, as defined by [URI-TEMPLATE], on each line"
   ;;this is trivially true if there are no lines (i.e. body is empty) but split-lines returns a singleton sequence
   ;;containing the empty string on an empty input.
-  (if (.isEmpty body)
+  (if (string/blank? body)
     []
     (string/split-lines body)))
 
@@ -75,7 +75,7 @@
     (if-not (is-not-found-response? response)
       (parse-response-location-templates body))))
 
-(defn try-get-site-wide-configuration-templates [csv-uri]
+(defn try-get-site-wide-configuration-templates [^URI csv-uri]
   (let [config-uri (.resolve csv-uri well-known-site-wide-configuration-uri)]
     (try-get-location-templates config-uri)))
 
@@ -87,16 +87,16 @@
   (or (try-get-site-wide-configuration-templates csv-uri)
       default-location-templates))
 
-(defn ^{:table-spec "5.3"} try-expand-location-template [csv-uri template-string]
+(defn ^{:table-spec "5.3"} ^URI try-expand-location-template [csv-uri template-string]
   (if-let [template (template/try-parse-template template-string)]
     (template/expand-template template {:url (util/remove-fragment csv-uri)})))
 
-(defn ^{:table-spec "5.3"} try-resolve-location-template-metadata [csv-uri template-string]
+(defn ^{:table-spec "5.3"} try-resolve-location-template-metadata [^URI csv-uri template-string]
   (if-let [expanded-uri (try-expand-location-template csv-uri template-string)]
     (let [metadata-uri (.resolve csv-uri expanded-uri)]
       (try-resolve-linked-metadata csv-uri metadata-uri))))
 
-(defn try-resolve-template-uri [csv-uri template]
+(defn try-resolve-template-uri [^URI csv-uri template]
   (if-let [template-uri (try-expand-location-template csv-uri template)]
     (.resolve csv-uri template-uri)))
 

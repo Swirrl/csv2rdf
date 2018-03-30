@@ -14,5 +14,5 @@
 ;;TODO: see if this can be done through the public API
 (def resolve-iri-method (util/get-declared-method Context "expandIri" [String Boolean/TYPE Boolean/TYPE Map Map]))
 
-(defn expand-uri-string [uri-str]
+(defn ^String expand-uri-string [^String uri-str]
   (util/invoke-method resolve-iri-method (Context.) [uri-str false false @csvw-context (HashMap.)]))

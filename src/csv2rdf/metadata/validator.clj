@@ -76,7 +76,7 @@
 
 (defn character [context x]
   (->> (string context x)
-       (v/bind (fn [s]
+       (v/bind (fn [^String s]
                  (cond (invalid? s) (v/pure s)
                        (= 1 (.length s)) (v/pure (.charAt s 0))
                        :else (make-warning context "Expected single character" invalid))))))

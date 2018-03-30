@@ -1,7 +1,8 @@
 (ns csv2rdf.tabular.csv.reader
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as string])
-  (:import [com.opencsv CSVReader]))
+  (:import [com.opencsv CSVReader]
+           [java.io Reader]))
 
 (s/def ::source-row-number (s/and integer? pos?))
 (s/def ::cells (s/coll-of string? :kind vector? :into []))
@@ -36,7 +37,7 @@
    the source row number (reader is initially assumed to be positioned on row 1), the parsed
    content and cells along with any comment. Rows are classified as comments or data rows containing
    cell data. Cell data values are trimmed according to the trim-mode specified by the options."
-  [reader {:keys [quoteChar escapeChar delimiter] :as options}]
+  [^Reader reader {:keys [^Character quoteChar ^Character escapeChar ^Character delimiter] :as options}]
   ;;TODO: can quote, escape or delimiters be nil?
   (let [csv-reader (CSVReader. reader delimiter quoteChar escapeChar)
         rows (iterator-seq (.iterator csv-reader))]

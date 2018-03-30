@@ -18,7 +18,7 @@
     (-> value (string/trim) (string/replace #"\s+" " "))
     value))
 
-(defn ^{:table-spec "6.4.3"} column-default-if-empty [value column]
+(defn ^{:table-spec "6.4.3"} column-default-if-empty [^String value column]
   (if (.isEmpty value)
     (mcolumn/default column)
     value))
@@ -50,7 +50,8 @@
     (fn [n]
       (-> n (check-min) (check-max)))))
 
-(def parse-integer #(BigInteger. %))
+(defn parse-integer [^String s]
+  (BigInteger. s))
 (def parse-long #(Long/parseLong %))
 (def parse-int #(Integer/parseInt %))
 (def parse-short #(Short/parseShort %))
@@ -58,7 +59,7 @@
 (def numeric-parsers
   {"double" #(Double/parseDouble %)
    "float" #(Float/parseFloat %)
-   "decimal" #(BigDecimal. %)
+   "decimal" (fn [^String s] (BigDecimal. s))
    "integer" parse-integer
    "long" parse-long
    "int" parse-int
@@ -101,11 +102,11 @@
     result
     (throw (IllegalArgumentException. (format "Unknown numeric constant %s for type %s" value base)))))
 
-(defn parse-number-from-constructed-format [{:keys [value] :as cell} {{:keys [decimalChar groupChar]} :format base :base :as datatype}]
+(defn parse-number-from-constructed-format [{:keys [^String value] :as cell} {{:keys [decimalChar groupChar]} :format base :base :as datatype}]
   (let [is-special? (contains? special-floating-names value)
         has-exponent? (or (.contains value "e") (.contains value "E"))
         is-decimal-type? (xml-datatype/is-subtype? "decimal" base)
-        strip-group (fn [s] (if (some? groupChar) (.replace s (str groupChar) "") s))]
+        strip-group (fn ^String [^String s] (if (some? groupChar) (.replace s (str groupChar) "") s))]
     (cond
       (and (some? decimalChar) (xml-datatype/is-integral-type? base))
       (fail-parse cell (format "Cannot specify decimalChar for integral datatype %s" base))
@@ -129,7 +130,7 @@
       :else
       ;;remove group character, normalise decimal character to . and remove any trailing percent or mph modifier
       ;;then parse with the type parser and modify the result according to the trailing modifier
-      (let [s (strip-group value)
+      (let [^String s (strip-group value)
             s (.replace s (str (or decimalChar \.)) ".")
             [s modifier] (cond (.endsWith s "%") [(.substring s 0 (dec (.length s))) :percent]
                                (.endsWith s "\u2030") [(.substring s 0 (dec (.length s))) :mph]
@@ -220,7 +221,7 @@
 (defn separator->pattern [separator]
   (re-pattern (Pattern/quote separator)))
 
-(defn parse-cell-value [value {:keys [separator required datatype] :as column}]
+(defn parse-cell-value [^String value {:keys [separator required datatype] :as column}]
   (if (nil? separator)
     (parse-atomic-value value column)
     (if (.isEmpty value)

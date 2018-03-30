@@ -90,7 +90,7 @@
 ;;common propeties
 ;;TODO: move into separate namespace?
 (defn ordinary-common-property-value-key [special-keys]
-  (fn [context x]
+  (fn [context ^String x]
     (if (and (string? x) (.startsWith x "@"))
       (make-warning context (str "Only keys " (string/join special-keys) " can start with an @") invalid)
       (v/pure x))))
@@ -169,7 +169,7 @@
 (def ^{:metadata-spec "5.3"} note (map-of common-property-key common-property-value))
 (def ^{:metadata-spec "5.3"} table-direction (one-of #{"rtl" "ltr" "auto"}))
 
-(defn validate-id [context s]
+(defn validate-id [context ^String s]
   (if (.startsWith s "_:")
     (make-warning context "Ids cannot start with _:" invalid)
     ((try-parse-with #(URI. %)) context s)))

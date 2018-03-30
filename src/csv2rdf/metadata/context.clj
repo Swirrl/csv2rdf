@@ -24,6 +24,6 @@
 (defn append-path [context path-element]
   (update context :path conj path-element))
 
-(defn resolve-uri [{:keys [base-uri] :as context} ^URI uri]
+(defn resolve-uri [{:keys [^URI base-uri] :as context} ^URI uri]
   (.resolve base-uri uri))
 

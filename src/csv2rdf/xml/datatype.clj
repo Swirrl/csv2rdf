@@ -130,7 +130,12 @@
 (defn ^{:table-spec "4.6.1"} get-length [value {:keys [base] :as datatype}]
   (cond
     (nil? value) 0
-    (is-subtype? "string" base) (.count (.codePoints value))
-    (is-binary-type? base) (alength value)                  ;;binary data expected to be byte array
-    :else nil                                               ;;length undefined for type
-    ))
+    (is-subtype? "string" base) (let [^String str-val value]
+                                  (.count (.codePoints str-val)))
+
+    ;;binary data expected to be byte array
+    (is-binary-type? base) (let [#^bytes arr value]
+                             (alength arr))
+
+    ;;length undefined for type
+    :else nil))

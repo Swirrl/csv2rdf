@@ -26,7 +26,7 @@
 
 (def parse-variable-method (util/get-declared-method VariableSpecParser "parseFullName" [CharBuffer]))
 
-(defn parse-uri-template-variable [s]
+(defn parse-uri-template-variable [^String s]
   (util/invoke-method parse-variable-method [(CharBuffer/wrap s)]))
 
 (defn uri-template-variable [context s]
@@ -39,7 +39,7 @@
     (catch URITemplateParseException _ex
       (make-warning context (str "Invalid template variable: '" s "'") invalid))))
 
-(defn ^{:metadata-spec "5.6"} validate-column-name [context s]
+(defn ^{:metadata-spec "5.6"} validate-column-name [context ^String s]
   (if (.startsWith s "_")
     (make-warning context "Columns names cannot begin with _" invalid)
     (uri-template-variable context s)))

@@ -3,7 +3,8 @@
             [clj-http.client :as client]
             [csv2rdf.util :as util])
   (:import [org.apache.http.message BasicHeader]
-           [java.net URI URISyntaxException]))
+           [java.net URI URISyntaxException]
+           [org.apache.http HeaderElement NameValuePair]))
 
 (s/def ::link-uri #(instance? URI %))
 (s/def ::link (s/keys :req [::link-uri]))
@@ -15,8 +16,8 @@
 (defn is-ok-response? [{:keys [status] :as response}]
   (and (>= status 200) (<= status 300)))
 
-(defn parse-parameters [element]
-  (into {} (map (fn [p] [(keyword (.getName p)) (.getValue p)]) (.getParameters element))))
+(defn parse-parameters [^HeaderElement element]
+  (into {} (map (fn [^NameValuePair p] [(keyword (.getName p)) (.getValue p)]) (.getParameters element))))
 
 (defn parse-link-uri [link-str]
   (if-let [[_ uri-str] (re-find #"<([^>]*)>" link-str)]
@@ -34,7 +35,7 @@
   "Parses a header into its value and an associated map of parameter values."
   [header-string]
   (let [header (BasicHeader. "ignored" header-string)
-        element (first (.getElements header))
+        ^HeaderElement element (first (.getElements header))
         params (parse-parameters element)]
     {:value (.getName element) :params params}))
 

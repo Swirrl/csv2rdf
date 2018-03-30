@@ -5,7 +5,7 @@
            [java.io File]))
 
 (defprotocol URIable
-  (->uri [this]))
+  (->uri ^URI [this]))
 
 (extend-protocol URIable
   File
