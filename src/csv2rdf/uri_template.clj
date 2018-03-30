@@ -1,10 +1,10 @@
 (ns csv2rdf.uri-template
   (:require [csv2rdf.util :as util])
   (:import [com.github.fge.uritemplate URITemplate]
-           [com.github.fge.uritemplate.vars VariableMap]))
+           [com.github.fge.uritemplate.vars VariableMap VariableMapBuilder]))
 
 (defn make-variable-map [m]
-  (let [builder (reduce (fn [b [k v]]
+  (let [^VariableMapBuilder builder (reduce (fn [^VariableMapBuilder b [k v]]
                           (let [var-name (if (keyword? k) (name k) k)]
                             (cond
                               (map? v) (.addMapValue b var-name v)
@@ -22,10 +22,10 @@
 (defn try-parse-template [template-string]
   (util/ignore-exceptions (parse-template template-string)))
 
-(defn expand-template [template vars]
+(defn expand-template [^URITemplate template vars]
   (.toURI template (make-variable-map vars)))
 
-(defn expand-template-to-string [template vars]
+(defn expand-template-to-string [^URITemplate template vars]
   (.toString template (make-variable-map vars)))
 
 (defn expand-template-string [template-string vars]

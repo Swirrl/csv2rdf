@@ -3,7 +3,7 @@
             [csv2rdf.vocabulary :refer :all]
             [grafter.rdf :refer [->Triple]]
             [csv2rdf.util :as util])
-  (:import (java.net URI)))
+  (:import [java.net URI]))
 
 (defn notes-non-core-annotation-statements [subject {:keys [notes]}]
   ;;TODO: implement!

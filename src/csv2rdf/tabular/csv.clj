@@ -14,7 +14,7 @@
 (defn ^{:table-spec "8.6"} get-skipped-rows-comments [skipped-rows]
   (remove nil? (map (fn [{:keys [type comment content] :as row}]
                       (cond (= :comment type) comment
-                            (not (.isEmpty content)) content
+                            (not (string/blank? content)) content
                             :else nil))
                     skipped-rows)))
 
