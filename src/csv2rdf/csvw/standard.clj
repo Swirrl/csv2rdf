@@ -68,9 +68,23 @@
               (json-ld->rdf subject k v))
             (concat notes common-properties))))
 
-(defn row-title-statements [row]
-  ;;TODO: implement!
-  [])
+(defn row-title-object [{:keys [list value stringValue] :as cell-value}]
+  ;;TODO: associate stringValue directly to cell-value to use in list case
+  (if list
+    (literal stringValue "und")
+    (let [{:keys [value stringValue datatype lang]} value   ;;TODO: copy lang from source column to cell value
+          lang (or lang "und")                              ;;TODO: remove when lang set directly on cell
+          type-name (:base datatype)]
+      (if (= "string" type-name)
+        (literal value lang)
+        (literal stringValue "und")))))
+
+(defn ^{:csvw-spec "4.6.6"
+        :metadata-spec "5.5"} row-title-statements
+  "Gets the statements for a rows titles annotation. The titles annotation should contain a list of cell values
+   for the columns referenced in the schema "
+  [row-subject {:keys [titles] :as row}]
+  (map (fn [cell-value] (->Triple row-subject csvw:title (row-title-object cell-value))) titles))
 
 (defn cell-statements [table-url row-subject {:keys [aboutUrl] :as cell}]
   (let [default-subject (gen-blank-node)
@@ -87,7 +101,7 @@
         t-4_6_5 (->Triple row-subject csvw:url (util/set-fragment table-url (str "row=" source-number)))]
     (concat [t-4_6_2 t-4_6_3 t-4_6_4 t-4_6_5]
             (notes-non-core-annotation-statements row-subject row)
-            (row-title-statements row)
+            (row-title-statements row-subject row)
             (mapcat (fn [cell] (cell-statements table-url row-subject cell)) (row-unsuppressed-cells row)))))
 
 (defmethod table-statements :standard [{:keys [table-group-subject] :as context} {:keys [id url] :as table} annotated-rows]
