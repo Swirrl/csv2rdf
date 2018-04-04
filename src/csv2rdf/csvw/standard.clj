@@ -72,14 +72,11 @@
   ;;TODO: implement!
   [])
 
-;;TODO: remove
-(def tabular-data-file-url (URI. "file:/data/test001.csv"))
-
-(defn cell-statements [row-subject {:keys [aboutUrl] :as cell}]
+(defn cell-statements [table-url row-subject {:keys [aboutUrl] :as cell}]
   (let [default-subject (gen-blank-node)
         cell-subject (or aboutUrl default-subject)
         t-4_6_8_2 (->Triple row-subject csvw:describes cell-subject)
-        predicate (cell-predicate tabular-data-file-url cell)]
+        predicate (cell-predicate table-url cell)]
     (cons t-4_6_8_2 (cell-value-statements cell-subject predicate cell))))
 
 (defn row-statements [table-subject {table-url :url :as table} {:keys [number source-number] :as row}]
@@ -91,7 +88,7 @@
     (concat [t-4_6_2 t-4_6_3 t-4_6_4 t-4_6_5]
             (notes-non-core-annotation-statements row-subject row)
             (row-title-statements row)
-            (mapcat (fn [cell] (cell-statements row-subject cell)) (row-unsuppressed-cells row)))))
+            (mapcat (fn [cell] (cell-statements table-url row-subject cell)) (row-unsuppressed-cells row)))))
 
 (defmethod table-statements :standard [{:keys [table-group-subject] :as context} {:keys [id url] :as table} annotated-rows]
   (let [table-subject (or id (gen-blank-node "table"))
