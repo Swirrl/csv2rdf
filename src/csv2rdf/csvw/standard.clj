@@ -1,18 +1,78 @@
 (ns csv2rdf.csvw.standard
   (:require [csv2rdf.csvw.common :refer :all]
             [csv2rdf.vocabulary :refer :all]
+            [csv2rdf.json-ld :as json-ld]
             [grafter.rdf :refer [->Triple]]
+            [grafter.rdf.protocols :refer [language literal]]
             [csv2rdf.util :as util])
   (:import [java.net URI]))
 
-(defn notes-non-core-annotation-statements [subject {:keys [notes]}]
-  ;;TODO: implement!
-  [])
+;;TODO: move csv2rdf.metadata.json namespace and use definitions in there
+(def array? vector?)
+(def object? map?)
+
+(defn ^{:csvw-spec "6.1"} try-expand-property [property]
+  (cond
+    (instance? URI property) property
+    (string? property) (let [expanded (json-ld/expand-uri-string property)
+                             expanded-uri (util/ignore-exceptions (URI. expanded))]
+                         (if (and (some? expanded-uri) (.isAbsolute expanded-uri))
+                           expanded-uri))
+    :else nil))
+
+(defn normalise-types
+  "Extracts and expands all types within a common property value. Returns a sequence of all contained
+   type URIs."
+  [t]
+  (cond (nil? t) []
+        (array? t) (mapcat normalise-types t)
+        :else (if-let [t (try-expand-property t)]
+                [t]
+                [])))
+
+(defn ^{:csvw-spec "6"} json-ld->rdf [subject property value]
+  (if-let [property (try-expand-property property)]
+    (cond
+      (nil? value) []
+      (array? value)
+      (mapcat (fn [v] (json-ld->rdf subject property v)) value)
+
+      (and (object? value) (contains? value "@value"))
+      (let [inner-value (get value "@value")]
+        (cond
+          (contains? value "@language")
+          [(->Triple subject property (language inner-value (keyword (get value "@language"))))]
+
+          (contains? value "@type")
+          (let [type (get value "@type")]
+            (map (fn [type-uri] (->Triple subject property (literal inner-value type-uri))) (normalise-types type)))
+
+          :else [(->Triple subject property (literal inner-value xsd:string))]))
+
+      (object? value)
+      (let [s-node (if (contains? value "@id") (get value "@id") (gen-blank-node))
+            type-uris (normalise-types (get value "@type"))
+            t_4_1 (->Triple subject property s-node)
+            ts_4_2 (map (fn [type-uri] (->Triple s-node rdf:type type-uri)) type-uris)
+            ts_4_3 (mapcat (fn [[^String k v]]
+                             (if-not (.startsWith k "@")
+                               (json-ld->rdf s-node k v)))
+                           value)]
+        (cons t_4_1 (concat ts_4_2 ts_4_3)))
+
+      :else [(->Triple subject property value)])))
+
+(defn notes-non-core-annotation-statements [subject {:keys [notes] :as element}]
+  (let [common-properties (:csv2rdf.metadata.types/common-properties element)]
+    (mapcat (fn [[k v]]
+              (json-ld->rdf subject k v))
+            (concat notes common-properties))))
 
 (defn row-title-statements [row]
   ;;TODO: implement!
   [])
 
+;;TODO: remove
 (def tabular-data-file-url (URI. "file:/data/test001.csv"))
 
 (defn cell-statements [row-subject {:keys [aboutUrl] :as cell}]
