@@ -77,7 +77,7 @@
                                                      :_sourceColumn (+ skipColumns column-number))
                         property-urls (into {} (remove nil? (map (fn [[k uri-template]]
                                                                    (if (some? uri-template)
-                                                                     [k (template-property/resolve-uri-template-property uri-template bindings column)]))
+                                                                     [k (template-property/resolve-uri-template-property uri-template bindings table)]))
                                                                  (select-keys column [:aboutUrl :propertyUrl :valueUrl]))))]
                     (-> cell
                         (merge property-urls)

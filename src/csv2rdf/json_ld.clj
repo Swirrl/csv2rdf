@@ -1,18 +1,75 @@
-(ns csv2rdf.json-ld
-  (:require [csv2rdf.util :as util]
-            [clojure.java.io :as io])
-  (:import [java.util Map HashMap]
-           [com.github.jsonldjava.core Context]))
+(ns csv2rdf.json-ld)
 
-;;TODO: try to resolve from URI first before falling-back on resource version?
-(defn- get-csvw-context []
-  (let [doc (util/read-json (io/resource "csvw.json"))]
-    (get doc "@context")))
+(def ^{:rdfa-spec ""} prefixes
+  {"as" "https://www.w3.org/ns/activitystreams#"
+   "csvw" "http://www.w3.org/ns/csvw#"
+   "dcat" "http://www.w3.org/ns/dcat#"
+   "dqv" "http://www.w3.org/ns/dqv#"
+   "duv" "https://www.w3.org/TR/vocab-duv#"
+   "grddl" "http://www.w3.org/2003/g/data-view#"
+   "ldp" "http://www.w3.org/ns/ldp#"
+   "ma" "http://www.w3.org/ns/ma-ont#"
+   "oa" "http://www.w3.org/ns/oa#"
+   "org" "http://www.w3.org/ns/org#"
+   "owl" "http://www.w3.org/2002/07/owl#"
+   "prov" "http://www.w3.org/ns/prov#"
+   "qb" "http://purl.org/linked-data/cube#"
+   "rdf" "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   "rdfa" "http://www.w3.org/ns/rdfa#"
+   "rdfs" "http://www.w3.org/2000/01/rdf-schema#"
+   "rif" "http://www.w3.org/2007/rif#"
+   "rr" "http://www.w3.org/ns/r2rml#"
+   "sd" "http://www.w3.org/ns/sparql-service-description#"
+   "skos" "http://www.w3.org/2004/02/skos/core#"
+   "skosxl" "http://www.w3.org/2008/05/skos-xl#"
+   "ssn" "http://www.w3.org/ns/ssn/"
+   "sosa" "http://www.w3.org/ns/sosa/"
+   "time" "http://www.w3.org/2006/time#"
+   "void" "http://rdfs.org/ns/void#"
+   "wdr" "http://www.w3.org/2007/05/powder#"
+   "wdrs" "http://www.w3.org/2007/05/powder-s#"
+   "xhv" "http://www.w3.org/1999/xhtml/vocab#"
+   "xml" "http://www.w3.org/XML/1998/namespace"
+   "xsd" "http://www.w3.org/2001/XMLSchema#"
+   "earl" "http://www.w3.org/ns/earl#"
+   "odrl" "http://www.w3.org/ns/odrl/2/"
+   "cc" "http://creativecommons.org/ns#"
+   "ctag" "http://commontag.org/ns#"
+   "dc" "http://purl.org/dc/terms/"
+   "dcterms" "http://purl.org/dc/terms/"
+   "dc11" "http://purl.org/dc/elements/1.1/"
+   "foaf" "http://xmlns.com/foaf/0.1/"
+   "gr" "http://purl.org/goodrelations/v1#"
+   "ical" "http://www.w3.org/2002/12/cal/icaltzd#"
+   "og" "http://ogp.me/ns#"
+   "rev" "http://purl.org/stuff/rev#"
+   "sioc" "http://rdfs.org/sioc/ns#"
+   "v" "http://rdf.data-vocabulary.org/#"
+   "vcard" "http://www.w3.org/2006/vcard/ns#"
+   "schema" "http://schema.org/"
+   "describedby" "http://www.w3.org/2007/05/powder-s#describedby"
+   "license" "http://www.w3.org/1999/xhtml/vocab#license"
+   "role" "http://www.w3.org/1999/xhtml/vocab#role"})
 
-(def csvw-context (delay (get-csvw-context)))
+(def ^{:jsonld-spec "1.7"} keywords
+  #{"@base" "@container" "@context" "@graph" "@id" "@index" "@language" "@list" "@nest" "@none" "@prefix"
+    "@reverse" "@set" "@type" "@value" "@version" "@vocab"})
 
-;;TODO: see if this can be done through the public API
-(def resolve-iri-method (util/get-declared-method Context "expandIri" [String Boolean/TYPE Boolean/TYPE Map Map]))
+(defn is-keyword? [^String s]
+  (contains? keywords s))
 
-(defn ^String expand-uri-string [^String uri-str]
-  (util/invoke-method resolve-iri-method (Context.) [uri-str false false @csvw-context (HashMap.)]))
+(defn split-colon [^String s]
+  (let [idx (.indexOf s ":")]
+    (if (= -1 idx)
+      [s ""]
+      [(.substring s 0 idx) (.substring s (inc idx))])))
+
+(defn ^String ^{:jsonld-api-spec "6.3"} expand-uri-string [^String uri-str]
+  (if (is-keyword? uri-str)
+    uri-str
+    (let [[prefix suffix] (split-colon uri-str)]
+      (if (or (= "_" prefix) (.startsWith suffix "//"))
+        uri-str
+        (if-let [prefix-uri (get prefixes prefix)]
+          (str prefix-uri suffix)
+          uri-str)))))

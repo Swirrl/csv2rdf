@@ -3,7 +3,7 @@
             [csv2rdf.uri-template :as template]
             [csv2rdf.json-ld :as json-ld]
             [csv2rdf.util :as util])
-  (:import (java.net URI)))
+  (:import [java.net URI]))
 
 (s/def ::_column pos?)
 (s/def ::_sourceColumn pos?)
