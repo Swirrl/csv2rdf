@@ -10,9 +10,9 @@
             [csv2rdf.tabular.csv :as csv]
             [grafter.rdf4j.io :as gio]))
 
-(defn csv->rdf->destination [tabular-source metadata-source destination {:keys [minimal?] :as options}]
-  (let [{:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source)
-        mode (if minimal? :minimal :standard)
+(defn csv->rdf->destination [tabular-source metadata-source destination {:keys [mode] :as options}]
+  (let [mode (or mode :standard)
+        {:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source)
         table-group-dialect (:dialect metadata)
         output-tables (filter (fn [t] (= false (:suppressOutput t))) tables)
         {:keys [statements] :as ctx} (table-group-context mode metadata)]

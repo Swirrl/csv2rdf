@@ -133,6 +133,9 @@
 (defn minimal-mode? [test-row]
   (= "true" (get-in test-row [:extra :minimal])))
 
+(defn get-mode [test-row]
+  (if (minimal-mode? test-row) :minimal :standard))
+
 (defn from-metadata-test-descriptor
   "Tests that start from a metadata file use it to locate the CSV file (which always exists?). Any additional files
    required by the test should appear in the list of implicit files"
@@ -190,7 +193,7 @@
         (merge
           m
           {:id id
-           :minimal? (minimal-mode? test-row)
+           :mode (get-mode test-row)
            :expect-errors? (= :negative test-type)
            :expect-warnings? (= :warning test-type)
            :result-file (some-> result-rdf (test-path->file))})))))
@@ -238,7 +241,7 @@
       (assoc response :status 200)
       {:status 404 :headers {} :body ""})))
 
-(defn make-test [{:keys [action-uri metadata-file requests id expect-errors? expect-warnings? minimal? result-file] :as test}]
+(defn make-test [{:keys [action-uri metadata-file requests id expect-errors? expect-warnings? mode result-file] :as test}]
   (let [result-sym (gensym)
         request-map (build-request-map requests)]
     `(test/deftest ~(symbol id)
@@ -246,7 +249,7 @@
              csv-uri# ~(escape-read action-uri)
              metadata-source# ~(escape-read metadata-file)
              ~result-sym (http/with-http-client http-client#
-                           (csvw/csv->rdf csv-uri# metadata-source# {:minimal ~minimal?}))]
+                           (csvw/csv->rdf csv-uri# metadata-source# {:mode ~mode}))]
          ~(if (some? result-file)
             `(let [expected-statements# (rdf/statements ~(escape-read result-file))]
                (test/is (= true (is-isomorphic? expected-statements# (:result ~result-sym))))))
