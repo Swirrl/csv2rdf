@@ -1,6 +1,6 @@
 (ns csv2rdf.xml.datatype
-  (:require [clojure.spec.alpha :as s])
-  (:import [grafter.rdf.protocols LangString]))
+  (:require [clojure.spec.alpha :as s]
+            [csv2rdf.util :as util]))
 
 (def type-hierarchy
   ["anyAtomicType"
@@ -128,20 +128,10 @@
 
 (s/fdef expand :ret ::datatype)
 
-(defprotocol StringLike
-  (->string [this]))
-
-(extend-protocol StringLike
-  String
-  (->string [s] s)
-
-  LangString
-  (->string [ls] (:string ls)))
-
 (defn ^{:table-spec "4.6.1"} get-length [value {:keys [base] :as datatype}]
   (cond
     (nil? value) 0
-    (is-subtype? "string" base) (let [^String str-val (->string value)]
+    (is-subtype? "string" base) (let [^String str-val (util/->string value)]
                                   (.count (.codePoints str-val)))
 
     ;;binary data expected to be byte array

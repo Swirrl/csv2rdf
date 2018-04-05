@@ -20,7 +20,8 @@
 
 (def inherited-defaults
   {:default ""
-   :lang "und"
+   ;;NOTE: spec specified default as 'und' but does not use it for string in the test data
+   :lang nil
    :null [""]
    :ordered false
    :required false

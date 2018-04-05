@@ -1,9 +1,11 @@
 (ns csv2rdf.util
   (:require [clojure.java.io :as io]
-            [clojure.data.json :as json])
+            [clojure.data.json :as json]
+            [grafter.rdf.protocols])
   (:import [java.net URI]
            [java.lang.reflect InvocationTargetException Method]
-           [java.nio.charset Charset]))
+           [java.nio.charset Charset]
+           [grafter.rdf.protocols LangString]))
 
 (defmacro ignore-exceptions [& body]
   `(try
@@ -128,3 +130,17 @@
                                        (throw (IllegalArgumentException. (str "Bad hex number: " hex)))))]
               (recur endIdx (.appendCodePoint sb decoded))))
           (recur (inc idx) (.append sb c)))))))
+
+;;TODO: move into own namespace?
+(defprotocol StringLike
+  (->string [this]))
+
+(extend-protocol StringLike
+  String
+  (->string [s] s)
+
+  LangString
+  (->string [ls] (:string ls)))
+
+(defn string-like? [x]
+  (satisfies? StringLike x))
