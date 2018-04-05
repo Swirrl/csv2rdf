@@ -69,15 +69,7 @@
             (concat notes common-properties))))
 
 (defn row-title-object [{:keys [list value stringValue] :as cell-value}]
-  ;;TODO: associate stringValue directly to cell-value to use in list case
-  (if list
-    (literal stringValue "und")
-    (let [{:keys [value stringValue datatype lang]} value   ;;TODO: copy lang from source column to cell value
-          lang (or lang "und")                              ;;TODO: remove when lang set directly on cell
-          type-name (:base datatype)]
-      (if (= "string" type-name)
-        (literal value lang)
-        (literal stringValue "und")))))
+  (if list stringValue value))
 
 (defn ^{:csvw-spec "4.6.6"
         :metadata-spec "5.5"} row-title-statements

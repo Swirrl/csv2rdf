@@ -54,7 +54,14 @@
 ;;TODO: move this
 (def index->row-number inc)
 
-(defn annotate-row [row-index {:keys [source-row-number cells] :as data-row} table {:keys [skipColumns] :as csv-options}]
+(defn title-row-column-indexes [{{:keys [rowTitles columns] :as schema} :tableSchema :as table}]
+  (let [title-columns (into #{} rowTitles)]
+    (into #{} (remove nil? (map-indexed (fn [idx {:keys [name] :as col}]
+                                          (if (contains? title-columns name)
+                                            idx))
+                                        columns)))))
+
+(defn annotate-row [row-index {:keys [source-row-number cells] :as data-row} table title-column-indexes {:keys [skipColumns] :as csv-options}]
   (let [columns (table/columns table)
         row-number (index->row-number row-index)
         cell-values (drop skipColumns cells)
@@ -63,6 +70,10 @@
         ;;TODO: handle virtual and non-virtual columns separately?
         padded-cell-values (concat cell-values (repeat ""))
         parsed-cells (map cell/parse-cell padded-cell-values columns)
+        row-titles (remove nil? (map-indexed (fn [col-index cell]
+                                              (if (contains? title-column-indexes col-index)
+                                                cell))
+                                            parsed-cells))
         column-value-bindings (into {} (map (fn [cell column]
                                               ;;TODO: need 'canonical value' according to XML schema
                                               ;;see metadata spec 5.1.3
@@ -85,14 +96,15 @@
                 (map vector parsed-cells columns))]
     {:number        row-number
      :source-number source-row-number
-     :cells         (vec cells)}))
+     :cells         (vec cells)
+     :titles row-titles}))
 
 (defn ^{:table-spec "8"} annotated-rows [reader table {:keys [skipRows num-header-rows skipBlankRows] :as csv-options}]
-  (let [should-skip-row? (fn [{:keys [cells] :as row}] (and skipBlankRows (every? string/blank? cells)))
+  (let [title-column-indexes (title-row-column-indexes table)
+        should-skip-row? (fn [{:keys [cells] :as row}] (and skipBlankRows (every? string/blank? cells)))
         rows (reader/read-rows reader csv-options)
         row-offset (+ skipRows num-header-rows)
         data-rows (remove should-skip-row? (drop row-offset rows))]
     (map-indexed (fn [row-index row]
-                   (annotate-row row-index row table csv-options))
+                   (annotate-row row-index row table title-column-indexes csv-options))
          data-rows)))
-
