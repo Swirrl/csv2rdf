@@ -1,10 +1,14 @@
 (ns csv2rdf.tabular.cell
   (:require [clojure.string :as string]
+            [clojure.spec.alpha :as s]
             [csv2rdf.metadata.column :as mcolumn]
-            [csv2rdf.xml.datatype :as xml-datatype])
+            [csv2rdf.metadata.datatype :as datatype]
+            [csv2rdf.xml.datatype :as xml-datatype]
+            [grafter.rdf.protocols :refer [language]])
   (:import [java.util.regex Pattern]
            [java.math BigDecimal BigInteger]
-           [java.text DecimalFormat]))
+           [java.text DecimalFormat]
+           [grafter.rdf.protocols IRDFString]))
 
 (def column-required-message "Column value required")
 
@@ -77,19 +81,17 @@
 (defn add-error [cell error-message]
   (update cell :errors conj error-message))
 
-(defn fail-parse [{:keys [value] :as cell} error-message]
-  (-> cell
-      (assoc :value {:value value :stringValue value :datatype {:base "string"}})
-      (add-error error-message)))
+(defn fail-parse [string-value error-message]
+  {:value string-value :datatype {:base "string"} :errors [error-message]})
 
 (defn ^{:table-spec "6.4.2"
-        :xml-schema-spec "3"} parse-number-unformatted [{:keys [value] :as cell} {:keys [base] :as datatype}]
+        :xml-schema-spec "3"} parse-number-unformatted [string-value {:keys [base] :as datatype}]
   (let [parser (get numeric-parsers (xml-datatype/resolve-type-name base))]
     (try
-      (let [result (parser value)]
-        (assoc cell :value {:value result :stringValue value :datatype datatype}))
+      (let [result (parser string-value)]
+        {:value result :datatype datatype :errors []})
       (catch Exception ex
-        (fail-parse cell (.getMessage ex))))))
+        (fail-parse string-value (.getMessage ex))))))
 
 (def special-floating-values
   {"float" {"NaN" Float/NaN "INF" Float/POSITIVE_INFINITY "-INF" Float/NEGATIVE_INFINITY}
@@ -102,35 +104,35 @@
     result
     (throw (IllegalArgumentException. (format "Unknown numeric constant %s for type %s" value base)))))
 
-(defn parse-number-from-constructed-format [{:keys [^String value] :as cell} {{:keys [decimalChar groupChar]} :format base :base :as datatype}]
-  (let [is-special? (contains? special-floating-names value)
-        has-exponent? (or (.contains value "e") (.contains value "E"))
+(defn parse-number-from-constructed-format [^String string-value {{:keys [decimalChar groupChar]} :format base :base :as datatype}]
+  (let [is-special? (contains? special-floating-names string-value)
+        has-exponent? (or (.contains string-value "e") (.contains string-value "E"))
         is-decimal-type? (xml-datatype/is-subtype? "decimal" base)
         strip-group (fn ^String [^String s] (if (some? groupChar) (.replace s (str groupChar) "") s))]
     (cond
       (and (some? decimalChar) (xml-datatype/is-integral-type? base))
-      (fail-parse cell (format "Cannot specify decimalChar for integral datatype %s" base))
+      (fail-parse string-value (format "Cannot specify decimalChar for integral datatype %s" base))
 
       (and is-special? is-decimal-type?)
-      (fail-parse cell (format "Cannot specify floating point value %s for decimal type %s" value base))
+      (fail-parse string-value (format "Cannot specify floating point value %s for decimal type %s" string-value base))
 
       (and has-exponent? is-decimal-type?)
-      (fail-parse cell (format "Cannot specify exponent for type %s" base))
+      (fail-parse string-value (format "Cannot specify exponent for type %s" base))
 
       is-special?
-      (assoc cell :value {:value (get-special-floating-value value base) :stringValue value :datatype datatype})
+      {:value (get-special-floating-value string-value base) :datatype datatype :errors []}
 
       (xml-datatype/is-integral-type? base)
       (let [parser (get numeric-parsers base)]
         (try
-          (assoc cell :value {:value (parser (strip-group value)) :stringValue value :datatype datatype})
+          {:value (parser (strip-group string-value)) :datatype datatype :errors []}
           (catch Exception _ex
-            (fail-parse cell (format "Failed to parse '%s' as type %s" value base)))))
+            (fail-parse string-value (format "Failed to parse '%s' as type %s" string-value base)))))
 
       :else
       ;;remove group character, normalise decimal character to . and remove any trailing percent or mph modifier
       ;;then parse with the type parser and modify the result according to the trailing modifier
-      (let [^String s (strip-group value)
+      (let [^String s (strip-group string-value)
             s (.replace s (str (or decimalChar \.)) ".")
             [s modifier] (cond (.endsWith s "%") [(.substring s 0 (dec (.length s))) :percent]
                                (.endsWith s "\u2030") [(.substring s 0 (dec (.length s))) :mph]
@@ -142,53 +144,51 @@
                          :percent (/ result 100)
                          :mph (/ result 1000)
                          result)]
-            (assoc cell :value {:value result :stringValue value :datatype datatype}))
+            {:value result :datatype datatype :errors []})
           (catch Exception _ex
-            (fail-parse cell (format "Failed to parse '%s' as type %s" value base))))))))
+            (fail-parse string-value (format "Failed to parse '%s' as type %s" string-value base))))))))
 
-(defn parse-number-format [{:keys [value] :as cell} {{:keys [^DecimalFormat pattern]} :format :as datatype}]
+(defn parse-number-format [string-value {{:keys [^DecimalFormat pattern]} :format :as datatype}]
   (if (some? pattern)
-    (if-let [result (.parse pattern value)]
-      (assoc cell :value {:value result :stringValue value :datatype datatype})
-      (fail-parse cell (format "Cannot parse value '%s' with the pattern '%s'" value (.toPattern pattern))))
-    (parse-number-from-constructed-format cell datatype)))
+    (if-let [result (.parse pattern string-value)]
+      {:value result :datatype datatype :errors []}
+      (fail-parse string-value (format "Cannot parse value '%s' with the pattern '%s'" string-value (.toPattern pattern))))
+    (parse-number-from-constructed-format string-value datatype)))
 
-(defn parse-numeric [cell {:keys [format] :as datatype}]
+(defn parse-numeric [string-value {:keys [format] :as datatype}]
   (if (some? format)
-    (parse-number-format cell datatype)
-    (parse-number-unformatted cell datatype)))
+    (parse-number-format string-value datatype)
+    (parse-number-unformatted string-value datatype)))
 
-(defn ^{:table-spec "6.4.8"} parse-format [{:keys [value errors] :as cell} {:keys [lang datatype] :as column}]
-  ;;TODO: implement according to the spec. So far we only expect string column types so set the lang
-  ;;on the cell value
+(defn ^{:table-spec "6.4.8"} parse-format [string-value {:keys [lang datatype] :as column}]
   ;;TODO: create protcol for parsing?
   (let [base (:base datatype)]
     (cond
       ;;TODO: handle string subtypes e.g. xml, token, language etc.
       (= "string" base)
-      {:value {:value value :stringValue value :datatype datatype :lang lang}
-       :errors errors}
+      (let [value (if (nil? lang) string-value (language string-value (keyword lang)))]
+        {:value value :datatype datatype :errors []})
 
       (xml-datatype/is-numeric-type? base)
-      (parse-numeric cell datatype)
+      (parse-numeric string-value datatype)
 
       :else
-      (throw (IllegalArgumentException. "Only string base types supported")))))
+      (throw (IllegalArgumentException. "Only string and numeric base types supported")))))
 
-(defn get-length-error [{:keys [stringValue]} rel-sym length constraint]
+(defn get-length-error [{:keys [stringValue] :as cell} rel-sym length constraint]
   (if (some? constraint)
     (let [f (resolve rel-sym)]
       (if-not (f length constraint)
-        (format "Invalid length %s for value %s - expected %s %s" length stringValue rel-sym constraint)))))
+        (format "Invalid length %s for value '%s' - expected %s %s" length stringValue rel-sym constraint)))))
 
 (def length-relations {:length '= :minLength '>= :maxLength '<=})
 
 (defn ^{:table-spec "6.4.9"} validate-length
   "Validates the length of the cell value is valid for the constraints on the column metadata"
-  [{:keys [value] :as cell} column]
-  (if-let [len (xml-datatype/get-length (:value value) (:datatype value))]
+  [{:keys [value datatype] :as cell} column]
+  (if-let [len (xml-datatype/get-length value datatype)]
     (let [len-errors (->> length-relations
-                          (map (fn [[k sym]] (get-length-error value sym len (get column k))))
+                          (map (fn [[k sym]] (get-length-error cell sym len (get column k))))
                           (remove nil?))]
       (update cell :errors concat len-errors))
     cell))
@@ -199,42 +199,62 @@
   ;;TODO implement
   cell)
 
+(s/def ::stringValue string?)
+(s/def ::list boolean?)
+
+;;TODO: move cell datatypes to own namespace?
+(s/def ::datetime (constantly true))                        ;;TODO: fix
+(defn duration? [x] true)
+(defn lang-string? [x] (satisfies? IRDFString x))           ;;TODO: test for record? Extend protocol to other string types?
+(s/def ::value (s/or :string string? :langstring lang-string? :number number? :datetime ::datetime :duration duration? :boolean boolean? :list (s/coll-of ::element :kind vector?)))
+(s/def ::element (s/keys :req-un [::value ::stringValue ::datatype/datatype]))
+(s/def ::errors (s/coll-of string? :kind vector?))          ;;TODO: fix error type and move spec
+(s/def ::parsed-cell (s/keys :req-un [::value ::stringValue ::list ::errors]
+                             :opt-un [::datatype/datatype]))
+
 (defn ^{:table-spec "6.4.[6,7,8,9]"} parse-atomic-value
   "Parses an 'atomic' value within a cell i.e. one which should be parsed directly according to the
   column datatype."
-  [value column]
-  (-> value
-      (column-default-if-empty column)
-      (apply-column-null column)
-      (parse-format column)
-      (validate-length column)
-      (validate-value column)))
+  [string-value {:keys [required] :as column}]
+  (let [value (column-default-if-empty string-value column)]
+    (if (is-column-null? value column)
+      {:value nil :stringValue string-value :errors (if required [column-required-message] [])}
+      (let [result (parse-format string-value column)
+            cell (assoc result :stringValue string-value)]
+        (-> cell
+            (validate-length column)
+            (validate-value column))))))
+
+(s/fdef parse-atomic-value
+  :args (s/cat :value string? :column (constantly true))
+  :ret ::element)
+
+(defn append-cell-value [partial-cell {:keys [errors] :as cv}]
+  (-> partial-cell
+      (update :value conj (dissoc cv :errors))
+      (update :errors concat errors)))
 
 (defn combine-cell-values [cell-values]
-  (reduce (fn [acc {:keys [value errors] :as cv}]
-            (-> acc
-                (update :value conj value)
-                (update :errors concat errors)))
-          {:value [] :errors []}
-          cell-values))
+  (reduce append-cell-value {:value [] :errors []} cell-values))
 
 (defn separator->pattern [separator]
   (re-pattern (Pattern/quote separator)))
 
 (defn parse-cell-value [^String value {:keys [separator required datatype] :as column}]
   (if (nil? separator)
-    (parse-atomic-value value column)
+    (let [result (parse-atomic-value value column)]
+      (assoc result :list false))
     (if (.isEmpty value)
       (if required
-        {:value [] :errors [column-required-message]}
-        {:value [] :errors []})
+        {:value [] :list true :stringValue value :errors [column-required-message]}
+        {:value [] :list true :stringValue value :errors []})
       (if (is-column-null? value column)
-        {:value nil :errors [] :list true}
+        {:value nil :list true :stringValue value :errors []}
         (let [trim-fn (if (contains? #{"string" "anyAtomicType"} (:base datatype)) identity string/trim)
               components (map trim-fn (string/split value (separator->pattern separator)))
               component-cells (map #(parse-atomic-value % column) components)
               cell (combine-cell-values component-cells)]
-          (assoc cell :list true))))))
+          (assoc cell :list true :stringValue value))))))
 
 (defn ^{:table-spec "6.4"} copy-column-annotations
   "Copy required annotations onto a cell from its column"
@@ -252,11 +272,11 @@
     (copy-column-annotations cell column)))
 
 (def value :value)
-(defn semantic-value [cell]
-  (let [val (value cell)]
-    (if (sequential? val)
-      (mapv :value val)
-      (:value val))))
+
+(defn semantic-value [{:keys [list value] :as cell}]
+  (cond (nil? value) nil
+        list (mapv :value value)
+        :else value))
 
 (def errors :errors)
 (def lang :lang)

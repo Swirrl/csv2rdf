@@ -34,16 +34,14 @@
 ;;TODO: ensure all cell values have RDF representations in grafter
 ;;TODO: use datatype annotation on cell
 (defn cell-value-statements [subject predicate {:keys [valueUrl ordered] :as cell}]
-  (let [cell-value (cell/value cell)
-        is-list? (= true (:list cell))
+  (let [is-list? (= true (:list cell))
         semantic-value (cell/semantic-value cell)]
     (cond
       (some? valueUrl)
       [(->Triple subject predicate valueUrl)]
 
       (and is-list? ordered)
-      (let [values (map :value cell-value)
-            [list-subject list-triples] (rdf-list values)]
+      (let [[list-subject list-triples] (rdf-list semantic-value)]
         (cons (->Triple subject predicate list-subject) list-triples))
 
       is-list?
