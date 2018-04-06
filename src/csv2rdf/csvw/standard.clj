@@ -78,23 +78,23 @@
   [row-subject {:keys [titles] :as row}]
   (map (fn [cell-value] (->Triple row-subject csvw:title (row-title-object cell-value))) titles))
 
-(defn cell-statements [table-url row-subject {:keys [aboutUrl] :as cell}]
-  (let [default-subject (gen-blank-node)
-        cell-subject (or aboutUrl default-subject)
+(defn cell-statements [table-url row-subject default-cell-subject {:keys [aboutUrl] :as cell}]
+  (let [cell-subject (or aboutUrl default-cell-subject)
         t-4_6_8_2 (->Triple row-subject csvw:describes cell-subject)
         predicate (cell-predicate table-url cell)]
     (cons t-4_6_8_2 (cell-value-statements cell-subject predicate cell))))
 
 (defn row-statements [table-subject {table-url :url :as table} {:keys [number source-number] :as row}]
   (let [row-subject (gen-blank-node "row")
+        default-cell-subject (gen-blank-node)
         t-4_6_2 (->Triple table-subject csvw:row row-subject)
         t-4_6_3 (->Triple row-subject rdf:type csvw:Row)
-        t-4_6_4 (->Triple row-subject csvw:rownum (int number))
+        t-4_6_4 (->Triple row-subject csvw:rownum (literal (str number) xsd:integer))
         t-4_6_5 (->Triple row-subject csvw:url (util/set-fragment table-url (str "row=" source-number)))]
     (concat [t-4_6_2 t-4_6_3 t-4_6_4 t-4_6_5]
             (notes-non-core-annotation-statements row-subject row)
             (row-title-statements row-subject row)
-            (mapcat (fn [cell] (cell-statements table-url row-subject cell)) (row-unsuppressed-cells row)))))
+            (mapcat (fn [cell] (cell-statements table-url row-subject default-cell-subject cell)) (row-unsuppressed-cells row)))))
 
 (defmethod table-statements :standard [{:keys [table-group-subject] :as context} {:keys [id url] :as table} annotated-rows]
   (let [table-subject (or id (gen-blank-node "table"))

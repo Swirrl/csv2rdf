@@ -32,12 +32,13 @@
 (defn csv->rdf
   ([csv-source metadata-source] (csv->rdf csv-source metadata-source {}))
   ([tabular-source metadata-source options]
-   (let [destination (repo/sail-repo)]
-     (try
-       (csv->rdf->destination tabular-source metadata-source destination options)
-       {:errors [] :warnings [] :result (into [] (rdf/statements destination))}
-       (catch Exception ex
-         {:errors [(.getMessage ex)] :warnings [] :result nil})))))
+   (let [repo (repo/sail-repo)]
+     (with-open [destination (repo/->connection repo)]
+       (try
+         (csv->rdf->destination tabular-source metadata-source destination options)
+         {:errors [] :warnings [] :result (into [] (rdf/statements destination))}
+         (catch Exception ex
+           {:errors [(.getMessage ex)] :warnings [] :result nil}))))))
 
 (defn csv->rdf->file [tabular-source metadata-source dest-file options]
   (with-open [os (io/output-stream dest-file)]

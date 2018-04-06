@@ -7,7 +7,8 @@
             [grafter.rdf :as rdf]
             [grafter.rdf4j.io :as rdf4j-io]
             [grafter.rdf4j.formats :as formats]
-            [csv2rdf.http :as http])
+            [csv2rdf.http :as http]
+            [csv2rdf.util :as util])
   (:import [java.net URI URL]
            [org.eclipse.rdf4j.model.util Models]))
 
@@ -251,7 +252,7 @@
              ~result-sym (http/with-http-client http-client#
                            (csvw/csv->rdf csv-uri# metadata-source# {:mode ~mode}))]
          ~(if (some? result-file)
-            `(let [expected-statements# (rdf/statements ~(escape-read result-file))]
+            `(let [expected-statements# (rdf/statements ~(escape-read result-file) :base-uri ~(escape-read action-uri))]
                (test/is (= true (is-isomorphic? expected-statements# (:result ~result-sym))))))
          ~(if expect-warnings?
             `(test/is (pos? (count (:warnings ~result-sym))) "Expected warnings but none was found")

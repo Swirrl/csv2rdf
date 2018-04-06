@@ -18,4 +18,5 @@
 (def csvw:title (URI. "http://www.w3.org/ns/csvw#title"))
 
 (def xsd:string (URI. "http://www.w3.org/2001/XMLSchema#string"))
+(def xsd:integer (URI. "http://www.w3.org/2001/XMLSchema#integer"))
 
