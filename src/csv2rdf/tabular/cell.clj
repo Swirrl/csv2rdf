@@ -4,16 +4,16 @@
             [csv2rdf.metadata.column :as mcolumn]
             [csv2rdf.metadata.datatype :as datatype]
             [csv2rdf.xml.datatype :as xml-datatype]
-            [grafter.rdf.protocols :refer [language]]
+            [grafter.rdf.io :refer [language]]
             [grafter.rdf :as rdf]
             [csv2rdf.vocabulary :refer [xsd:date]])
   (:import [java.util.regex Pattern]
            [java.math BigDecimal BigInteger]
            [java.text DecimalFormat]
            [grafter.rdf.protocols IRDFString]
-           (java.time.format DateTimeFormatter DateTimeParseException)
-           (java.time LocalDate ZoneId)
-           (java.util Date)))
+           [java.time.format DateTimeFormatter DateTimeParseException]
+           [java.time LocalDate ZoneId]
+           [java.util Date]))
 
 (def column-required-message "Column value required")
 

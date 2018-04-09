@@ -3,7 +3,7 @@
             [csv2rdf.vocabulary :refer :all]
             [csv2rdf.json-ld :as json-ld]
             [grafter.rdf :refer [->Triple]]
-            [grafter.rdf.protocols :refer [language literal]]
+            [grafter.rdf.io :refer [language literal]]
             [csv2rdf.util :as util])
   (:import [java.net URI]))
 

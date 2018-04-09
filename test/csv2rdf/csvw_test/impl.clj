@@ -1,12 +1,12 @@
 (ns csv2rdf.csvw-test.impl
-  (:require [grafter.rdf4j.io :as rdf4j-io]
+  (:require [grafter.rdf.io :as gio]
             [csv2rdf.http :as http])
-  (:import [org.eclipse.rdf4j.model.util Models]))
+  (:import [org.openrdf.model.util Models]))
 
 (defn is-isomorphic? [expected-statements actual-statements]
   (Models/isomorphic
-    (map rdf4j-io/->backend-type expected-statements)
-    (map rdf4j-io/->backend-type actual-statements)))
+    (map gio/IStatement->sesame-statement expected-statements)
+    (map gio/IStatement->sesame-statement actual-statements)))
 
 (defrecord TestHttpClient [request-map]
   http/HttpClient

@@ -6,7 +6,7 @@
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/data.csv "0.1.4"]
                  [org.clojure/data.json "0.2.6"]
-                 [grafter "0.11.0-drafter-rdf4j"]
+                 [grafter "0.11.2"]
                  [com.github.fge/uri-template "0.9"]
                  [org.apache.httpcomponents/httpcore "4.4.9"]
                  [com.opencsv/opencsv "4.0"]

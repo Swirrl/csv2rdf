@@ -1,6 +1,6 @@
 (ns csv2rdf.csvw
   (:require [csv2rdf.tabular.processing :as processing]
-            [grafter.rdf4j.repository :as repo]
+            [grafter.rdf.repository :as repo]
             [grafter.rdf :as rdf]
             [csv2rdf.csvw.common :refer [table-group-context table-statements]]
             [csv2rdf.csvw.minimal]
@@ -8,7 +8,7 @@
             [csv2rdf.metadata.dialect :as dialect]
             [clojure.java.io :as io]
             [csv2rdf.tabular.csv :as csv]
-            [grafter.rdf4j.io :as gio]))
+            [grafter.rdf.io :as gio]))
 
 (defn csv->rdf->destination [tabular-source metadata-source destination {:keys [mode] :as options}]
   (let [mode (or mode :standard)
@@ -42,5 +42,5 @@
 
 (defn csv->rdf->file [tabular-source metadata-source dest-file options]
   (with-open [os (io/output-stream dest-file)]
-    (let [writer (gio/rdf-writer os :format :ttl)]
+    (let [writer (gio/rdf-serializer os :format :ttl)]
       (csv->rdf->destination tabular-source metadata-source writer options))))
