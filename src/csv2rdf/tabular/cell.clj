@@ -4,11 +4,16 @@
             [csv2rdf.metadata.column :as mcolumn]
             [csv2rdf.metadata.datatype :as datatype]
             [csv2rdf.xml.datatype :as xml-datatype]
-            [grafter.rdf.protocols :refer [language]])
+            [grafter.rdf.protocols :refer [language]]
+            [grafter.rdf :as rdf]
+            [csv2rdf.vocabulary :refer [xsd:date]])
   (:import [java.util.regex Pattern]
            [java.math BigDecimal BigInteger]
            [java.text DecimalFormat]
-           [grafter.rdf.protocols IRDFString]))
+           [grafter.rdf.protocols IRDFString]
+           (java.time.format DateTimeFormatter DateTimeParseException)
+           (java.time LocalDate ZoneId)
+           (java.util Date)))
 
 (def column-required-message "Column value required")
 
@@ -160,6 +165,24 @@
     (parse-number-format string-value datatype)
     (parse-number-unformatted string-value datatype)))
 
+(defn local-date->date [ld]
+  (let [zoned-date (.atStartOfDay ld (ZoneId/systemDefault))]
+    (Date/from (.toInstant zoned-date))))
+
+;;TODO: implement Grafter procotol so java Date/DateTime/Duration types can be used as values directly?
+(defn local-date->rdf [^LocalDate ld]
+  (let [output-format DateTimeFormatter/ISO_DATE]
+    (rdf/literal (.format ld output-format) xsd:date)))
+
+(defn parse-date [string-value datatype]
+  (let [dtf (or (:format datatype) DateTimeFormatter/ISO_DATE)]
+    (try
+      (let [local-date (LocalDate/parse string-value dtf)
+            result (local-date->rdf local-date)]
+        {:value result :datatype datatype :errors []})
+      (catch DateTimeParseException ex
+        (fail-parse string-value (format "Cannot parse value '%s' with the expected date pattern" string-value))))))
+
 (defn ^{:table-spec "6.4.8"} parse-format [string-value {:keys [lang datatype] :as column}]
   ;;TODO: create protcol for parsing?
   (let [base (:base datatype)]
@@ -172,8 +195,11 @@
       (xml-datatype/is-numeric-type? base)
       (parse-numeric string-value datatype)
 
+      (xml-datatype/is-date-time-type? base)
+      (parse-date string-value datatype)
+
       :else
-      (throw (IllegalArgumentException. "Only string and numeric base types supported")))))
+      (throw (IllegalArgumentException. "Only string, date and numeric base types supported")))))
 
 (defn get-length-error [{:keys [stringValue] :as cell} rel-sym length constraint]
   (if (some? constraint)

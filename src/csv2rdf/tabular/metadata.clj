@@ -7,7 +7,10 @@
             [csv2rdf.tabular.csv :as csv]
             [csv2rdf.source :as source]
             [csv2rdf.metadata :as meta]
-            [csv2rdf.validation :as v])
+            [csv2rdf.validation :as v]
+            [clojure.java.io :as io]
+            [csv2rdf.metadata.table-group :as table-group]
+            [csv2rdf.metadata.table :as table])
   (:import [java.net URI]))
 
 ;;TODO: move into http namespace?
@@ -35,28 +38,47 @@
     ;;TODO: URIs must be normalised (section 6.3)
     (.resolve csv-uri (::http/link-uri link-header))))
 
+(defn read-json-response [{:keys [body] :as response}]
+  ;;TODO: create protocol for reading from HTTP responses?
+  (cond
+    (string? body)
+    (json/read-str body)
+
+    (satisfies? io/IOFactory body)
+    (util/read-json body)))
+
 (defn try-get-linked-metadata
   "Tries to fetch the linked metadata from the given URI. Returns nil on any errors or if the request fails."
   [metadata-uri]
-  (let [{:keys [body] :as response} (http/get-uri metadata-uri)]
+  (let [response (http/get-uri metadata-uri)]
     (if (http/is-ok-response? response)
-      ;;TODO: handle non-string body types?
-      (json/read-str body))))
+      (read-json-response response))))
 
-(defn ^{:table-spec "5.2"} linked-metadata-references-data-file? [csv-uri {:strs [tables] :as metadata}]
+
+(defn ^{:table-spec "5.2"} linked-metadata-references-data-file? [csv-uri metadata-uri metadata-doc]
   ;;from the spec: If the metadata file found at this location does not explicitly include a reference
   ;; to the requested tabular data file then it MUST be ignored
-  (let [table-urls (->> tables
+  ;;TODO: possible shared logic with csv2rdf.metadata/parse-metadata-json
+  (let [tables (cond
+                 (table-group/looks-like-table-group-json? metadata-doc)
+                 (get metadata-doc "tables")
+
+                 (table/looks-like-table-json? metadata-doc)
+                 [metadata-doc]
+
+                 :else [])
+        table-uris (->> tables
                         (map (fn [{:strs [url]}]
-                               (util/ignore-exceptions (URI. url))))
+                               (if-let [tabular-uri (util/ignore-exceptions (URI. url))]
+                                 (.resolve metadata-uri tabular-uri))))
                         (remove nil?)
                         (into #{}))]
-    (contains? table-urls csv-uri)))
+    (contains? table-uris csv-uri)))
 
-(defn ^{:table-spec "5.2"} try-resolve-linked-metadata [csv-url metadata-uri]
+(defn ^{:table-spec "5.2"} try-resolve-linked-metadata [csv-uri metadata-uri]
   (if (some? metadata-uri)
     (if-let [metadata (try-get-linked-metadata metadata-uri)]
-      (if (linked-metadata-references-data-file? csv-url metadata)
+      (if (linked-metadata-references-data-file? csv-uri metadata-uri metadata)
         metadata))))
 
 (def ^{:table-spec "5.3"} ^URI well-known-site-wide-configuration-uri (URI. "/.well-known/csvm"))

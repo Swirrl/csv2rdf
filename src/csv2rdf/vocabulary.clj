@@ -19,4 +19,5 @@
 
 (def xsd:string (URI. "http://www.w3.org/2001/XMLSchema#string"))
 (def xsd:integer (URI. "http://www.w3.org/2001/XMLSchema#integer"))
+(def xsd:date (URI. "http://www.w3.org/2001/XMLSchema#date"))
 

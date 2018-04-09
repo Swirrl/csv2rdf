@@ -13,10 +13,8 @@
 (def ^{:metadata-spec "5.11.2"} datatype-name
   (variant {:string (one-of xml-datatype/type-names)}))
 
-;;TODO: implement
 (def number-format-pattern (chain string (try-parse-with #(DecimalFormat. %))))
 
-;;TODO: implement!
 (def numeric-type-format
   (object-of {:optional {:decimalChar character
                          :groupChar character
@@ -31,7 +29,7 @@
 ;;a format string. The format of the format string depends on the datatype, so this can only be validated at the datatype
 ;;level, not here. See validate-derived-datatype-format
 (def ^{:table-spec "6.4.2"} datatype-format
-  (variant {:string number-format-pattern
+  (variant {:string any
             :object (chain numeric-type-format validate-numeric-format)}))
 
 (def datatype-bound (variant {:number any :string any}))
@@ -116,9 +114,14 @@
       (nil? format)
       (v/pure datatype)
 
+      ;;NOTE: non-string formats are validated as part of the datatype definition
       (xml-datatype/is-numeric-type? base)
       (if (string? format)
-        (v/pure (assoc datatype :format {:pattern format}))
+        (v/fmap (fn [number-format]
+                  (if (invalid? number-format)
+                    (dissoc datatype :format)
+                    (assoc datatype :format {:pattern number-format})))
+                (number-format-pattern (append-path context "format") format))
         (v/pure datatype))
 
       ;;only numeric types support object format descriptions

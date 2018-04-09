@@ -77,7 +77,7 @@
         column-value-bindings (into {} (map (fn [cell column]
                                               ;;TODO: need 'canonical value' according to XML schema
                                               ;;see metadata spec 5.1.3
-                                              [(util/percent-decode (:name column)) (cell/semantic-value cell)])
+                                              [(util/percent-decode (:name column)) (:stringValue cell)])
                                             parsed-cells columns))
         row-bindings (assoc column-value-bindings :_row row-number :_sourceRow source-row-number)
         cells (map-indexed

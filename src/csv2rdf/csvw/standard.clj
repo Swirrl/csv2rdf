@@ -54,9 +54,12 @@
             type-uris (normalise-types (get value "@type"))
             t_4_1 (->Triple subject property s-node)
             ts_4_2 (map (fn [type-uri] (->Triple s-node rdf:type type-uri)) type-uris)
-            ts_4_3 (mapcat (fn [[^String k v]]
-                             (if-not (.startsWith k "@")
-                               (json-ld->rdf s-node k v)))
+            ts_4_3 (mapcat (fn [[k v]]
+                             ;;TODO: keep common properties as strings when parsing metadata?
+                             (cond
+                               (instance? URI k) (json-ld->rdf s-node k v)
+                               (and (string? k) (not (.startsWith k "@"))) (json-ld->rdf s-node k v)
+                               :else nil))
                            value)]
         (cons t_4_1 (concat ts_4_2 ts_4_3)))
 
