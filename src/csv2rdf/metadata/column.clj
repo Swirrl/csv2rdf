@@ -87,10 +87,13 @@
 
 (def ^{:table-spec "4.3"} index->column-number inc)
 
+(defn index-column-name [column-index]
+  (str "_col." (index->column-number column-index)))
+
 (defn ^{:metadata-spec "5.6"} get-column-name [{:keys [name titles] :as column} column-index default-language]
   (or name
       (some-> (first (get titles default-language)) (util/percent-encode))
-      (str "_col." (index->column-number column-index))))
+      (index-column-name column-index)))
 
 (defn set-column-name [column column-index context]
   (assoc column :name (get-column-name column column-index (language-code-or-default context))))
@@ -118,3 +121,6 @@
      :titles normalised-titles
      :virtual false
      :suppressOutput false}))
+
+(defn from-index [column-index]
+  {:name (index-column-name column-index)})

@@ -19,6 +19,7 @@
                     skipped-rows)))
 
 (defn ^{:table-spec "8.7"} get-header-row-columns [header-rows]
+  {:pre [(some? (seq header-rows))]}
   (let [comment-rows (filter reader/is-comment-row? header-rows)
         title-rows (remove reader/is-comment-row? header-rows)
         titles (apply map vector (map :cells title-rows))
@@ -31,17 +32,32 @@
 (defn ^{:table-spec "8.10.3"} get-data-comments [data-rows]
   (map :comment (filter reader/is-comment-row? data-rows)))
 
+(defn ^{:table-spec ["8.7" "8.8"]} get-header
+  "Gets the header given a sequence of header/data rows, and a returns a pair of
+  [data-rows, header]. The header is a map containing the columns definitions
+  and any comments found in the header."
+  [rows {:keys [num-header-rows skipColumns] :as options}]
+  (if (zero? num-header-rows)
+    (if-let [first-row (first rows)]
+      (let [cells (:cells first-row)
+            num-columns (max 0 (- (count cells) skipColumns))]
+        [rows {:columns (mapv column/from-index (range num-columns))}])
+      [rows {:columns []}])
+    (let [[header-rows data-rows] (split-at num-header-rows rows)]
+      [data-rows (get-header-row-columns header-rows)])))
+
 ;;TODO: section 8.10.4.5.1 - add any extra columns for rows not defined in the input table
 (defn ^{:table-spec "8"} extract-embedded-metadata
   ([csv-source] (extract-embedded-metadata csv-source {:doubleQuote false}))
   ([csv-source {:keys [encoding] :as dialect}]
    (with-open [r (io/reader csv-source :encoding encoding)]
-     (let [{:keys [skipRows num-header-rows] :as options} (dialect/dialect->options dialect)
+     (let [{:keys [skipRows] :as options} (dialect/dialect->options dialect)
            rows (reader/read-rows r options)
            [skipped-rows remaining-rows] (split-at skipRows rows)
            skipped-row-comments (get-skipped-rows-comments skipped-rows)
-           [header-rows data-rows] (split-at num-header-rows remaining-rows)
-           {:keys [columns] :as header} (get-header-row-columns header-rows)
+           [data-rows {:keys [columns] :as header}] (get-header remaining-rows options)
+
+
            data-row-comments (get-data-comments data-rows)
            comments (vec (concat skipped-row-comments (:comments header) data-row-comments))
            schema {:columns columns}
