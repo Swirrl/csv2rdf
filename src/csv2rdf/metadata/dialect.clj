@@ -1,6 +1,5 @@
 (ns csv2rdf.metadata.dialect
   (:require [clojure.spec.alpha :as s]
-            [clojure.string :as string]
             [csv2rdf.util :as util]
             [csv2rdf.metadata.types :refer [object-of id non-negative] :as types]
             [csv2rdf.metadata.validator :refer [make-warning invalid mapping variant any array-of string character
@@ -24,10 +23,6 @@
    :skipInitialSpace nil                                    ;;NOTE: differs from spec - see calculate-trim-mode
    :trim nil                                                ;;NOTE: differs from spec - see calculate-trim-mode
    })
-
-(defn parse-trim [s]
-  ;;TODO: warn on parse failure?
-  (some-> s (string/lower-case) {"true" :all "false" :none "start" :start "end" :end}))
 
 (defn ^{:metadata-spec "5.9"} calculate-trim-mode
   "Calculates how whitespace should be trimmed around cell values based on the 'trim' and 'skipInitialSpace'
@@ -157,7 +152,6 @@
 
 (def encoding (variant {:string validate-encoding}))
 
-;;TODO: merge with parse-trim
 (def trim-modes {"true" :all "false" :none "start" :start "end" :end})
 
 (def trim-mode (variant {:string  (mapping trim-modes)
@@ -181,7 +175,7 @@
                 :skipColumns non-negative
                 :skipInitialSpace bool
                 :skipRows non-negative
-                :trimMode trim-mode
+                :trim trim-mode
                 :id id
                 :type (eq "Dialect")}
      :allow-common-properties? false}))
