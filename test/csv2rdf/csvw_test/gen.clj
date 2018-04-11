@@ -139,10 +139,17 @@
   "Tests that start from a metadata file use it to locate the CSV file (which always exists?). Any additional files
    required by the test should appear in the list of implicit files"
   [{:keys [action implicit] :as test-row}]
-  {:type :metadata
-   :metadata-file (test-path->file action)
-   :schema-path action
-   :requests (mapv file->request implicit)})
+  (let [metadata-file (test-path->file action)
+        metadata-uri (test-path->uri action)
+        metadata-request {:uri     metadata-uri
+                          :body    metadata-file
+                          :headers {}}]
+    {:type          :metadata
+     :csv-uri       nil
+     :metadata-uri metadata-uri
+     :metadata-file (test-path->file action)
+     :schema-path   action
+     :requests      (vec (cons metadata-request (map file->request implicit)))}))
 
 (def well-known-metadata-file (io/resource "csvm"))
 
@@ -155,23 +162,28 @@
   (.contains (:name test-row) "/.well-known/csvm"))
 
 (defn from-csv-test-descriptor
-  "Tests that start from the URI of the CSV file. These always contain a request for the CSV file itself, and may include
-   one for the well-known metadata file and any implicit files."
+  "Tests where the 'action' is a CSV file. These always contain a request for the CSV file itself, and may include
+   one for the well-known metadata file and any implicit files. If user-metadata is specified, processing will begin
+   from the metadata rather than CSV file."
   [{:keys [action implicit http-link user-metadata] :as test-row}]
-  (let [action-file (test-path->file action)
-        action-uri (test-path->uri action)
+  (let [csv-file (test-path->file action)
+        csv-uri (test-path->uri action)
+        metadata-uri (some-> user-metadata test-path->uri)
         action-headers {"Content-Type" "text/csv; charset=UTF-8"}
         action-headers (if (some? http-link)
                          (assoc action-headers "Link" http-link)
                          action-headers)
-        action-request {:body action-file
-                        :uri action-uri
+        action-request {:body csv-file
+                        :uri csv-uri
                         :headers action-headers}
+        ;;NOTE: user metadata request expected to always be included in the implicit file list
         metadata-requests (if (has-well-known-metadata? test-row)
                             [well-known-metadata-response]
                             [])]
     {:type        :csv
-     :action-uri  action-uri
+     :action-uri  csv-uri
+     :csv-uri csv-uri
+     :metadata-uri metadata-uri
      :schema-path user-metadata
      :requests    (vec (cons action-request (concat (map file->request implicit) metadata-requests)))}))
 
@@ -203,6 +215,9 @@
        (map test-descriptor)
        (remove nil?)))
 
+(defn find-test [id]
+  (first (filter (fn [test] (= id (:id test))) (get-tests))))
+
 (defmulti escape-read type)
 
 (defmethod escape-read File [^File f]
@@ -226,15 +241,15 @@
                   [uri (dissoc m :uri)])
                 requests)))
 
-(defn make-test [{:keys [action-uri metadata-file requests id expect-errors? expect-warnings? mode result-file] :as test}]
+(defn make-test [{:keys [csv-uri metadata-uri action-uri metadata-file requests id expect-errors? expect-warnings? mode result-file] :as test}]
   (let [request-map (build-request-map requests)]
     `(~'deftest ~(symbol id)
        (~'let [~'http-client (~'->TestHttpClient ~(escape-read request-map))
-               ~'csv-uri ~(escape-read action-uri)
-               ~'metadata-source ~(escape-read metadata-file)
-               ~'{:keys [warnings errors result]} (~'http/with-http-client ~'http-client (~'csvw/csv->rdf ~'csv-uri ~'metadata-source {:mode ~mode}))]
+               ~'csv-uri ~(escape-read csv-uri)
+               ~'metadata-uri ~(escape-read metadata-uri)
+               ~'{:keys [warnings errors result]} (~'http/with-http-client ~'http-client (~'csvw/csv->rdf ~'csv-uri ~'metadata-uri {:mode ~mode}))]
          ~(if (some? result-file)
-            `(~'let [~'expected-statements (~'rdf/statements ~(escape-read result-file) :base-uri ~(escape-read action-uri))]
+            `(~'let [~'expected-statements (~'rdf/statements ~(escape-read result-file) :base-uri ~(escape-read csv-uri))]
               (~'is (~'= true (~'is-isomorphic? ~'expected-statements ~'result)))))
 
          ~(if expect-warnings?
