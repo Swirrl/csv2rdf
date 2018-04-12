@@ -42,5 +42,5 @@
 
 (defn csv->rdf->file [tabular-source metadata-source dest-file options]
   (with-open [os (io/output-stream dest-file)]
-    (let [writer (gio/rdf-serializer os :format :ttl)]
+    (let [writer (gio/rdf-serializer os :format :ttl :prefixes nil)]
       (csv->rdf->destination tabular-source metadata-source writer options))))
