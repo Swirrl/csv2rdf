@@ -17,7 +17,7 @@
         output-tables (filter (fn [t] (= false (:suppressOutput t))) tables)
         {:keys [statements] :as ctx} (table-group-context mode metadata)]
 
-    (rdf/add destination statements)
+    (rdf/add destination (seq statements))
 
     (doseq [{:keys [url dialect] :as table} output-tables]
       ;;TODO: use any headers from opening tabular file to create dialect
