@@ -56,8 +56,6 @@
            [skipped-rows remaining-rows] (split-at skipRows rows)
            skipped-row-comments (get-skipped-rows-comments skipped-rows)
            [data-rows {:keys [columns] :as header}] (get-header remaining-rows options)
-
-
            data-row-comments (get-data-comments data-rows)
            comments (vec (concat skipped-row-comments (:comments header) data-row-comments))
            schema {:columns columns}

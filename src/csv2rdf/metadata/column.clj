@@ -47,6 +47,10 @@
 (def ^{:metadata-spec "5.6"} column-name
   (chain string validate-column-name))
 
+(def column-defaults
+  {:suppressOutput false
+   :virtual false})
+
 (def column
   (metadata-of
     {:optional {:name           column-name                             ;;TODO: use first title as name if not provided, see spec
@@ -54,9 +58,7 @@
                 :titles         natural-language
                 :virtual        bool
                 :id            id
-                :type (eq "Column")}
-     :defaults {:suppressOutput false
-                :virtual false}}))
+                :type (eq "Column")}}))
 
 (defn get-duplicate-names [columns]
   (->> columns
@@ -110,7 +112,7 @@
   "Expands all properties for this column by inheriting any unspecified inherited properties from its parent
    schema."
   [parent-schema column]
-  (inherited/inherit parent-schema column))
+  (inherited/inherit parent-schema (merge column-defaults column)))
 
 (defn from-titles
   "Creates a new column given the column index and the sequence of titles"

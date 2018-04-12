@@ -9,6 +9,9 @@
             [csv2rdf.validation :as v]
             [csv2rdf.metadata.inherited :as inherited]))
 
+(def table-group-defaults
+  {:tableDirection "auto"})
+
 (def table-group
   (metadata-of
     {:required {:tables (array-of table/table {:min-length 1})}
@@ -18,8 +21,7 @@
                 :tableSchema     (object-property schema/schema)
                 :transformations (array-of transformation/transformation)
                 :id             id
-                :type           (eq "TableGroup")}
-     :defaults {:tableDirection "auto"}}))
+                :type           (eq "TableGroup")}}))
 
 (defn looks-like-table-group-json? [doc]
   (contains? doc "tables"))
@@ -33,10 +35,9 @@
                                   (mapv (fn [t] (table/expand-properties with-defaults t)) tables)))))
 
 (defn parse-table-group-json [context doc]
-  (v/fmap expand-properties ((contextual-object true table-group) context doc)))
+  ((contextual-object true table-group) context doc))
 
 (defn from-table
   "Creates a table group from the given table"
   [table]
-  (expand-properties {:tables         [table]
-                      :tableDirection "auto"}))
+  {:tables [table]})

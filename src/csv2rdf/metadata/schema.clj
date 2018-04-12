@@ -71,3 +71,7 @@
   (let [schema (inherited/inherit parent-table schema)]
     (update schema :columns (fn [cols]
                               (mapv (fn [c] (column/expand-properties schema c)) cols)))))
+
+(defn compatibility-merge [user-schema embedded-schema]
+  ;;TODO: validate schemas are compatible
+  (or user-schema embedded-schema))
