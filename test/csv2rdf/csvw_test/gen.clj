@@ -146,6 +146,7 @@
                           :headers {}}]
     {:type          :metadata
      :csv-uri       nil
+     :action-uri metadata-uri
      :metadata-uri metadata-uri
      :metadata-file (test-path->file action)
      :schema-path   action
@@ -241,7 +242,7 @@
                   [uri (dissoc m :uri)])
                 requests)))
 
-(defn make-test [{:keys [csv-uri metadata-uri action-uri metadata-file requests id expect-errors? expect-warnings? mode result-file] :as test}]
+(defn make-test [{:keys [csv-uri metadata-uri action-uri requests id expect-errors? expect-warnings? mode result-file] :as test}]
   (let [request-map (build-request-map requests)]
     `(~'deftest ~(symbol id)
        (~'let [~'http-client (~'->TestHttpClient ~(escape-read request-map))
@@ -249,7 +250,7 @@
                ~'metadata-uri ~(escape-read metadata-uri)
                ~'{:keys [warnings errors result]} (~'http/with-http-client ~'http-client (~'csvw/csv->rdf ~'csv-uri ~'metadata-uri {:mode ~mode}))]
          ~(if (some? result-file)
-            `(~'let [~'expected-statements (~'rdf/statements ~(escape-read result-file) :base-uri ~(escape-read csv-uri))]
+            `(~'let [~'expected-statements (~'rdf/statements ~(escape-read result-file) :base-uri ~(escape-read action-uri))]
               (~'is (~'= true (~'is-isomorphic? ~'expected-statements ~'result)))))
 
          ~(if expect-warnings?

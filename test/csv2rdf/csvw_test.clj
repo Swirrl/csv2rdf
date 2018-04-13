@@ -421,7 +421,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test030.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test030.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/countries.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -440,7 +443,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :minimal}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test031.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test031.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/countries.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -457,7 +463,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test032/result.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test032/result.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test032/csv-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -474,7 +483,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :minimal}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test033/result.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test033/result.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test033/csv-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -511,7 +523,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test034/result.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test034/result.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test034/csv-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -548,7 +563,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :minimal}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test035/result.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test035/result.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test035/csv-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -609,7 +627,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test038.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test038.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test038-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -626,7 +647,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test039.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test039.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test039-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -643,7 +667,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test040.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test040.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test040-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -660,7 +687,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test041.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test041.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test041-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -677,7 +707,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test042.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test042.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test042-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -694,7 +727,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test043.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test043.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test043-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -711,7 +747,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test044.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test044.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test044-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -728,7 +767,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test045.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test045.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test045-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -745,7 +787,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test046.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test046.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test046-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -762,7 +807,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test047.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test047.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test047-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -779,7 +827,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test048.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test048.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test048-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -796,7 +847,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test049.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test049.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test049-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -813,7 +867,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test059.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test059.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test059-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -830,7 +887,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test060.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test060.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test060-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -847,7 +907,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test061.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test061.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test061-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -864,7 +927,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test062.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test062.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test062-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -881,7 +947,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test063.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test063.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test063-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -898,7 +967,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test065.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test065.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test065-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -915,7 +987,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test066.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test066.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test066-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -932,7 +1007,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test067.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test067.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test067-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -949,7 +1027,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test068.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test068.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test068-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -966,7 +1047,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test069.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test069.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test069-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -983,7 +1067,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test070.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test070.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test070-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1000,7 +1087,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test071.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test071.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test071-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1017,7 +1107,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test072.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test072.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test072-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1034,7 +1127,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test073.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test073.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test073-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1067,7 +1163,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test075.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test075.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test075-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1084,7 +1183,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test076.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test076.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test076-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1341,7 +1443,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test093.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test093.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test093-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1358,7 +1463,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test095.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test095.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test095-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1377,7 +1485,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test097.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test097.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test097-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1410,7 +1521,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test099.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test099.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test099-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1427,7 +1541,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test100.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test100.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test100-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1446,7 +1563,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test101.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test101.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test101-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1463,7 +1583,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test102.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test102.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test102-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1514,7 +1637,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test105.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test105.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test105-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1531,7 +1657,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test106.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test106.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test106-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1548,7 +1677,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test107.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test107.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test107-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1583,7 +1715,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test109.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test109.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test109-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1600,7 +1735,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test110.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test110.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test110-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1617,7 +1755,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test111.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test111.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test111-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1634,7 +1775,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test112.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test112.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test112-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1651,7 +1795,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test113.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test113.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test113-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1668,7 +1815,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test114.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test114.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test114-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1685,7 +1835,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test115.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test115.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test115-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1911,7 +2064,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test125.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test125.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test125-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1928,7 +2084,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test126.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test126.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test126-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1945,7 +2104,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test127.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test127.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test127-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1978,7 +2140,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test129.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test129.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test129-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -1995,7 +2160,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test130.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test130.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test130-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2012,7 +2180,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test131.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test131.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test131-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2029,7 +2200,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test132.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test132.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test132-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2254,7 +2428,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test147.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test147.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test147-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2271,7 +2448,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test148.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test148.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test148-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2288,7 +2468,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test149.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test149.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test149-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2305,7 +2488,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test150.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test150.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test150-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2322,7 +2508,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test151.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test151.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test151-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2339,7 +2528,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test152.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test152.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test152-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2356,7 +2548,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test153.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test153.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test153-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2373,7 +2568,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test154.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test154.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test154-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2390,7 +2588,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test155.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test155.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test155-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2407,7 +2608,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test156.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test156.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test156-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2424,7 +2628,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test157.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test157.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test157-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2441,7 +2648,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test158.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test158.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test158-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2458,7 +2668,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test159.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test159.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test159-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2475,7 +2688,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test160.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test160.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test160-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2492,7 +2708,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test161.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test161.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test161-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2509,7 +2728,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test162.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test162.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test162-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2526,7 +2748,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test163.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test163.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test163-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2543,7 +2768,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test164.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test164.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test164-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2560,7 +2788,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test165.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test165.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test165-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2577,7 +2808,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test166.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test166.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test166-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2594,7 +2828,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test167.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test167.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test167-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2611,7 +2848,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test168.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test168.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test168-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2628,7 +2868,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test169.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test169.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test169-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2645,7 +2888,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test170.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test170.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test170-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2662,7 +2908,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test171.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test171.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test171-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2679,7 +2928,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test172.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test172.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test172-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2696,7 +2948,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test173.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test173.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test173-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2713,7 +2968,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test174.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test174.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test174-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2730,7 +2988,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test175.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test175.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test175-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2747,7 +3008,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test176.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test176.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test176-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2764,7 +3028,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test177.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test177.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test177-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2781,7 +3048,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test178.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test178.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test178-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2798,7 +3068,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test179.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test179.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test179-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2815,7 +3088,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test180.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test180.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test180-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2832,7 +3108,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test181.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test181.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test181-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2849,7 +3128,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test182.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test182.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test182-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2866,7 +3148,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test183.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test183.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test183-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2883,7 +3168,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test184.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test184.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test184-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2900,7 +3188,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test185.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test185.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test185-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2917,7 +3208,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test186.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test186.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test186-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2934,7 +3228,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test187.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test187.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test187-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2951,7 +3248,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test188.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test188.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test188-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2968,7 +3268,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test189.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test189.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test189-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -2985,7 +3288,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test190.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test190.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test190-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3002,7 +3308,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test191.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test191.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test191-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3019,7 +3328,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test192.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test192.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test192-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3036,7 +3348,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test193.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test193.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test193-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3053,7 +3368,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test194.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test194.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test194-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3070,7 +3388,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test195.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test195.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test195-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3087,7 +3408,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test196.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test196.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test196-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3104,7 +3428,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test197.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test197.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test197-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3121,7 +3448,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test198.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test198.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test198-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3186,7 +3516,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test202.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test202.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test202-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3203,7 +3536,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test203.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test203.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test203-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3220,7 +3556,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test204.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test204.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test204-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3237,7 +3576,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test205.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test205.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test205-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3254,7 +3596,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test206.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test206.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test206-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3271,7 +3616,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test207.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test207.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test207-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3288,7 +3636,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test208.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test208.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test208-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3305,7 +3656,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test209.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test209.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test209-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3322,7 +3676,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test210.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test210.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test210-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3339,7 +3696,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test211.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test211.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test211-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3356,7 +3716,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test212.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test212.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test212-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3373,7 +3736,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test213.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test213.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test213-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3390,7 +3756,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test214.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test214.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test214-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3407,7 +3776,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test215.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test215.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test215-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3616,7 +3988,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test228.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test228.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test228-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3633,7 +4008,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test229.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test229.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test229-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3650,7 +4028,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test230.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test230.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test230-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3667,7 +4048,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test231.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test231.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test231-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3684,7 +4068,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test232.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test232.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test232-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3701,7 +4088,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test233.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test233.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test233-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3718,7 +4108,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test234.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test234.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test234-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3737,7 +4130,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test235.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test235.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test235-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3756,7 +4152,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test236.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test236.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test236-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3775,7 +4174,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :minimal}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test237.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test237.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test237-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3792,7 +4194,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test238.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test238.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test238-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3809,7 +4214,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test242.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test242.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test242-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3858,7 +4266,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test245.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test245.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test245-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3875,7 +4286,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test246.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test246.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test246-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3892,7 +4306,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test247.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test247.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test247-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -3909,7 +4326,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test248.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test248.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test248-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4044,7 +4464,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test263.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test263.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test263-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4061,7 +4484,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test264.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test264.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test264-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4078,7 +4504,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test266.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test266.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test266-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4111,7 +4540,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test268.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test268.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test268-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4128,7 +4560,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test269.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test269.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test269-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4145,7 +4580,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test270.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test270.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test270-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4198,7 +4636,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test273.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test273.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test273-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4231,7 +4672,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test275.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test275.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test275-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4248,7 +4692,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test276.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test276.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test276-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4265,7 +4712,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test277.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test277.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test277-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4282,7 +4732,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test278.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test278.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test278-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4299,7 +4752,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test279.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test279.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test279-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4316,7 +4772,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test280.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test280.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test280-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4333,7 +4792,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test281.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test281.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test281-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4350,7 +4812,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test282.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test282.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test282-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4367,7 +4832,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test283.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test283.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test283-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4384,7 +4852,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test284.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test284.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test284-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4401,7 +4872,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test285.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test285.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test285-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4418,7 +4892,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test286.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test286.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test286-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4435,7 +4912,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test287.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test287.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test287-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4452,7 +4932,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test288.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test288.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test288-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4469,7 +4952,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test289.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test289.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test289-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4486,7 +4972,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test290.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test290.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test290-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4503,7 +4992,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test291.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test291.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test291-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4520,7 +5012,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test292.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test292.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test292-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4537,7 +5032,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test293.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test293.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test293-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4554,7 +5052,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test294.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test294.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test294-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4571,7 +5072,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test295.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test295.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test295-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4588,7 +5092,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test296.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test296.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test296-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4605,7 +5112,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test297.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test297.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test297-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4622,7 +5132,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test298.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test298.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test298-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4639,7 +5152,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test299.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test299.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test299-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4656,7 +5172,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test300.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test300.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test300-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4673,7 +5192,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test301.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test301.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test301-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4690,7 +5212,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test302.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test302.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test302-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4707,7 +5232,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test303.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test303.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test303-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4724,7 +5252,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test304.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test304.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test304-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (pos? (count warnings)) "Expected warnings but none was found")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4741,7 +5272,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test305.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test305.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test305-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4758,7 +5292,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test306.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test306.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test306-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
@@ -4775,7 +5312,10 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (csvw/csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements (io/file "csvw_data/test307.ttl") :base-uri nil)]
+    (let [expected-statements (rdf/statements
+                                (io/file "csvw_data/test307.ttl")
+                                :base-uri
+                                (URI. "http://www.w3.org/2013/csvw/tests/test307-metadata.json"))]
       (is (= true (is-isomorphic? expected-statements result))))
     (is (= 0 (count warnings)) "Received warnings but none was expected")
     (is (= 0 (count errors)) "Received errors but none was expected")))
