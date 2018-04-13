@@ -4,7 +4,8 @@
             [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
             [csv2rdf.metadata.schema :as schema]
             [csv2rdf.metadata.transformation :as transformation]
-            [csv2rdf.validation :as v]))
+            [csv2rdf.validation :as v]
+            [csv2rdf.metadata.dialect :as dialect]))
 
 (def table-defaults
   {:suppressOutput false
@@ -13,13 +14,14 @@
 (def table
   (metadata-of
     {:required {:url link-property}
-     :optional {:notes           (array-of note)
+     :optional {:dialect         dialect/dialect
+                :notes           (array-of note)
                 :suppressOutput  bool
                 :tableDirection  table-direction
                 :tableSchema     (object-property schema/schema)
                 :transformations (array-of transformation/transformation)
-                :id             id
-                :type           (eq "Table")}}))
+                :id              id
+                :type            (eq "Table")}}))
 
 (defn columns [table]
   (get-in table [:tableSchema :columns]))

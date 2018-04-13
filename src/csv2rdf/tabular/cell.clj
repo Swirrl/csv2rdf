@@ -6,17 +6,17 @@
             [csv2rdf.xml.datatype :as xml-datatype]
             [grafter.rdf.io :refer [language]]
             [grafter.rdf :as rdf]
-            [csv2rdf.vocabulary :refer [xsd:date xsd:double]])
+            [csv2rdf.vocabulary :refer [xsd:date xsd:dateTime xsd:dateTimeStamp xsd:anyURI]])
   (:import [java.util.regex Pattern]
            [java.math BigDecimal BigInteger]
            [java.text DecimalFormat]
            [grafter.rdf.protocols IRDFString]
            [java.time.format DateTimeFormatter DateTimeParseException]
-           [java.time LocalDate ZoneId]
+           [java.time LocalDate ZoneId LocalDateTime ZonedDateTime]
            [java.util Date]
            [javax.xml.datatype DatatypeFactory XMLGregorianCalendar]
            [javax.xml.namespace QName]
-           [java.net URI]))
+           [java.net URI URISyntaxException]))
 
 (def column-required-message "Column value required")
 
@@ -61,6 +61,8 @@
                     identity)]
     (fn [n]
       (-> n (check-min) (check-max)))))
+
+;;TODO: implement Grafter procotol so java Date/DateTime/Duration types can be used as values directly?
 
 (defn parse-integer [^String s]
   (BigInteger. s))
@@ -172,19 +174,36 @@
   (let [zoned-date (.atStartOfDay ld (ZoneId/systemDefault))]
     (Date/from (.toInstant zoned-date))))
 
-;;TODO: implement Grafter procotol so java Date/DateTime/Duration types can be used as values directly?
-(defn local-date->rdf [^LocalDate ld]
-  (let [output-format DateTimeFormatter/ISO_DATE]
-    (rdf/literal (.format ld output-format) xsd:date)))
+(defn try-parse-date [string-value datatype]
+  (let [dtf (or (:format datatype) DateTimeFormatter/ISO_DATE)
+        local-date (LocalDate/parse string-value dtf)
+        formatted (.format DateTimeFormatter/ISO_DATE local-date)]
+    (rdf/literal formatted xsd:date)))
 
-(defn parse-date [string-value datatype]
-  (let [dtf (or (:format datatype) DateTimeFormatter/ISO_DATE)]
+(defn try-parse-datetime [string-value datatype]
+  (let [dtf (or (:format datatype) DateTimeFormatter/ISO_DATE_TIME)
+        local-datetime (LocalDateTime/parse string-value dtf)
+        formatted (.format DateTimeFormatter/ISO_DATE_TIME local-datetime)]
+    (rdf/literal formatted xsd:dateTime)))
+
+(defn try-parse-datetimestamp [string-value datatype]
+  (let [dtf (or (:format datatype) DateTimeFormatter/ISO_ZONED_DATE_TIME)
+        zoned-datetime (ZonedDateTime/parse string-value dtf)
+        formatted (.format zoned-datetime DateTimeFormatter/ISO_ZONED_DATE_TIME)]
+    (rdf/literal formatted xsd:dateTimeStamp)))
+
+(def date-parsers
+  {"date" try-parse-date
+   "dateTime" try-parse-datetime
+   "dateTimeStamp" try-parse-datetimestamp})
+
+(defn parse-date [string-value {:keys [base] :as datatype}]
+  (if-let [parser (get date-parsers (xml-datatype/resolve-type-name base))]
     (try
-      (let [local-date (LocalDate/parse string-value dtf)
-            result (local-date->rdf local-date)]
-        {:value result :datatype datatype :errors []})
+      {:value (parser string-value datatype) :datatype datatype :errors []}
       (catch DateTimeParseException ex
-        (fail-parse string-value (format "Cannot parse value '%s' with the expected date pattern" string-value))))))
+        (fail-parse string-value (format "Cannot parse value '%s' with the expected date pattern for type '%s'" string-value base))))
+    (throw (IllegalArgumentException. (format "Invalid date/time type '%s'" base)))))
 
 (defn qname->uri [^QName qname]
   ;;TODO: better way to do this?
@@ -207,6 +226,13 @@
 (defn is-xml-gregorian-calendar-type? [datatype-base]
   (contains? #{"gDay" "gMonth" "gMonthDay" "gYear" "gYearMonth"} datatype-base))
 
+(defn parse-anyURI [string-value {:keys [base] :as datatype}]
+  (try
+    (URI. string-value)
+    {:value (rdf/literal string-value xsd:anyURI) :datatype datatype :errors []}
+    (catch URISyntaxException _ex
+      (fail-parse string-value (format "Cannot parse value '%s' as type URI" base)))))
+
 (defn ^{:table-spec "6.4.8"} parse-format [string-value {:keys [lang datatype] :as column}]
   ;;TODO: create protcol for parsing?
   (let [base (:base datatype)]
@@ -224,6 +250,9 @@
 
       (is-xml-gregorian-calendar-type? base)
       (parse-xml-gregorian-calendar string-value datatype)
+
+      (xml-datatype/is-uri-type? base)
+      (parse-anyURI string-value datatype)
 
       :else
       (throw (IllegalArgumentException. (format "Datatype %s not supported" base))))))

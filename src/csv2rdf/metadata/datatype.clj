@@ -105,6 +105,11 @@
       (v/pure (zipmap [:true-value :false-value] (map string/trim values)))
       (make-warning context "Boolean format string should have format 'true-value|false-value'" invalid))))
 
+(defn parse-datetime-format [^String format-string]
+  ;;escape any T literals in the pattern
+  ;;TODO: do this properly
+  (DateTimeFormatter/ofPattern (.replace format-string "T" "'T'")))
+
 (defn ^{:table-spec "6.4"} validate-derived-datatype-format [context {:keys [format base] :as datatype}]
   (let [set-format (fn [value]
                      (if (invalid? value)
@@ -135,7 +140,7 @@
       ;;TODO: check DateTimeFormatter works as required by the spec
       (xml-datatype/is-date-time-type? base)
       (v/fmap set-format
-              ((try-parse-with #(DateTimeFormatter/ofPattern %)) (append-path context "format") format))
+              ((try-parse-with parse-datetime-format) (append-path context "format") format))
 
       :else
       (v/fmap set-format

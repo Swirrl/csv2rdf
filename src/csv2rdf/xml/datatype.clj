@@ -101,6 +101,9 @@
 (defn is-boolean-type? [type-name]
   (is-subtype? "boolean" type-name))
 
+(defn is-uri-type? [type-name]
+  (is-subtype? "anyURI" type-name))
+
 (s/def ::base  (into #{} (flatten type-hierarchy)))
 
 (s/def ::num-or-string (s/or :string string? :num number?))
