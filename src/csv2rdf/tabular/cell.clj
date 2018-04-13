@@ -6,14 +6,17 @@
             [csv2rdf.xml.datatype :as xml-datatype]
             [grafter.rdf.io :refer [language]]
             [grafter.rdf :as rdf]
-            [csv2rdf.vocabulary :refer [xsd:date]])
+            [csv2rdf.vocabulary :refer [xsd:date xsd:double]])
   (:import [java.util.regex Pattern]
            [java.math BigDecimal BigInteger]
            [java.text DecimalFormat]
            [grafter.rdf.protocols IRDFString]
            [java.time.format DateTimeFormatter DateTimeParseException]
            [java.time LocalDate ZoneId]
-           [java.util Date]))
+           [java.util Date]
+           [javax.xml.datatype DatatypeFactory XMLGregorianCalendar]
+           [javax.xml.namespace QName]
+           [java.net URI]))
 
 (def column-required-message "Column value required")
 
@@ -183,6 +186,27 @@
       (catch DateTimeParseException ex
         (fail-parse string-value (format "Cannot parse value '%s' with the expected date pattern" string-value))))))
 
+(defn qname->uri [^QName qname]
+  ;;TODO: better way to do this?
+  (URI. (str (.getNamespaceURI qname) "#" (.getLocalPart qname))))
+
+(defn xml-gregorian-calendar->literal [^XMLGregorianCalendar calendar]
+  (rdf/literal (.toXMLFormat calendar) (qname->uri (.getXMLSchemaType calendar))))
+
+(defn parse-xml-gregorian-calendar [string-value {:keys [base] :as datatype}]
+  (try
+    (let [dtf (DatatypeFactory/newInstance)
+          ^XMLGregorianCalendar calendar (.newXMLGregorianCalendar dtf string-value)
+          calendar-type (.getXMLSchemaType calendar)]
+      (if (= base (.getLocalPart calendar-type))
+        {:value (xml-gregorian-calendar->literal calendar) :datatype datatype :errors []}
+        (fail-parse string-value (format "Cannot parse value '%s' as type %s" string-value base))))
+    (catch IllegalArgumentException _ex
+      (fail-parse string-value (format "Cannot parse value '%s' as type %s" string-value base)))))
+
+(defn is-xml-gregorian-calendar-type? [datatype-base]
+  (contains? #{"gDay" "gMonth" "gMonthDay" "gYear" "gYearMonth"} datatype-base))
+
 (defn ^{:table-spec "6.4.8"} parse-format [string-value {:keys [lang datatype] :as column}]
   ;;TODO: create protcol for parsing?
   (let [base (:base datatype)]
@@ -198,8 +222,11 @@
       (xml-datatype/is-date-time-type? base)
       (parse-date string-value datatype)
 
+      (is-xml-gregorian-calendar-type? base)
+      (parse-xml-gregorian-calendar string-value datatype)
+
       :else
-      (throw (IllegalArgumentException. "Only string, date and numeric base types supported")))))
+      (throw (IllegalArgumentException. (format "Datatype %s not supported" base))))))
 
 (defn get-length-error [{:keys [stringValue] :as cell} rel-sym length constraint]
   (if (some? constraint)
