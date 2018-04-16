@@ -102,7 +102,8 @@
 (defn ^{:table-spec "6.4.3"} validate-boolean-format [context format-string]
   (let [values (string/split format-string #"\|")]
     (if (= 2 (count values))
-      (v/pure (zipmap [:true-value :false-value] (map string/trim values)))
+      (let [[true-value false-value] (map string/trim values)]
+        (v/pure {:true-values #{true-value} :false-values #{false-value}}))
       (make-warning context "Boolean format string should have format 'true-value|false-value'" invalid))))
 
 (defn parse-datetime-format [^String format-string]

@@ -233,6 +233,22 @@
     (catch URISyntaxException _ex
       (fail-parse string-value (format "Cannot parse value '%s' as type URI" base)))))
 
+(defn parse-boolean-with-mapping [string-value datatype {:keys [true-values false-values] :as mapping}]
+  (cond
+    (contains? true-values string-value) {:value true :datatype datatype :errors []}
+    (contains? false-values string-value) {:value false :datatype datatype :errors []}
+    :else (let [allowed-values (mapcat identity (vals mapping))
+                msg (format "Cannot parse '%s' as a boolean: expected one of %s" string-value (string/join ", " allowed-values))]
+            (fail-parse string-value msg))))
+
+(def ^{:tabular-spec "6.4.3"} default-boolean-mapping
+  {:true-values #{"1" "true"}
+   :false-values #{"0" "false"}})
+
+(defn parse-boolean [string-value {:keys [format] :as datatype}]
+  (let [mapping (if (some? format) format default-boolean-mapping)]
+    (parse-boolean-with-mapping string-value datatype mapping)))
+
 (defn ^{:table-spec "6.4.8"} parse-format [string-value {:keys [lang datatype] :as column}]
   ;;TODO: create protcol for parsing?
   (let [base (:base datatype)]
@@ -241,6 +257,9 @@
       (= "string" base)
       (let [value (if (nil? lang) string-value (language string-value (keyword lang)))]
         {:value value :datatype datatype :errors []})
+
+      (= "boolean" base)
+      (parse-boolean string-value datatype)
 
       (xml-datatype/is-numeric-type? base)
       (parse-numeric string-value datatype)
