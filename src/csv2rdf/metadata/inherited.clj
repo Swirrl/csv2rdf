@@ -1,9 +1,11 @@
 (ns csv2rdf.metadata.inherited
   (:require [csv2rdf.metadata.validator :refer [variant any array-of string one-of bool]]
             [csv2rdf.metadata.types :refer [template-property language-code object-of]]
-            [csv2rdf.metadata.datatype :as datatype]))
+            [csv2rdf.metadata.datatype :as datatype]
+            [csv2rdf.validation :as v]))
 
-(def null-value (variant {:string any :array (array-of string)}))
+(def null-value (variant {:string (fn [_context s] (v/pure [s]))
+                          :array  (array-of string)}))
 
 (def inherited-properties
   {:aboutUrl      template-property

@@ -100,12 +100,11 @@
                         bindings (assoc row-bindings :_name (util/percent-decode (:name column))
                                                      :_column column-number
                                                      :_sourceColumn (+ skipColumns column-number))
-                        property-urls (into {} (remove nil? (map (fn [[k uri-template]]
-                                                                   (if (some? uri-template)
-                                                                     [k (template-property/resolve-uri-template-property uri-template bindings table)]))
-                                                                 (select-keys column [:aboutUrl :propertyUrl :valueUrl]))))]
+                        property-urls {:aboutUrl (some-> (:aboutUrl column) (template-property/resolve-uri-template-property bindings table))
+                                       :propertyUrl (some-> (:propertyUrl column) (template-property/resolve-uri-template-property bindings table))
+                                       :valueUrl (some-> (:valueUrl column) (template-property/resolve-value-uri-template-property cell column bindings table))}]
                     (-> cell
-                        (merge property-urls)
+                        (merge (util/filter-values some? property-urls))
                         (assoc :column column))))
                 (map vector parsed-cells columns))]
     {:number        row-number

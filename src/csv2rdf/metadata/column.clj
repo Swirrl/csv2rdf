@@ -126,3 +126,6 @@
 
 (defn from-index [column-index]
   {:name (index-column-name column-index)})
+
+(defn is-virtual? [{:keys [virtual] :as column}]
+  (boolean virtual))

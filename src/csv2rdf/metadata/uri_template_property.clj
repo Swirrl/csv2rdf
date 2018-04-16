@@ -2,7 +2,9 @@
   (:require [clojure.spec.alpha :as s]
             [csv2rdf.uri-template :as template]
             [csv2rdf.json-ld :as json-ld]
-            [csv2rdf.util :as util])
+            [csv2rdf.util :as util]
+            [csv2rdf.tabular.cell :as cell]
+            [csv2rdf.metadata.column :as column])
   (:import [java.net URI]))
 
 (s/def ::_column pos?)
@@ -19,3 +21,12 @@
     (if (nil? url)
       (URI. expanded-uri-string)
       (.resolve url expanded-uri-string))))
+
+(defn ^{:tabular-spec "6.4.9"
+        :justification "The value URL annotation is null if the cell value is null and the column virtual annotation is false"
+        } resolve-value-uri-template-property
+  [uri-template cell column column-bindings table]
+  (let [cell-value (cell/semantic-value cell)]
+    (if (and (nil? cell-value) (not (column/is-virtual? column)))
+      nil
+      (resolve-uri-template-property uri-template column-bindings table))))
