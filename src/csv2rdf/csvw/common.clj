@@ -45,7 +45,7 @@
         (cons (->Triple subject predicate list-subject) list-triples))
 
       is-list?
-      (map (fn [v] (->Triple subject predicate (:value v))) semantic-value)
+      (map (fn [v] (->Triple subject predicate v)) semantic-value)
 
       (some? semantic-value)
       [(->Triple subject predicate semantic-value)]

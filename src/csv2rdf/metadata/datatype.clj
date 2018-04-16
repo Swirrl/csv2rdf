@@ -173,3 +173,7 @@
 (def ^{:metadata-spec "5.7"} datatype
   (variant {:string (chain datatype-name normalise-datatype-name)
             :object derived-datatype}))
+
+;;TODO: move this into CSVW namespace
+(defn ^{:csvw-spec "4.3"} get-datatype-iri [{:keys [base id] :as datatype}]
+  (or id (xml-datatype/get-datatype-iri base)))

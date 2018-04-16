@@ -166,7 +166,7 @@
 
 (def common-property-value (chain validate-common-property-value normalise-common-property-value))
 
-(def ^{:metadata-spec "5.3"} note (map-of common-property-key common-property-value))
+(def ^{:metadata-spec "5.3"} note common-property-value)
 (def ^{:metadata-spec "5.3"} table-direction (one-of #{"rtl" "ltr" "auto"}))
 
 (defn validate-id [context ^String s]

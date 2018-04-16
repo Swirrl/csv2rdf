@@ -258,6 +258,11 @@
       (let [value (if (nil? lang) string-value (language string-value (keyword lang)))]
         {:value value :datatype datatype :errors []})
 
+      ;;TODO: resolve all type URIs in this way
+      ;;TODO: delay resolution of type URI until CSVW output
+      (xml-datatype/is-string-type? base)
+      {:value (rdf/literal string-value (datatype/get-datatype-iri datatype)) :datatype datatype :errors []}
+
       (= "boolean" base)
       (parse-boolean string-value datatype)
 

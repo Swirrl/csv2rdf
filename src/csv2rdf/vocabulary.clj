@@ -5,6 +5,8 @@
 (def rdf:nil (URI. "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"))
 (def rdf:first (URI. "http://www.w3.org/1999/02/22-rdf-syntax-ns#first"))
 (def rdf:rest (URI. "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"))
+(def rdf:XMLLiteral (URI. "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral"))
+(def rdf:HTML (URI. "http://www.w3.org/1999/02/22-rdf-syntax-ns#HTML"))
 
 (def csvw (URI. "http://www.w3.org/ns/csvw#"))
 (def csvw:TableGroup (URI. "http://www.w3.org/ns/csvw#TableGroup"))
@@ -17,7 +19,9 @@
 (def csvw:describes (URI. "http://www.w3.org/ns/csvw#describes"))
 (def csvw:title (URI. "http://www.w3.org/ns/csvw#title"))
 (def csvw:note (URI. "http://www.w3.org/ns/csvw#note"))
+(def csvw:JSON (URI. "http://www.w3.org/ns/csvw#JSON"))
 
+(def xsd (URI. "http://www.w3.org/2001/XMLSchema#"))
 (def xsd:string (URI. "http://www.w3.org/2001/XMLSchema#string"))
 (def xsd:integer (URI. "http://www.w3.org/2001/XMLSchema#integer"))
 (def xsd:date (URI. "http://www.w3.org/2001/XMLSchema#date"))

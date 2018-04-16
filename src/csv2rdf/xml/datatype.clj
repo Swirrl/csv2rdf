@@ -1,6 +1,7 @@
 (ns csv2rdf.xml.datatype
   (:require [clojure.spec.alpha :as s]
-            [csv2rdf.util :as util]))
+            [csv2rdf.util :as util]
+            [csv2rdf.vocabulary :refer :all]))
 
 (def type-hierarchy
   ["anyAtomicType"
@@ -104,6 +105,9 @@
 (defn is-uri-type? [type-name]
   (is-subtype? "anyURI" type-name))
 
+(defn is-string-type? [type-name]
+  (is-subtype? "string" type-name))
+
 (s/def ::base  (into #{} (flatten type-hierarchy)))
 
 (s/def ::num-or-string (s/or :string string? :num number?))
@@ -134,7 +138,7 @@
 (defn ^{:table-spec "4.6.1"} get-length [value {:keys [base] :as datatype}]
   (cond
     (nil? value) 0
-    (is-subtype? "string" base) (let [^String str-val (util/->string value)]
+    (is-string-type? base) (let [^String str-val (util/->string value)]
                                   (.count (.codePoints str-val)))
 
     ;;binary data expected to be byte array
@@ -143,3 +147,15 @@
 
     ;;length undefined for type
     :else nil))
+
+
+(def indirect-mapping-iris
+  {"xml" rdf:XMLLiteral
+   "html" rdf:HTML
+   "json" csvw:JSON})
+
+;;TODO: move this into CSVW namespace
+(defn get-datatype-iri [type-name]
+  (let [resolved (resolve-type-name type-name)]
+    (or (get indirect-mapping-iris resolved)
+        (util/set-fragment xsd resolved))))

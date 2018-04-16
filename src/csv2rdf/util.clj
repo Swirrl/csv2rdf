@@ -1,11 +1,11 @@
 (ns csv2rdf.util
   (:require [clojure.java.io :as io]
             [clojure.data.json :as json]
-            [grafter.rdf.protocols])
+            [grafter.rdf.protocols :as gproto])
   (:import [java.net URI]
            [java.lang.reflect InvocationTargetException Method]
            [java.nio.charset Charset]
-           [grafter.rdf.protocols LangString]))
+           [grafter.rdf.protocols LangString RDFLiteral]))
 
 (defmacro ignore-exceptions [& body]
   `(try
@@ -140,7 +140,12 @@
   (->string [s] s)
 
   LangString
-  (->string [ls] (:string ls)))
+  (->string [ls] (:string ls))
+
+  ;;TODO: remove this implementation
+  RDFLiteral
+  (->string [lit]
+    (->string (gproto/raw-value lit))))
 
 (defn string-like? [x]
   (satisfies? StringLike x))
