@@ -20,7 +20,7 @@
 (defn validate-language-code [context s]
   (try
     (do
-      (.setLanguage (Locale$Builder.) s)
+      (.setLanguageTag (Locale$Builder.) s)
       ;;TODO: validate against known list of language codes?
       (v/pure s))
     (catch IllformedLocaleException _ex
