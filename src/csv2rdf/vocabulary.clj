@@ -16,6 +16,7 @@
 (def csvw:rownum (URI. "http://www.w3.org/ns/csvw#rownum"))
 (def csvw:describes (URI. "http://www.w3.org/ns/csvw#describes"))
 (def csvw:title (URI. "http://www.w3.org/ns/csvw#title"))
+(def csvw:note (URI. "http://www.w3.org/ns/csvw#note"))
 
 (def xsd:string (URI. "http://www.w3.org/2001/XMLSchema#string"))
 (def xsd:integer (URI. "http://www.w3.org/2001/XMLSchema#integer"))

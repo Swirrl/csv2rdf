@@ -66,10 +66,11 @@
       :else [(->Triple subject property value)])))
 
 (defn notes-non-core-annotation-statements [subject {:keys [notes] :as element}]
-  (let [common-properties (:csv2rdf.metadata.types/common-properties element)]
+  (let [common-properties (:csv2rdf.metadata.types/common-properties element)
+        note-pairs (map (fn [n] [csvw:note n]) notes)]
     (mapcat (fn [[k v]]
               (json-ld->rdf subject k v))
-            (concat notes common-properties))))
+            (concat note-pairs common-properties))))
 
 (defn row-title-object [{:keys [list value stringValue] :as cell-value}]
   (if list stringValue value))
