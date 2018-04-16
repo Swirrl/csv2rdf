@@ -6,7 +6,8 @@
 (def object? map?)
 
 (defn get-json-type [x]
-  (cond (array? x) :array
+  (cond (nil? x) :null
+        (array? x) :array
         (number? x) :number
         (string? x) :string
         (boolean? x) :boolean

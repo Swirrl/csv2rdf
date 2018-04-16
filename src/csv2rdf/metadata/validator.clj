@@ -133,6 +133,14 @@
                                      (v/pure (if (every? valid? t) t invalid)))
                                    tuple-validation))))))))
 
+(defn nullable
+  "Wraps a validator into one which allows explicit null values."
+  [validator]
+  (fn [context x]
+    (if (nil? x)
+      (v/pure x)
+      (validator context x))))
+
 (defn variant [{:keys [default] :as tag-validators}]
   {:pre [(pos? (count tag-validators))]}
   (fn [context x]

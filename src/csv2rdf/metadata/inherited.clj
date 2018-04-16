@@ -1,5 +1,5 @@
 (ns csv2rdf.metadata.inherited
-  (:require [csv2rdf.metadata.validator :refer [variant any array-of string one-of bool]]
+  (:require [csv2rdf.metadata.validator :refer [variant any array-of string one-of bool nullable]]
             [csv2rdf.metadata.types :refer [template-property language-code object-of]]
             [csv2rdf.metadata.datatype :as datatype]
             [csv2rdf.validation :as v]))
@@ -16,7 +16,7 @@
    :ordered       bool
    :propertyUrl   template-property
    :required      bool
-   :separator     string
+   :separator     (nullable string)
    :textDirection (one-of #{"ltr" "rtl" "auto" "inherit"})
    :valueUrl      template-property})
 
