@@ -174,11 +174,12 @@
 
 (defn validate-id [context ^String s]
   (if (.startsWith s "_:")
-    (make-warning context "Ids cannot start with _:" invalid)
+    (make-error context "Ids cannot start with _:")
     ((try-parse-with #(URI. %)) context s)))
 
 (def ^{:doc "An id is a link property whose value cannot begin with _:"} id
-  (variant {:string validate-id}))
+  (variant {:string validate-id
+            :default default-uri}))
 
 (defn column-reference-array [context arr]
   (cond (= 0 (count arr)) (make-warning context "Column references should not be empty" invalid)
