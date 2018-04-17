@@ -75,11 +75,14 @@
 
 (def link-property (chain parse-link-property normalise-link-property))
 
+(def ^{:metadata-spec "5.1.3"} default-template-property (template/parse-template ""))
+
 (def ^{:metadata-spec "5.1.3"} template-property
   (variant {:string (fn [context s]
                       (if-let [t (template/try-parse-template s)]
                         (v/pure t)
-                        (make-warning context (str "Invalid URI template: '" s "'") invalid)))}))
+                        (make-warning context (str "Invalid URI template: '" s "'") invalid)))
+            :default default-template-property}))
 
 (defn expand-compact-uri [context s]
   (try
