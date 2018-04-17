@@ -136,7 +136,17 @@
     :else (v/pure v)))
 
 (def compact-uri (chain string expand-compact-uri))
-(def common-property-key compact-uri)
+
+(defn validate-common-property-key [_context ^String key]
+  ;;TODO: better way of validating?
+  (if (.contains key ":")
+    (v/pure key)
+    (v/with-warning (str "Invalid common property key: " key) invalid)))
+
+(def validate-absolute-uri (where (fn [^URI uri] (.isAbsolute uri)) "absolute URI"))
+
+;;NOTE: common property keys should be either absolute or compact URI, which must expand to an absolute URI
+(def common-property-key (chain string validate-common-property-key expand-compact-uri validate-absolute-uri))
 
 (defn normalise-common-property-id [context id]
   (v/bind (fn [uri]
