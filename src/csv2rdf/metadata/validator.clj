@@ -86,6 +86,15 @@
                        (= 1 (.length s)) (v/pure (.charAt s 0))
                        :else (make-warning context "Expected single character" invalid))))))
 
+(defn variant [{:keys [default] :as tag-validators}]
+  {:pre [(pos? (count tag-validators))]}
+  (fn [context x]
+    (if-let [validator (get tag-validators (mjson/get-json-type x))]
+      (validator context x)
+      (let [valid-types (keys (dissoc tag-validators :default))
+            actual-type (mjson/get-json-type x)]
+        (make-warning context (type-error-message valid-types actual-type) (or default invalid))))))
+
 (defn validate-array [context arr {:keys [length min-length] :as opts}]
   (cond
     (and (some? length) (not= length (count arr)))
@@ -100,14 +109,12 @@
   (v/collect (map-indexed (fn [idx v]
                             (element-validator (append-path context idx) v)) arr)))
 
+;;TODO: remove array validation and into individual properties?
 (defn array-with [{:keys [element-validator] :as opts}]
   (fn [context x]
-    (->> (array context x)
+    (->> ((variant {:array any :default []}) context x)
          (v/bind (fn [arr]
                    (cond
-                     (invalid? arr)
-                     (v/pure [])
-
                      (some? element-validator)
                      (let [arr-validation (v/fmap #(vec (remove invalid? %)) (traverse-array context arr element-validator))]
                        (v/bind (fn [arr] (validate-array context arr opts)) arr-validation))
@@ -145,15 +152,6 @@
     (if (nil? x)
       (v/pure x)
       (validator context x))))
-
-(defn variant [{:keys [default] :as tag-validators}]
-  {:pre [(pos? (count tag-validators))]}
-  (fn [context x]
-    (if-let [validator (get tag-validators (mjson/get-json-type x))]
-      (validator context x)
-      (let [valid-types (keys (dissoc tag-validators :default))
-            actual-type (mjson/get-json-type x)]
-        (make-warning context (type-error-message valid-types actual-type) (or default invalid))))))
 
 (defn chain
   "Composes a sequence of validators into a validator which applies each validator in turn.
