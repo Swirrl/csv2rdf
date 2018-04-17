@@ -25,5 +25,5 @@
   (update context :path conj path-element))
 
 (defn resolve-uri [{:keys [^URI base-uri] :as context} ^URI uri]
-  (.resolve base-uri uri))
+  (util/resolve-uri base-uri uri))
 
