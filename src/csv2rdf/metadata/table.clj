@@ -1,5 +1,5 @@
 (ns csv2rdf.metadata.table
-  (:require [csv2rdf.metadata.validator :refer [array-of bool eq]]
+  (:require [csv2rdf.metadata.validator :refer [array-of bool type-eq]]
             [csv2rdf.metadata.types :refer [link-property note table-direction object-property id contextual-object]]
             [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
             [csv2rdf.metadata.schema :as schema]
@@ -21,7 +21,7 @@
                 :tableSchema     (object-property schema/schema)
                 :transformations (array-of transformation/transformation)
                 :id              id
-                :type            (eq "Table")}}))
+                :type            (type-eq "Table")}}))
 
 (defn columns [table]
   (get-in table [:tableSchema :columns]))

@@ -3,7 +3,7 @@
             [csv2rdf.util :as util]
             [csv2rdf.metadata.types :refer [object-of id non-negative] :as types]
             [csv2rdf.metadata.validator :refer [make-warning invalid mapping variant any array-of string character
-                                                bool eq]]
+                                                bool eq type-eq]]
             [csv2rdf.validation :as v]
             [csv2rdf.http :as http])
   (:import [java.nio.charset Charset IllegalCharsetNameException]))
@@ -177,5 +177,5 @@
                 :skipRows non-negative
                 :trim trim-mode
                 :id id
-                :type (eq "Dialect")}
+                :type (type-eq "Dialect")}
      :allow-common-properties? false}))

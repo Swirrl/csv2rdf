@@ -1,6 +1,7 @@
 (ns csv2rdf.metadata.datatype
-  (:require [csv2rdf.metadata.validator :refer [variant one-of make-error make-warning any chain eq character
-                                                try-parse-with invalid? invalid type-error-message string]]
+  (:require [csv2rdf.metadata.validator :refer [variant one-of make-error make-warning any chain eq type-eq
+                                                character try-parse-with invalid? invalid type-error-message
+                                                string]]
             [csv2rdf.metadata.json :refer [object?]]
             [csv2rdf.metadata.types :refer [object-of non-negative id]]
             [csv2rdf.metadata.context :refer [append-path]]
@@ -162,7 +163,7 @@
                   :minExclusive datatype-bound
                   :maxExclusive datatype-bound
                   :id          (chain id validate-datatype-id)
-                  :type        (eq "Datatype")}
+                  :type        (type-eq "Datatype")}
        :allow-common-properties? true})
     validate-derived-datatype
     validate-derived-datatype-format))

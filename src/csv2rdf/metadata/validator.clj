@@ -64,6 +64,11 @@
       (v/pure x)
       (make-warning context (str "Expected '" expected "' received '" x "'") invalid))))
 
+(defn type-eq
+  "Validator that an object's @type property is the expected value"
+  [expected]
+  (strict (eq expected)))
+
 (defn any "Matches any value successfully"
   [_context x]
   (v/pure x))

@@ -1,6 +1,6 @@
 (ns csv2rdf.metadata.transformation
   (:require [csv2rdf.metadata.types :refer [object-of link-property natural-language id]]
-            [csv2rdf.metadata.validator :refer [variant one-of eq]]))
+            [csv2rdf.metadata.validator :refer [variant one-of eq type-eq]]))
 
 (def transformation-source-types #{"json" "rdf"})
 
@@ -16,6 +16,6 @@
      :optional {:source transformation-source
                 :titles natural-language
                 :id id
-                :type (eq "Template")}
+                :type (type-eq "Template")}
      :allow-common-properties? true}))
 

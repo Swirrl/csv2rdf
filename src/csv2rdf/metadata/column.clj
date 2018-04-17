@@ -2,7 +2,7 @@
   (:require [csv2rdf.xml.datatype :as xml-datatype]
             [csv2rdf.util :as util]
             [csv2rdf.validation :as v]
-            [csv2rdf.metadata.validator :refer [make-warning make-error chain string invalid bool eq array-of]]
+            [csv2rdf.metadata.validator :refer [make-warning make-error chain string invalid bool eq type-eq array-of]]
             [csv2rdf.metadata.context :refer [language-code-or-default]]
             [csv2rdf.metadata.types :refer [natural-language id]]
             [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
@@ -58,7 +58,7 @@
                 :titles         natural-language
                 :virtual        bool
                 :id            id
-                :type (eq "Column")}}))
+                :type (type-eq "Column")}}))
 
 (defn get-duplicate-names [columns]
   (->> columns

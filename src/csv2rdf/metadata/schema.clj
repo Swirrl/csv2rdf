@@ -1,5 +1,5 @@
 (ns csv2rdf.metadata.schema
-  (:require [csv2rdf.metadata.validator :refer [make-warning invalid chain array-of eq]]
+  (:require [csv2rdf.metadata.validator :refer [make-warning invalid chain array-of eq type-eq]]
             [csv2rdf.metadata.context :refer [append-path]]
             [csv2rdf.metadata.types :refer [object-of object-property link-property column-reference id]]
             [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
@@ -62,7 +62,7 @@
                   :primaryKey  column-reference            ;;TODO: validators MUST check that each row has a unique combination of values of cells in the indicated columns
                   :rowTitles   column-reference
                   :id         id
-                  :type       (eq "Schema")}})
+                  :type       (type-eq "Schema")}})
     validate-schema-column-references))
 
 (defn expand-properties
