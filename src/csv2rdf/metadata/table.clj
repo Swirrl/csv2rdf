@@ -1,5 +1,5 @@
 (ns csv2rdf.metadata.table
-  (:require [csv2rdf.metadata.validator :refer [array-of bool type-eq]]
+  (:require [csv2rdf.metadata.validator :refer [array-of bool type-eq strict]]
             [csv2rdf.metadata.types :refer [link-property note table-direction object-property id contextual-object]]
             [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
             [csv2rdf.metadata.schema :as schema]
@@ -11,9 +11,13 @@
   {:suppressOutput false
    :tableDirection "auto"})
 
+;;NOTE: link properties have a default value if the property is invalid
+;;CSVW tests (see test 103) expect an error to be raised if the table URL is invalid
+(def table-url (strict link-property))
+
 (def table
   (metadata-of
-    {:required {:url link-property}
+    {:required {:url table-url}
      :optional {:dialect         dialect/dialect
                 :notes           (array-of note)
                 :suppressOutput  bool
