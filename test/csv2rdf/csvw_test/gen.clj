@@ -15,7 +15,10 @@
 (def manifest (io/file test-data-dir "manifest.csv"))
 
 (defn test-path->file [path]
-  (io/file test-data-dir path))
+  ;;NOTE: some test path contain URI query fragments
+  ;;extract just the path from these before resolving against the base path
+  (let [path-uri (URI. path)]
+    (io/file test-data-dir (.getPath path-uri))))
 
 (defn test-path->uri [path]
   (.resolve test-base-uri path))

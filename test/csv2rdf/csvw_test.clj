@@ -1847,8 +1847,7 @@
   test116
   (let [http-client (->TestHttpClient
                       {(URI. "http://www.w3.org/2013/csvw/tests/test116.csv?query")
-                       {:body (io/file "csvw_data/test116.csv?query"),
-                        :headers {"Content-Type" "text/csv; charset=UTF-8"}},
+                       {:body (io/file "csvw_data/test116.csv"), :headers {"Content-Type" "text/csv; charset=UTF-8"}},
                        (URI. "http://www.w3.org/2013/csvw/tests/test116.csv-metadata.json")
                        {:body (io/file "csvw_data/test116.csv-metadata.json"),
                         :headers {"Content-Type" "application/csvm+json"}}})
@@ -1890,7 +1889,7 @@
   test118
   (let [http-client (->TestHttpClient
                       {(URI. "http://www.w3.org/2013/csvw/tests/test118/action.csv?query")
-                       {:body (io/file "csvw_data/test118/action.csv?query"),
+                       {:body (io/file "csvw_data/test118/action.csv"),
                         :headers {"Content-Type" "text/csv; charset=UTF-8"}},
                        (URI. "http://www.w3.org/2013/csvw/tests/test118/csv-metadata.json")
                        {:body (io/file "csvw_data/test118/csv-metadata.json"),
