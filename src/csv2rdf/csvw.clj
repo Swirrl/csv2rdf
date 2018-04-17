@@ -8,11 +8,14 @@
             [csv2rdf.metadata.dialect :as dialect]
             [clojure.java.io :as io]
             [csv2rdf.tabular.csv :as csv]
-            [grafter.rdf.io :as gio]))
+            [grafter.rdf.io :as gio]
+            [csv2rdf.validation :as v]))
 
 (defn csv->rdf->destination [tabular-source metadata-source destination {:keys [mode] :as options}]
   (let [mode (or mode :standard)
-        {:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source)
+        metadata-validation (processing/get-metadata tabular-source metadata-source)
+        ;;TODO: propagate warnings and errors
+        {:keys [tables] :as metadata} (v/get-value metadata-validation "Invalid metadata")
         table-group-dialect (:dialect metadata)
         output-tables (filter (fn [t] (= false (:suppressOutput t))) tables)
         {:keys [statements] :as ctx} (table-group-context mode metadata)]
@@ -27,7 +30,9 @@
             options (dialect/dialect->options (assoc dialect :doubleQuote false))]
         (with-open [r (io/reader url)]
           (let [annotated-rows (csv/annotated-rows r table options)]
-            (rdf/add destination (table-statements ctx table annotated-rows))))))))
+            (rdf/add destination (table-statements ctx table annotated-rows))))))
+
+    metadata-validation))
 
 (defn csv->rdf
   ([csv-source metadata-source] (csv->rdf csv-source metadata-source {}))
@@ -35,8 +40,8 @@
    (let [repo (repo/sail-repo)]
      (with-open [destination (repo/->connection repo)]
        (try
-         (csv->rdf->destination tabular-source metadata-source destination options)
-         {:errors [] :warnings [] :result (into [] (rdf/statements destination))}
+         (let [metadata-validation (csv->rdf->destination tabular-source metadata-source destination options)]
+           {:errors (v/errors metadata-validation) :warnings (v/warnings metadata-validation) :result (into [] (rdf/statements destination))})
          (catch Exception ex
            {:errors [(.getMessage ex)] :warnings [] :result nil}))))))
 
