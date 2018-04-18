@@ -74,10 +74,14 @@
       (make-error context (str "Duplicate names for columns: " (string/join ", " duplicate-names)))
       (v/pure columns))))
 
+(defn is-virtual? [{:keys [virtual] :as column}]
+  (boolean virtual))
+
+(def non-virtual? (complement is-virtual?))
+
 (defn ^{:metadata-spec "5.6"} validate-virtual-columns [context columns]
   ;;virtual property: If present, a virtual column MUST appear after all other non-virtual column definitions.
-  (let [non-virtual? (fn [col] (= false (:virtual col)))
-        virtual-columns (drop-while non-virtual? columns)
+  (let [virtual-columns (drop-while non-virtual? columns)
         invalid-columns (filter non-virtual? virtual-columns)]
     (if (seq invalid-columns)
       (let [first-virtual (first virtual-columns)           ;;NOTE: must exist
@@ -126,6 +130,3 @@
 
 (defn from-index [column-index]
   {:name (index-column-name column-index)})
-
-(defn is-virtual? [{:keys [virtual] :as column}]
-  (boolean virtual))
