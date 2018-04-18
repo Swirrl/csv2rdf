@@ -27,6 +27,7 @@
 (def xsd:date (URI. "http://www.w3.org/2001/XMLSchema#date"))
 (def xsd:dateTime (URI. "http://www.w3.org/2001/XMLSchema#dateTime"))
 (def xsd:dateTimeStamp (URI. "http://www.w3.org/2001/XMLSchema#dateTimeStamp"))
+(def xsd:time (URI. "http://www.w3.org/2001/XMLSchema#time"))
 (def xsd:double (URI. "http://www.w3.org/2001/XMLSchema#double"))
 (def xsd:anyURI (URI. "http://www.w3.org/2001/XMLSchema#anyURI"))
 

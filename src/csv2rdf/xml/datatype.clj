@@ -26,8 +26,10 @@
     ["duration" ["dayTimeDuration" "yearMonthDuration"]]
     "float"
     "gDay"
-    "gYear"
     "gMonth"
+    "gMonthDay"
+    "gYear"
+    "gYearMonth"
     "hexBinary"
     "QName"
     ["string"

@@ -6,13 +6,13 @@
             [csv2rdf.xml.datatype :as xml-datatype]
             [grafter.rdf.io :refer [language]]
             [grafter.rdf :as rdf]
-            [csv2rdf.vocabulary :refer [xsd:date xsd:dateTime xsd:dateTimeStamp xsd:anyURI]])
+            [csv2rdf.vocabulary :refer [xsd:date xsd:dateTime xsd:dateTimeStamp xsd:time xsd:anyURI]])
   (:import [java.util.regex Pattern]
            [java.math BigDecimal BigInteger]
            [java.text DecimalFormat ParseException]
            [grafter.rdf.protocols IRDFString]
            [java.time.format DateTimeFormatter DateTimeParseException]
-           [java.time LocalDate ZoneId LocalDateTime ZonedDateTime]
+           [java.time LocalDate ZoneId LocalDateTime ZonedDateTime LocalTime]
            [java.util Date]
            [javax.xml.datatype DatatypeFactory XMLGregorianCalendar]
            [javax.xml.namespace QName]
@@ -175,30 +175,37 @@
   (let [zoned-date (.atStartOfDay ld (ZoneId/systemDefault))]
     (Date/from (.toInstant zoned-date))))
 
-(defn try-parse-date [string-value datatype]
+(defn try-parse-date-format [string-value datatype]
   (let [dtf (or (:format datatype) DateTimeFormatter/ISO_DATE)
         local-date (LocalDate/parse string-value dtf)
         formatted (.format DateTimeFormatter/ISO_DATE local-date)]
     (rdf/literal formatted xsd:date)))
 
-(defn try-parse-datetime [string-value datatype]
+(defn try-parse-datetime-format [string-value datatype]
   (let [dtf (or (:format datatype) DateTimeFormatter/ISO_DATE_TIME)
         local-datetime (LocalDateTime/parse string-value dtf)
         formatted (.format DateTimeFormatter/ISO_DATE_TIME local-datetime)]
     (rdf/literal formatted xsd:dateTime)))
 
-(defn try-parse-datetimestamp [string-value datatype]
+(defn try-parse-datetimestamp-format [string-value datatype]
   (let [dtf (or (:format datatype) DateTimeFormatter/ISO_ZONED_DATE_TIME)
         zoned-datetime (ZonedDateTime/parse string-value dtf)
         formatted (.format zoned-datetime DateTimeFormatter/ISO_ZONED_DATE_TIME)]
     (rdf/literal formatted xsd:dateTimeStamp)))
 
-(def date-parsers
-  {"date" try-parse-date
-   "dateTime" try-parse-datetime
-   "dateTimeStamp" try-parse-datetimestamp})
+(defn try-parse-time-format [string-value datatype]
+  (let [tf (or (:format datatype) DateTimeFormatter/ISO_TIME)
+        local-date (LocalTime/parse string-value tf)
+        formatted (.format local-date DateTimeFormatter/ISO_TIME)]
+    (rdf/literal formatted xsd:time)))
 
-(defn parse-date [string-value {:keys [base] :as datatype}]
+(def date-parsers
+  {"date" try-parse-date-format
+   "dateTime" try-parse-datetime-format
+   "dateTimeStamp" try-parse-datetimestamp-format
+   "time" try-parse-time-format})
+
+(defn parse-date-format [string-value {:keys [base] :as datatype}]
   (if-let [parser (get date-parsers (xml-datatype/resolve-type-name base))]
     (try
       {:value (parser string-value datatype) :datatype datatype :errors []}
@@ -206,26 +213,29 @@
         (fail-parse string-value (format "Cannot parse value '%s' with the expected date pattern for type '%s'" string-value base))))
     (throw (IllegalArgumentException. (format "Invalid date/time type '%s'" base)))))
 
-(defn qname->uri [^QName qname]
-  ;;TODO: better way to do this?
-  (URI. (str (.getNamespaceURI qname) "#" (.getLocalPart qname))))
+(defn xml-gregorian-calendar->literal [^XMLGregorianCalendar calendar {:keys [base] :as datatype}]
+  (rdf/literal (.toXMLFormat calendar) (xml-datatype/get-datatype-iri base)))
 
-(defn xml-gregorian-calendar->literal [^XMLGregorianCalendar calendar]
-  (rdf/literal (.toXMLFormat calendar) (qname->uri (.getXMLSchemaType calendar))))
+(def xml-datatype-factory (DatatypeFactory/newInstance))
+
+(defn is-compatible-gregorian-calendar-type? [^XMLGregorianCalendar calendar {:keys [base] :as datatype}]
+  (let [local-part (.getLocalPart (.getXMLSchemaType calendar))]
+    (or (and (= base "dateTimeStamp")
+             (= local-part "dateTime"))
+        (= (xml-datatype/resolve-type-name base) local-part))))
 
 (defn parse-xml-gregorian-calendar [string-value {:keys [base] :as datatype}]
   (try
-    (let [dtf (DatatypeFactory/newInstance)
-          ^XMLGregorianCalendar calendar (.newXMLGregorianCalendar dtf string-value)
-          calendar-type (.getXMLSchemaType calendar)]
-      (if (= base (.getLocalPart calendar-type))
-        {:value (xml-gregorian-calendar->literal calendar) :datatype datatype :errors []}
+    (let [^XMLGregorianCalendar calendar (.newXMLGregorianCalendar xml-datatype-factory string-value)]
+      (if (is-compatible-gregorian-calendar-type? calendar datatype)
+        {:value (xml-gregorian-calendar->literal calendar datatype) :datatype datatype :errors []}
         (fail-parse string-value (format "Cannot parse value '%s' as type %s" string-value base))))
     (catch IllegalArgumentException _ex
       (fail-parse string-value (format "Cannot parse value '%s' as type %s" string-value base)))))
 
 (defn is-xml-gregorian-calendar-type? [datatype-base]
-  (contains? #{"gDay" "gMonth" "gMonthDay" "gYear" "gYearMonth"} datatype-base))
+  (or (xml-datatype/is-date-time-type? datatype-base)
+      (contains? #{"gDay" "gMonth" "gMonthDay" "gYear" "gYearMonth"} datatype-base)))
 
 (defn parse-anyURI [string-value {:keys [base] :as datatype}]
   (try
@@ -249,8 +259,6 @@
 (defn parse-boolean [string-value {:keys [format] :as datatype}]
   (let [mapping (if (some? format) format default-boolean-mapping)]
     (parse-boolean-with-mapping string-value datatype mapping)))
-
-(def xml-datatype-factory (DatatypeFactory/newInstance))
 
 (defn parse-duration [^String s] (.newDuration xml-datatype-factory s))
 (defn parse-day-time-duration [^String s] (.newDurationDayTime xml-datatype-factory s))
@@ -297,14 +305,24 @@
       (xml-datatype/is-numeric-type? base)
       (parse-numeric string-value datatype)
 
-      (xml-datatype/is-date-time-type? base)
-      (parse-date string-value datatype)
+      ;;time is a date/time type but we currently parse it using the XML gregorian calendar
+      ;;TODO: parse all date/time types this way?
+      (= "time" base)
+      (parse-xml-gregorian-calendar string-value datatype)
 
-      (xml-datatype/is-duration-type? base)
-      (parse-duration string-value datatype)
+      (and (nil? (:format datatype))
+           (is-xml-gregorian-calendar-type? base))
+      (parse-xml-gregorian-calendar string-value datatype)
+
+      (and (some? (:format datatype))
+           (xml-datatype/is-date-time-type? base))
+      (parse-date-format string-value datatype)
 
       (is-xml-gregorian-calendar-type? base)
       (parse-xml-gregorian-calendar string-value datatype)
+
+      (xml-datatype/is-duration-type? base)
+      (parse-duration string-value datatype)
 
       (xml-datatype/is-uri-type? base)
       (parse-anyURI string-value datatype)
