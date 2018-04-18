@@ -9,7 +9,7 @@
             [csv2rdf.vocabulary :refer [xsd:date xsd:dateTime xsd:dateTimeStamp xsd:anyURI]])
   (:import [java.util.regex Pattern]
            [java.math BigDecimal BigInteger]
-           [java.text DecimalFormat]
+           [java.text DecimalFormat ParseException]
            [grafter.rdf.protocols IRDFString]
            [java.time.format DateTimeFormatter DateTimeParseException]
            [java.time LocalDate ZoneId LocalDateTime ZonedDateTime]
@@ -160,9 +160,10 @@
 
 (defn parse-number-format [string-value {{:keys [^DecimalFormat pattern]} :format :as datatype}]
   (if (some? pattern)
-    (if-let [result (.parse pattern string-value)]
-      {:value result :datatype datatype :errors []}
-      (fail-parse string-value (format "Cannot parse value '%s' with the pattern '%s'" string-value (.toPattern pattern))))
+    (try
+      {:value (.parse pattern string-value) :datatype datatype :errors []}
+      (catch ParseException _ex
+        (fail-parse string-value (format "Cannot parse value '%s' with the pattern '%s'" string-value (.toPattern pattern)))))
     (parse-number-from-constructed-format string-value datatype)))
 
 (defn parse-numeric [string-value {:keys [format] :as datatype}]
