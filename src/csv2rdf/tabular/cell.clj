@@ -250,6 +250,33 @@
   (let [mapping (if (some? format) format default-boolean-mapping)]
     (parse-boolean-with-mapping string-value datatype mapping)))
 
+(def xml-datatype-factory (DatatypeFactory/newInstance))
+
+(defn parse-duration [^String s] (.newDuration xml-datatype-factory s))
+(defn parse-day-time-duration [^String s] (.newDurationDayTime xml-datatype-factory s))
+(defn parse-year-month-duration [^String s] (.newDurationYearMonth xml-datatype-factory s))
+
+(def duration-factory-parsers
+  {"duration" parse-duration
+   "dayTimeDuration" parse-day-time-duration
+   "yearMonthDuration" parse-year-month-duration})
+
+(defn parse-duration [string-value {:keys [base] :as datatype}]
+  (if-let [parser (get duration-factory-parsers base)]
+    (try
+      ;;NOTE: just used for validation
+      ;;XML Duration type normalises the parsed value when outputting as strings, which the test cases do not
+      ;;expect e.g. an input string of P20M is formatted as P1Y8M
+      (parser string-value)
+      (let [datatype-uri (xml-datatype/get-datatype-iri base)
+            rdf-lit (rdf/literal string-value datatype-uri)]
+        {:value rdf-lit :datatype datatype :errors []})
+      (catch IllegalArgumentException _ex
+        (fail-parse string-value (format "Cannot parse '%s' as type %s" string-value base)))
+      (catch UnsupportedOperationException _ex
+        (fail-parse string-value (format "Value '%s' of type %s too large for the implementation" string-value base))))
+    (throw (IllegalArgumentException. (str "Unsupported duration type: " base)))))
+
 (defn ^{:table-spec "6.4.8"} parse-format [string-value {:keys [lang datatype] :as column}]
   ;;TODO: create protcol for parsing?
   (let [base (:base datatype)]
@@ -272,6 +299,9 @@
 
       (xml-datatype/is-date-time-type? base)
       (parse-date string-value datatype)
+
+      (xml-datatype/is-duration-type? base)
+      (parse-duration string-value datatype)
 
       (is-xml-gregorian-calendar-type? base)
       (parse-xml-gregorian-calendar string-value datatype)
