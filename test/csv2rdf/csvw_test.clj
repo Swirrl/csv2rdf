@@ -4397,7 +4397,7 @@
                        {:body (io/file "csvw_data/test259/csvm.json"),
                         :headers {"Content-Type" "application/csvm+json"}},
                        (URI. "http://www.w3.org/.well-known/csvm")
-                       {:body (URL. "file:/Users/lee/src/csv2rdf/test/resources/csvm"), :headers {}}})
+                       {:body "{+url}-metadata.json\ncsv-metadata.json\n{+url}.json\ncsvm.json", :headers {}}})
         csv-uri (URI. "http://www.w3.org/2013/csvw/tests/test259/tree-ops.csv")
         metadata-uri nil
         {:keys [warnings errors result]} (http/with-http-client
@@ -4421,7 +4421,7 @@
                        {:body (io/file "csvw_data/test260/tree-ops.csv.json"),
                         :headers {"Content-Type" "application/csvm+json"}},
                        (URI. "http://www.w3.org/.well-known/csvm")
-                       {:body (URL. "file:/Users/lee/src/csv2rdf/test/resources/csvm"), :headers {}}})
+                       {:body "{+url}-metadata.json\ncsv-metadata.json\n{+url}.json\ncsvm.json", :headers {}}})
         csv-uri (URI. "http://www.w3.org/2013/csvw/tests/test260/tree-ops.csv")
         metadata-uri nil
         {:keys [warnings errors result]} (http/with-http-client

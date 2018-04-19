@@ -155,7 +155,7 @@
      :schema-path   action
      :requests      (vec (cons metadata-request (map file->request implicit)))}))
 
-(def well-known-metadata-file (io/resource "csvm"))
+(def well-known-metadata-file (slurp (io/resource "csvm")))
 
 (def well-known-metadata-response
   {:uri (URI. "http://www.w3.org/.well-known/csvm")
