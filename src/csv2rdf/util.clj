@@ -126,7 +126,7 @@
        (if (>= idx len)
          (str sb)
          (let [octet (aget bytes idx)
-               ci (int octet)
+               ci (Byte/toUnsignedInt octet)
                requires-encoding? (not= -1 (.indexOf percent-reserved-chars ci))]
            (if requires-encoding?
              (doto sb (.append \%) (.append (Integer/toHexString ci)))
