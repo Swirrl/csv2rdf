@@ -30,4 +30,6 @@
 (def xsd:time (URI. "http://www.w3.org/2001/XMLSchema#time"))
 (def xsd:double (URI. "http://www.w3.org/2001/XMLSchema#double"))
 (def xsd:anyURI (URI. "http://www.w3.org/2001/XMLSchema#anyURI"))
+(def xsd:base64Binary (URI. "http://www.w3.org/2001/XMLSchema#base64Binary"))
+(def xsd:hexBinary (URI. "http://www.w3.org/2001/XMLSchema#hexBinary"))
 
