@@ -116,7 +116,7 @@
   "Expands all properties for this column by inheriting any unspecified inherited properties from its parent
    schema."
   [parent-schema column]
-  (inherited/inherit parent-schema (merge column-defaults column)))
+  (inherited/expand-inherit parent-schema (merge column-defaults column)))
 
 (defn from-titles
   "Creates a new column given the column index and the sequence of titles"

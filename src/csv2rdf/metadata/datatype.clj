@@ -178,3 +178,8 @@
 ;;TODO: move this into CSVW namespace
 (defn ^{:csvw-spec "4.3"} get-datatype-iri [{:keys [base id] :as datatype}]
   (or id (xml-datatype/get-datatype-iri base)))
+
+(def datatype-defaults {:base "string"})
+
+(defn expand-properties [datatype]
+  (merge datatype-defaults datatype))

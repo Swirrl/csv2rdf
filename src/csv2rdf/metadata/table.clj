@@ -42,7 +42,7 @@
 (defn expand-properties
   "Expands all properties for this table by inheriting any undefined inherited properties from its parent table group."
   [parent-table-group table]
-  (let [table (inherited/inherit-with-defaults parent-table-group (merge table-defaults table))]
+  (let [table (inherited/expand-inherit parent-table-group (merge table-defaults table))]
     (expand-children table)))
 
 (defn parse-table-json [context doc]

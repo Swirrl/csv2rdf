@@ -29,7 +29,7 @@
    :required false
    :separator nil
    :textDirection "inherit"
-   :datatype {:base "string"}})
+   :datatype datatype/datatype-defaults})
 
 (defn inherit
   "Inherits in the child any inherited properties defined by the parent"
@@ -39,10 +39,24 @@
     (merge inherited child)))
 
 (defn inherit-defaults [obj]
-  (merge inherited-defaults obj))
+  (let [expanded (if (contains? obj :datatype)
+                   (update obj :datatype datatype/expand-properties)
+                   obj)]
+    (merge inherited-defaults expanded)))
 
 (defn inherit-with-defaults [parent child]
   (inherit-defaults (inherit parent child)))
+
+(defn expand-inherit [parent child]
+  ;;1. expand any inherited properties in the child
+  ;;2. inherit any inherited properties from the parent
+  ;;3. apply default values for any inherited properties still undefined
+  ;;TODO: step 3 redundant if this process has been applied to the parent?
+  (let [expanded-child (if (contains? child :datatype)
+                         (update child :datatype datatype/expand-properties)
+                         child)
+        inherited (inherit parent expanded-child)]
+    (merge inherited-defaults inherited)))
 
 (defn metadata-of [{:keys [required optional defaults]}]
   (object-of {:required required

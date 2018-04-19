@@ -68,7 +68,7 @@
 (defn expand-properties
   "Expands all properties for this schema by inheriting any undefined properties from its parent table."
   [parent-table schema]
-  (let [schema (inherited/inherit parent-table schema)]
+  (let [schema (inherited/expand-inherit parent-table schema)]
     (update schema :columns (fn [cols]
                               (mapv (fn [c] (column/expand-properties schema c)) cols)))))
 
