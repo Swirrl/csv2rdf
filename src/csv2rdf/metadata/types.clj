@@ -75,6 +75,13 @@
 
 (def link-property (chain parse-link-property normalise-link-property))
 
+(defn id
+  "An id is a link property whose value cannot begin with _:"
+  [context x]
+  (if (and (string? x) (.startsWith x "_:"))
+    (make-error context "Ids cannot start with _:")
+    (link-property context x)))
+
 (def ^{:metadata-spec "5.1.3"} default-template-property (template/parse-template ""))
 
 (def ^{:metadata-spec "5.1.3"} template-property
@@ -95,7 +102,7 @@
 (defn ordinary-common-property-value-key [special-keys]
   (fn [context ^String x]
     (if (and (string? x) (.startsWith x "@"))
-      (make-warning context (str "Only keys " (string/join special-keys) " can start with an @") invalid)
+      (make-error context (str "Only keys " (string/join ", " special-keys) " can start with an @"))
       (v/pure x))))
 
 (def ^{:metadata-spec "5.8.2"} common-property-value-type
@@ -116,20 +123,20 @@
             [allowed remaining] allowed-keys]
         (cond
           (seq remaining)
-          (make-warning context (str "Common property values specifying @value must only contain keys " (string/join ", " allowed-keys)) invalid)
+          (make-error context (str "Common property values specifying @value must only contain keys " (string/join ", " allowed-keys)))
 
           (= 3 (count allowed))
-          (make-warning context "Common property values specifying @value can only contain one of @type or @language" invalid)
+          (make-error context "Common property values specifying @value can only contain one of @type or @language")
 
           :else
-          (let [special-keys (kvps [(optional-key "@language" language-code)
+          (let [special-keys (kvps [(optional-key "@language" (strict language-code))
                                     (optional-key "@value" (variant {:string any :boolean any :number any}))
-                                    (optional-key "@type" common-property-value-type)])]
+                                    (optional-key "@type" (strict common-property-value-type))])]
             (special-keys context v))))
       (let [special-keys ["@id" "@type"]           ;;NOTE: @language not allowed unless @value specified
             [special remaining] (util/partition-keys v special-keys)
-            special-validator (kvps [(optional-key "@id" any) ;;NOTE: @id will be expanded during normalisation
-                                     (optional-key "@type" common-property-value-type)])
+            special-validator (kvps [(optional-key "@id" (strict id)) ;;NOTE: @id will be expanded during normalisation
+                                     (optional-key "@type" (strict common-property-value-type))])
             remaining-validator (map-of (ordinary-common-property-value-key ["@id" "@type"]) validate-common-property-value)]
         (v/combine-with merge (special-validator context special) (remaining-validator context remaining))))
 
@@ -186,13 +193,6 @@
   (if (.startsWith s "_:")
     (make-error context "Ids cannot start with _:")
     ((try-parse-with #(URI. %)) context s)))
-
-(defn id
-  "An id is a link property whose value cannot begin with _:"
-  [context x]
-  (if (and (string? x) (.startsWith x "_:"))
-    (make-error context "Ids cannot start with _:")
-    (link-property context x)))
 
 (defn column-reference-array [context arr]
   (cond (= 0 (count arr)) (make-warning context "Column references should not be empty" invalid)
