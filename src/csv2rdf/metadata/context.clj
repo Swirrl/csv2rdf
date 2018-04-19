@@ -6,18 +6,20 @@
 (def base-key (keyword "@base"))
 (def language-key :language)
 
-(defn make-context [base-uri]
-  {:base-uri base-uri :path [] :language nil})
+(defn make-context [metadata-uri]
+  {:base-uri metadata-uri :document-uri metadata-uri :path [] :language nil})
 
 (defn language-code-or-default [{:keys [language] :as context}]
   (or language "und"))
 
-(defn update-from-local-context
+(defn ^{:metadata-spec "5.2"} update-from-local-context
   "Updates the context from a parsed local context definition"
   [context local-context]
-  (let [key-mapping {base-key     :base-uri
-                     language-key :language}
-        from-local (util/select-keys-as local-context key-mapping)
+  (let [;;NOTE: @base key is 'a URL which is resolved against the location of the metadata document to provide the
+        ;; base URL for other URLs in the metadata document'
+        context-base-uri (get local-context base-key)
+        base-uri (some->> context-base-uri (.resolve (:document-uri context)))
+        from-local {:base-uri base-uri :langauge (get local-context language-key)}
         local (util/filter-values some? from-local)]
     (merge context local)))
 
