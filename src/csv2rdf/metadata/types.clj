@@ -3,7 +3,7 @@
                                                 required-key invalid-key-pair any map-of one-of string invalid?
                                                 chain try-parse-with where strict make-error tuple eq uri]]
             [csv2rdf.metadata.context :refer [resolve-uri append-path language-code-or-default
-                                              base-key language-key id-key update-from-local-context]]
+                                              base-key language-key id-key update-from-local-context with-document-uri]]
             [csv2rdf.json-ld :refer [expand-uri-string]]
             [csv2rdf.validation :as v]
             [csv2rdf.metadata.json :refer [array? object?] :as mjson]
@@ -303,7 +303,8 @@
   (fn [context object-uri]
     (->> (resolve-linked-object-property-object context object-uri)
          (v/bind (fn [obj]
-                   ((contextual-object false object-validator) context obj)))
+                   (let [updated-context (with-document-uri context object-uri)]
+                     ((contextual-object false object-validator) updated-context obj))))
          (v/fmap (fn [obj]
                    ;;TODO: error if resolved JSON document is not an object? Specification does not mention this
                    ;;case but requires an empty object in other error cases. Add @id key as required due to normalisation

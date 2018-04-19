@@ -29,3 +29,6 @@
 (defn resolve-uri [{:keys [^URI base-uri] :as context} ^URI uri]
   (util/resolve-uri base-uri uri))
 
+(defn with-document-uri [context new-document-uri]
+  (assoc context :document-uri new-document-uri))
+
