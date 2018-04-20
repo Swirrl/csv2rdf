@@ -5,7 +5,7 @@
             [csv2rdf.csvw :as csvw]
             [csv2rdf.http :as http]
             [grafter.rdf :as rdf])
-  (:import [java.net URI URL]))
+  (:import [java.net URI]))
 
 (deftest
   test001

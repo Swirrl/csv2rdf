@@ -258,10 +258,17 @@
     (v/pure m)
     (make-error context "Top-level object must contain @base or @language keys")))
 
+;;TODO: remove invalid marker value?
+(defn ignore-invalid
+  "Validator which wraps an inner validator and converts invalid values into nil"
+  [validator]
+  (fn [context x]
+    (v/fmap (fn [r] (if (invalid? r) nil r)) (validator context x))))
+
 (def parse-context-pair (tuple
                           (eq csvw-ns)
                           (object-of {:optional {base-key     (strict uri)
-                                                 language-key (strict language-code)}})))
+                                                 language-key (ignore-invalid language-code)}})))
 
 (def context-pair (chain parse-context-pair validate-object-context-pair))
 
