@@ -2,7 +2,7 @@
   (:require [csv2rdf.tabular.processing :as processing]
             [grafter.rdf.repository :as repo]
             [grafter.rdf :as rdf]
-            [csv2rdf.csvw.common :refer [table-group-context table-statements]]
+            [csv2rdf.csvw.common :refer [table-group-context write-table-statements]]
             [csv2rdf.csvw.minimal]
             [csv2rdf.csvw.standard]
             [csv2rdf.metadata.dialect :as dialect]
@@ -18,7 +18,8 @@
         {:keys [tables] :as metadata} (v/get-value metadata-validation "Invalid metadata")
         table-group-dialect (:dialect metadata)
         output-tables (filter (fn [t] (= false (:suppressOutput t))) tables)
-        {:keys [statements] :as ctx} (table-group-context mode metadata)]
+        {:keys [statements] :as ctx} (table-group-context mode metadata)
+        cell-errors (atom [])]
 
     (rdf/add destination (seq statements))
 
@@ -30,9 +31,10 @@
             options (dialect/dialect->options (assoc dialect :doubleQuote false))]
         (with-open [r (io/reader url)]
           (let [annotated-rows (csv/annotated-rows r table options)]
-            (rdf/add destination (table-statements ctx table annotated-rows))))))
+            (let [table-cell-errors (write-table-statements ctx destination table annotated-rows)]
+              (swap! cell-errors into table-cell-errors))))))
 
-    metadata-validation))
+    (v/add-warnings metadata-validation @cell-errors)))
 
 (defn csv->rdf
   ([csv-source metadata-source] (csv->rdf csv-source metadata-source {}))

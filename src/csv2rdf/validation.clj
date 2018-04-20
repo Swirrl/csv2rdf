@@ -68,4 +68,5 @@
 (def warnings ::warnings)
 (def errors ::errors)
 
-
+(defn add-warnings [validation warnings]
+  (update validation ::warnings into warnings))

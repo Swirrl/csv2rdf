@@ -4,7 +4,8 @@
             [csv2rdf.json-ld :as json-ld]
             [grafter.rdf :refer [->Triple]]
             [grafter.rdf.io :refer [language literal]]
-            [csv2rdf.util :as util])
+            [csv2rdf.util :as util]
+            [grafter.rdf :as rdf])
   (:import [java.net URI]))
 
 ;;TODO: move csv2rdf.metadata.json namespace and use definitions in there
@@ -100,18 +101,22 @@
             (row-title-statements row-subject row)
             (mapcat (fn [cell] (cell-statements table-url row-subject default-cell-subject cell)) (row-unsuppressed-cells row)))))
 
-(defmethod table-statements :standard [{:keys [table-group-subject] :as context} {:keys [id url] :as table} annotated-rows]
-  (let [table-subject (or id (gen-blank-node "table"))
-        t-4_2 (->Triple table-group-subject csvw:table table-subject)
-        t-4_3 (->Triple table-subject rdf:type csvw:Table)
-        t-4_4 (->Triple table-subject csvw:url url)]
-    (concat [t-4_2 t-4_3 t-4_4]
-            (notes-non-core-annotation-statements table-subject table)
-            (mapcat (fn [row] (row-statements table-subject table row)) annotated-rows))))
-
 (defmethod table-group-context :standard [mode {:keys [id] :as table-group}]
   (let [tg-subject (or id (gen-blank-node "tablegroup"))
         t (->Triple tg-subject rdf:type csvw:TableGroup)]
     {:mode mode
      :table-group-subject tg-subject
      :statements (cons t (notes-non-core-annotation-statements tg-subject table-group))}))
+
+(defmethod write-table-statements :standard [{:keys [table-group-subject] :as context} destination {:keys [id url] :as table} annotated-rows]
+  (let [cell-errors (atom [])]
+    (let [table-subject (or id (gen-blank-node "table"))
+          t-4_2 (->Triple table-group-subject csvw:table table-subject)
+          t-4_3 (->Triple table-subject rdf:type csvw:Table)
+          t-4_4 (->Triple table-subject csvw:url url)]
+      (rdf/add destination [t-4_2 t-4_3 t-4_4])
+      (rdf/add destination (seq (notes-non-core-annotation-statements table-subject table)))
+      (doseq [row annotated-rows]
+        (rdf/add destination (row-statements table-subject table row))
+        (swap! cell-errors into (row-cell-errors row)))
+      @cell-errors)))

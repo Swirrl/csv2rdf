@@ -1,6 +1,7 @@
 (ns csv2rdf.csvw.minimal
   (:require [csv2rdf.vocabulary :refer [rdf:nil rdf:first rdf:rest]]
-            [csv2rdf.csvw.common :refer :all]))
+            [csv2rdf.csvw.common :refer :all]
+            [grafter.rdf :as rdf]))
 
 (defn minimal-cell-statements [table-url default-subject {:keys [aboutUrl] :as cell}]
   (let [subject (or aboutUrl default-subject)
@@ -14,9 +15,13 @@
               (minimal-cell-statements table-url default-subject cell))
             unsuppressed-cells)))
 
-(defmethod table-statements :minimal [_context {:keys [url] :as table} annotated-rows]
-  (mapcat (fn [row] (minimal-row-statements url row)) annotated-rows))
-
 (defmethod table-group-context :minimal [mode _table-group]
   {:mode mode
    :statements []})
+
+(defmethod write-table-statements :minimal [_context destination {:keys [url] :as table} annotated-rows]
+  (let [cell-errors (atom [])]
+    (doseq [row annotated-rows]
+      (rdf/add destination (minimal-row-statements url row))
+      (swap! cell-errors into (row-cell-errors row)))
+    @cell-errors))

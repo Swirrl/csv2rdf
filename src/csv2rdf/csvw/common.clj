@@ -62,5 +62,9 @@
 
       :else [])))
 
+;;TODO: move this into row namespace?
+(defn row-cell-errors [{:keys [cells] :as row}]
+  (mapcat cell/errors cells))
+
 (defmulti table-group-context (fn [mode _table-group] mode))
-(defmulti table-statements (fn [context table rows] (:mode context)))
+(defmulti write-table-statements (fn [context destination table rows] (:mode context)))
