@@ -177,7 +177,7 @@
 
     (object? v)
     (let [[special common-properties] (util/partition-keys v ["@id" "@type"])
-          special-validator (kvps [(optional-key "@id" normalise-common-property-id)
+          special-validator (kvps [(optional-key "@id" any)
                                    (optional-key "@type" any)])
           common-validator (map-of common-property-key normalise-common-property-value)]
       (v/combine-with merge (special-validator context special) (common-validator context common-properties)))
