@@ -72,6 +72,14 @@
     (update schema :columns (fn [cols]
                               (mapv (fn [c] (column/expand-properties schema c)) cols)))))
 
+(defn ^{:tabular-spec "8.10.4.5.1.1"} merge-columns
+  "Creates any extra columns which exist in the embedded schema but which are not defined in the user metadata."
+  [user-columns embedded-columns]
+  (let [actual-column-count (count embedded-columns)
+        user-column-count (count user-columns)
+        extra-column-indexes (range user-column-count actual-column-count)]
+    (vec (concat user-columns (map column/from-index extra-column-indexes)))))
+
 (defn compatibility-merge [user-schema embedded-schema]
   ;;TODO: validate schemas are compatible
-  (or user-schema embedded-schema))
+  (update user-schema :columns merge-columns (:columns embedded-schema)))
