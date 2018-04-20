@@ -29,8 +29,21 @@
     {:comments (mapv :comment comment-rows)
      :columns columns}))
 
-(defn ^{:table-spec "8.10.3"} get-data-comments [data-rows]
-  (map :comment (filter reader/is-comment-row? data-rows)))
+(defn ^{:table-spec "8.10.3"} validate-data-rows
+  "Validates the data rows in the tabular file and extracts any embedded comments. The row number of any rows
+  containing an unexpected number of cells (i.e. different from the first data row) are returned under the
+  :invalid-row-numbers key."
+  [data-rows]
+  (reduce (fn [{:keys [cell-count] :as acc} {:keys [comment cells source-row-number] :as row}]
+            (if (reader/is-comment-row? row)
+              (update acc :comments conj comment)
+              (let [row-cell-count (count cells)]
+                (cond
+                  (nil? cell-count) (assoc acc :cell-count row-cell-count)
+                  (= cell-count row-cell-count) acc
+                  :else (update acc :invalid-row-numbers conj source-row-number)))))
+          {:comments [] :cell-count nil :invalid-row-numbers []}
+          data-rows))
 
 (defn ^{:table-spec ["8.7" "8.8"]} get-header
   "Gets the header given a sequence of header/data rows, and a returns a pair of
@@ -56,14 +69,19 @@
            [skipped-rows remaining-rows] (split-at skipRows rows)
            skipped-row-comments (get-skipped-rows-comments skipped-rows)
            [data-rows {:keys [columns] :as header}] (get-header remaining-rows options)
-           data-row-comments (get-data-comments data-rows)
-           comments (vec (concat skipped-row-comments (:comments header) data-row-comments))
-           schema {:columns columns}
-           table (table/from-schema (source/->uri csv-source) schema)
-           table (if (empty? comments)
-                   table
-                   (assoc table :comments comments))]
-       (table-group/from-table table)))))
+           {:keys [invalid-row-numbers] :as data-validation} (validate-data-rows data-rows)]
+       (if (empty? invalid-row-numbers)
+         (let [embedded-comments (vec (concat skipped-row-comments (:comments header) (:comments data-validation)))
+               schema {:columns columns}
+               table (table/from-schema (source/->uri csv-source) schema)
+               table (if (empty? embedded-comments)
+                       table
+                       (assoc table :comments embedded-comments))]
+           (table-group/from-table table))
+         (let [msg (format "Rows %s contain an unexpected number of cell values (expected: %d)"
+                           (string/join ", " invalid-row-numbers)
+                           (:cell-count data-validation))]
+           (throw (ex-info msg {:invalid-rows invalid-row-numbers}))))))))
 
 ;;TODO: move this
 (def index->row-number inc)
