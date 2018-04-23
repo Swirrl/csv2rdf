@@ -5,7 +5,8 @@
             [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
             [csv2rdf.metadata.column :as column]
             [csv2rdf.validation :as v]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [clojure.set :as set]))
 
 (defn validate-foreign-key-reference [context reference]
   (if (and (contains? reference :resource) (contains? reference :schemaReference))
@@ -79,6 +80,16 @@
         user-column-count (count user-columns)
         extra-column-indexes (range user-column-count actual-column-count)]
     (vec (concat user-columns (map column/from-index extra-column-indexes)))))
+
+;;TODO: should this be done before metadata is normalised/expanded/inherited?
+(defn ^{:metadata-spec "5.5.1"} validate-compatible [validating? {columns1 :columns :as schema1} {columns2 :columns :as schema2}]
+  (let [col1-non-virtual (column/indexed-non-virtual-columns columns1)
+        col2-non-virtual (column/indexed-non-virtual-columns columns2)
+        common-indexes (set/intersection (set (keys col1-non-virtual)) (set (keys col2-non-virtual)))
+        column-validations (map (fn [idx]
+                                  (column/validate-compatible validating? idx (get col1-non-virtual idx) (get col2-non-virtual idx)))
+                                common-indexes)]
+    (v/with-value (v/collect column-validations) nil)))
 
 (defn compatibility-merge [user-schema embedded-schema]
   ;;TODO: validate schemas are compatible

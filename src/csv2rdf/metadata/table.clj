@@ -54,6 +54,14 @@
   {:url table-uri
    :tableSchema schema})
 
+(defn ^{:metadata-spec "5.4.3"} validate-compatible [validating? {uri1 :url schema1 :tableSchema :as table1} {uri2 :url schema2 :tableSchema :as table2}]
+  ;;TODO: normalise URIs during parsing?
+  (let [uri-validation (if (= (.normalize uri1) (.normalize uri2))
+                         (v/pure nil)
+                         (v/with-warning (format "Table URIs %s and %s not equal after normalisation" uri1 uri2) nil))
+        schema-validation (schema/validate-compatible validating? schema1 schema2)]
+    (v/combine uri-validation schema-validation)))
+
 (defn compatibility-merge [user-table embedded-table]
   ;;TODO: validate tables are compatible
   (let [notes (vec (concat (:notes user-table) (:notes embedded-table)))

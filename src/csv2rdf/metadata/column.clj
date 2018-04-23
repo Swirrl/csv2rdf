@@ -6,7 +6,8 @@
             [csv2rdf.metadata.context :refer [language-code-or-default]]
             [csv2rdf.metadata.types :refer [natural-language id]]
             [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [clojure.set :as set])
   (:import [java.nio CharBuffer]
            [com.github.fge.uritemplate URITemplateParseException]
            [com.github.fge.uritemplate.parse VariableSpecParser]))
@@ -130,3 +131,48 @@
 
 (defn from-index [column-index]
   {:name (index-column-name column-index)})
+
+(defn indexed-non-virtual-columns
+  "Returns a map {column-index column} of the non-virtual columns in the given sequence of columns"
+  [columns]
+  (into {} (filter (fn [[_idx col]] (non-virtual? col)) (map-indexed vector columns))))
+
+(defn intersect-titles
+  "Returns a map {lang #{matching-titles}} containing the titles that match for each language within the titles definition
+   of a column."
+  [titles1 titles2]
+  ;;TODO: languages match if they are equal when truncated, as defined in [BCP47], to the length of the shortest language tag
+  ;;und matches any language
+  (let [und-intersection (set/union
+                           (set/intersection (set (get titles1 "und")) (set (flatten (vals titles2))))
+                           (set/intersection (set (get titles2 "und")) (set (flatten (vals titles1)))))
+        common-langs (disj (set/intersection (set (keys titles1)) (set (keys titles2))) "und")]
+    (into {"und" und-intersection}
+          (map (fn [lang]
+                 [lang (set/intersection (set (get titles1 lang)) (set (get titles2 lang)))])
+               common-langs))))
+
+(defn- titles-intersect? [column1 column2]
+  (let [title-intersection (intersect-titles (:titles column1) (:titles column2))]
+    (boolean (some seq (vals title-intersection)))))
+
+(defn ^{:metadata-spec "5.5.1"} compatible? [validating? column1 column2]
+  (letfn [(has-name? [column] (some? (:name column)))
+          (has-title? [column] (boolean (seq (:titles column))))
+          (has-name-or-title? [column] (or (has-name? column) (has-title? column)))
+          (has-name-no-title? [column] (and (has-name? column) (not (has-title? column))))
+          (has-title-no-name? [column] (and (has-title? column) (not (has-name? column))))]
+    (or (not (has-name-or-title? column1))
+        (not (has-name-or-title? column2))
+        (= (:name column1) (:name column2))
+        (titles-intersect? column1 column2)
+        (and
+          (not validating?)
+          (or (and (has-name-no-title? column1) (has-title-no-name? column2))
+              (and (has-name-no-title? column2) (has-title-no-name? column1)))))))
+
+;;TODO: this may need to be done before column definitions have been normalised/expanded/inherited from their parents
+(defn ^{:metadata-spec "5.5.1"} validate-compatible [validating? column-index column1 column2]
+  (if (compatible? validating? column1 column2)
+    (v/pure nil)
+    (v/with-warning (format "Columns at index %d not compatible" column-index) nil)))

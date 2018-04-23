@@ -70,3 +70,6 @@
 
 (defn add-warnings [validation warnings]
   (update validation ::warnings into warnings))
+
+(defn with-value [validation new-value]
+  (fmap (constantly new-value) validation))
