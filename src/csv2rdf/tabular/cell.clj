@@ -255,6 +255,9 @@
   {:true-values #{"1" "true"}
    :false-values #{"0" "false"}})
 
+(defn parse-boolean-format [string-value {:keys [format] :as datatype}]
+  (parse-boolean-with-mapping string-value datatype format))
+
 (defn parse-boolean [string-value {:keys [format] :as datatype}]
   (let [mapping (if (some? format) format default-boolean-mapping)]
     (parse-boolean-with-mapping string-value datatype mapping)))
@@ -324,11 +327,84 @@
         (fail-parse string-value (format "Cannot parse '%s' as type '%s'" string-value base))))
     (throw (IllegalArgumentException. (str "Invalid binary data type: " base)))))
 
-(defn ^{:table-spec "6.4.8"} parse-format [string-value {:keys [lang datatype] :as column}]
+(defn parse-datatype-unformatted [string-value {:keys [base] :as datatype} {:keys [lang] :as column}]
+  (cond
+    (= "string" base)
+    (let [value (if (nil? lang) string-value (language string-value (keyword lang)))]
+      {:value value :datatype datatype :errors []})
+
+    ;;TODO: resolve all type URIs in this way
+    ;;TODO: delay resolution of type URI until CSVW output
+    (xml-datatype/is-string-type? base)
+    {:value (rdf/literal string-value (datatype/get-datatype-iri datatype)) :datatype datatype :errors []}
+
+    (xml-datatype/is-numeric-type? base)
+    (parse-number-unformatted string-value datatype)
+
+    (= "boolean" base)
+    (parse-boolean string-value datatype)
+
+    ;;time is a date/time type but we currently parse it using the XML gregorian calendar
+    ;;TODO: parse all date/time types this way?
+    (= "time" base)
+    (parse-xml-gregorian-calendar string-value datatype)
+
+    (is-xml-gregorian-calendar-type? base)
+    (parse-xml-gregorian-calendar string-value datatype)
+
+    (xml-datatype/is-duration-type? base)
+    (parse-duration string-value datatype)
+
+    (xml-datatype/is-uri-type? base)
+    (parse-anyURI string-value datatype)
+
+    (xml-datatype/is-binary-type? base)
+    (parse-binary string-value datatype)
+
+    :else
+    (throw (IllegalArgumentException. (format "Datatype %s not supported" base)))))
+
+(defn ^{:table-spec "6.4.6"} parse-other-types-format [string-value {base :base pattern :format :as datatype} column]
+  {:pre [(instance? Pattern pattern)]}
+  (if (contains? #{"html" "xml" "json"} base)
+    ;;Values that are labelled as html, xml, or json SHOULD NOT be validated against those formats
+    (parse-datatype-unformatted string-value datatype column)
+    (if (some? (re-matches pattern string-value))
+      (parse-datatype-unformatted string-value datatype column)
+      (fail-parse string-value (format "''%s' does not match regular expression %s" string-value pattern)))))
+
+(defn parse-datatype-format [string-value {:keys [base format] :as datatype} column]
+  (cond
+    (xml-datatype/is-numeric-type? base)
+    (parse-number-format string-value format)
+
+    (= "boolean" base)
+    (parse-boolean-format string-value datatype)
+
+    ;;TODO: support time formats
+    (= "time" base)
+    ;;(parse-xml-gregorian-calendar string-value datatype)
+    (throw (IllegalArgumentException. "time format not implemented"))
+
+    (xml-datatype/is-date-time-type? base)
+    (parse-date-format string-value datatype)
+
+    (xml-datatype/is-duration-type? base)
+    (throw (IllegalArgumentException. "duration format not implemented"))
+
+    :else
+    (parse-other-types-format string-value datatype column)))
+
+(defn ^{:table-spec "6.4.8"} parse-datatype [string-value {:keys [datatype] :as column}]
   ;;TODO: create protcol for parsing?
+  (if (some? (:format datatype))
+    (parse-datatype-format string-value datatype column)
+    (parse-datatype-unformatted string-value datatype column)))
+
+(defn ^{:table-spec "6.4.8"} parse-format [string-value {:keys [lang datatype] :as column}]
+
   (let [base (:base datatype)]
     (cond
-      ;;TODO: handle string subtypes e.g. xml, token, language etc.
       (= "string" base)
       (let [value (if (nil? lang) string-value (language string-value (keyword lang)))]
         {:value value :datatype datatype :errors []})
@@ -416,7 +492,7 @@
   (let [value (column-default-if-empty string-value column)]
     (if (is-column-null? value column)
       {:value nil :stringValue string-value :errors (if required [column-required-message] [])}
-      (let [result (parse-format string-value column)
+      (let [result (parse-datatype string-value column)
             cell (assoc result :stringValue string-value)]
         (-> cell
             (validate-length column)
