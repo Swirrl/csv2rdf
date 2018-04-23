@@ -96,9 +96,11 @@
 
     :else (v/pure dt)))
 
-;;TODO: implement!
-;;datatype id MUST NOT be the URL of a built-in datatype.
-(def validate-datatype-id any)
+(defn ^{:metadata-spec "5.11.2"} validate-datatype-id [context id]
+  ;;datatype id MUST NOT be the URL of a built-in datatype.
+  (if (xml-datatype/is-built-in-type-iri? id)
+    (v/of-error "Datatype @id property must not be the URL of a built-in datatype")
+    (v/pure id)))
 
 (defn ^{:table-spec "6.4.3"} validate-boolean-format [context format-string]
   (let [values (string/split format-string #"\|")]

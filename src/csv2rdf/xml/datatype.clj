@@ -1,7 +1,8 @@
 (ns csv2rdf.xml.datatype
   (:require [clojure.spec.alpha :as s]
             [csv2rdf.util :as util]
-            [csv2rdf.vocabulary :refer :all]))
+            [csv2rdf.vocabulary :refer :all]
+            [clojure.set :as set]))
 
 (def type-hierarchy
   ["anyAtomicType"
@@ -45,8 +46,10 @@
    "datetime" "dateTime"
    "any" "anyAtomicType"})
 
+(def ^{:doc "Type names which are not aliases for other types"} primitive-type-names (flatten type-hierarchy))
+
 (def ^{:doc "All known type names"} type-names
-  (into #{} (concat (flatten type-hierarchy) (keys aliases))))
+  (into #{} (concat primitive-type-names (keys aliases))))
 
 (defn valid-type-name? [s]
   (contains? type-names s))
@@ -150,14 +153,25 @@
     ;;length undefined for type
     :else nil))
 
-
 (def indirect-mapping-iris
   {"xml" rdf:XMLLiteral
    "html" rdf:HTML
    "json" csvw:JSON})
 
-;;TODO: move this into CSVW namespace
-(defn get-datatype-iri [type-name]
+(defn type-name->xmls-url [type-name]
   (let [resolved (resolve-type-name type-name)]
-    (or (get indirect-mapping-iris resolved)
-        (util/set-fragment xsd resolved))))
+    (util/set-fragment xsd resolved)))
+
+(def datatype->iri (merge
+                     (into {} (map (fn [type-name] [type-name (type-name->xmls-url type-name)]) type-names))
+                     indirect-mapping-iris))
+
+(def get-datatype-iri datatype->iri)
+
+(def iri->datatype-name (into (set/map-invert indirect-mapping-iris)
+                              (map (fn [type-name] [(type-name->xmls-url type-name) type-name]) primitive-type-names)))
+
+(def get-iri-type-name iri->datatype-name)
+
+(defn is-built-in-type-iri? [type-iri]
+  (contains? iri->datatype-name type-iri))
