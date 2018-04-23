@@ -3,7 +3,9 @@
             [csv2rdf.tabular.cell :as cell]
             [csv2rdf.vocabulary :refer :all]
             [grafter.rdf :refer [->Triple] :as rdf]
-            [csv2rdf.xml.datatype :as xml-datatype]))
+            [csv2rdf.xml.datatype :as xml-datatype]
+            [grafter.rdf.protocols :as gproto])
+  (:import [grafter.rdf.protocols LangString RDFLiteral]))
 
 (defn gen-blank-node
   "Generates a grafter representation of a new blank node"
@@ -25,12 +27,37 @@
 
 (def stringy-types #{"base64Binary" "hexBinary"})
 
-(defn cell-element->rdf [element]
-  (let [element-base (get-in element [:datatype :base])
-        resolved-type-name (xml-datatype/resolve-type-name element-base)]
-    (if (contains? stringy-types resolved-type-name)
-      (rdf/literal (:stringValue element) (xml-datatype/get-datatype-iri element-base))
-      (:value element))))
+(defn is-lang-string? [x]
+  (instance? LangString x))
+
+(defn is-grafter-literal? [x]
+  (instance? RDFLiteral x))
+
+(defn ^{:csvw-spec "4.3"} cell-element->rdf [{:keys [value datatype] :as element}]
+  (let [datatype-id (:id datatype)
+        datatype-base (:base datatype)
+        resolved-type-name (xml-datatype/resolve-type-name datatype-base)]
+    (if (some? datatype-id)
+      ;;if the datatype's id annotation is not null, then its value MUST be used as the RDF datatype IRI
+      (cond
+        (contains? stringy-types resolved-type-name)
+        (rdf/literal (:stringValue element) datatype-id)
+
+        ;;If a cell has any datatype other than string, the value of lang MUST be ignored
+        (is-lang-string? value)
+        (if (= "string" datatype-base)
+          value
+          (rdf/literal (gproto/raw-value value) datatype-id))
+
+        ;;TODO: replace with different representation
+        (is-grafter-literal? value)
+        (rdf/literal (gproto/raw-value value) datatype-id)
+
+        :else (rdf/literal value datatype-id))
+      ;;else, the datatype's base annotation value MUST be mapped to the RDF datatype IRI
+      (if (contains? stringy-types resolved-type-name)
+        (rdf/literal (:stringValue element) (xml-datatype/get-datatype-iri datatype-base))
+        value))))
 
 (defn rdf-list [ordered-value-elements]
   (reduce (fn [[tail-subject tail-statements] value-element]
