@@ -371,7 +371,15 @@
     (parse-datatype-unformatted string-value datatype column)
     (if (some? (re-matches pattern string-value))
       (parse-datatype-unformatted string-value datatype column)
-      (fail-parse string-value (format "''%s' does not match regular expression %s" string-value pattern)))))
+      (fail-parse string-value (format "'%s' does not match regular expression %s" string-value pattern)))))
+
+(defn ^{:table-spec "6.4.5"} parse-duration-format [string-value {pattern :format :as datatype}]
+  {:pre [(instance? Pattern pattern)]}
+  ;;NOTE: it's not clear from the spec whether values which pass the regex must also be validated to check
+  ;;they match the required duration format
+  (if (some? (re-matches pattern string-value))
+    (parse-duration string-value datatype)
+    (fail-parse string-value (format "'%s' does not match regular expression %s" string-value pattern))))
 
 (defn parse-datatype-format [string-value {:keys [base format] :as datatype} column]
   (cond
@@ -390,7 +398,7 @@
     (parse-date-format string-value datatype)
 
     (xml-datatype/is-duration-type? base)
-    (throw (IllegalArgumentException. "duration format not implemented"))
+    (parse-duration-format string-value datatype)
 
     :else
     (parse-other-types-format string-value datatype column)))
