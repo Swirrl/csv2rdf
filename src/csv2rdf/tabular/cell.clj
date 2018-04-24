@@ -12,10 +12,11 @@
            [java.text DecimalFormat ParseException]
            [grafter.rdf.protocols IRDFString]
            [java.time.format DateTimeFormatter DateTimeParseException]
-           [java.time LocalDate ZoneId LocalDateTime ZonedDateTime LocalTime]
+           [java.time LocalDate ZoneId LocalDateTime ZonedDateTime LocalTime OffsetTime]
            [java.util Date Base64]
            [javax.xml.datatype DatatypeFactory XMLGregorianCalendar]
-           [java.net URI URISyntaxException]))
+           [java.net URI URISyntaxException]
+           (java.time.temporal TemporalAccessor ChronoField)))
 
 (def column-required-message "Column value required")
 
@@ -381,6 +382,21 @@
     (parse-duration string-value datatype)
     (fail-parse string-value (format "'%s' does not match regular expression %s" string-value pattern))))
 
+(defn parse-time-format [string-value {time-format :format base :base :as datatype}]
+  ;;TODO: merge this with parse-date-format
+  (try
+    (let [^TemporalAccessor ta (.parse time-format string-value)
+
+          ;;assume OffsetTime if format has an associated offest otherwise LocalDate
+          output-format (if (.isSupported ta ChronoField/OFFSET_SECONDS)
+                          DateTimeFormatter/ISO_OFFSET_TIME
+                          DateTimeFormatter/ISO_TIME)
+          formatted (.format output-format ta)
+          lit (rdf/literal formatted (xml-datatype/datatype->iri base))]
+      {:value lit :datatype datatype :errors []})
+    (catch DateTimeParseException _ex
+      (fail-parse string-value (format "'%s' does not match the time format")))))
+
 (defn parse-datatype-format [string-value {:keys [base format] :as datatype} column]
   (cond
     (xml-datatype/is-numeric-type? base)
@@ -391,8 +407,7 @@
 
     ;;TODO: support time formats
     (= "time" base)
-    ;;(parse-xml-gregorian-calendar string-value datatype)
-    (throw (IllegalArgumentException. "time format not implemented"))
+    (parse-time-format string-value datatype)
 
     (xml-datatype/is-date-time-type? base)
     (parse-date-format string-value datatype)
