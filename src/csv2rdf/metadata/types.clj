@@ -274,6 +274,7 @@
 
 (def object-context (variant {:string (eq csvw-ns) :array context-pair}))
 
+;;TODO: move context validators into metadata.context namespace?
 (defn validate-contextual-object
   "Returns a validator for an object which may contain a @context key mapped to a context definition.
    If the key exists, and contain a local context definition for the object, this is used to update the

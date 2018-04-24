@@ -19,7 +19,7 @@
         ;; base URL for other URLs in the metadata document'
         context-base-uri (get local-context base-key)
         base-uri (some->> context-base-uri (.resolve (:document-uri context)))
-        from-local {:base-uri base-uri :langauge (get local-context language-key)}
+        from-local {:base-uri base-uri :language (get local-context language-key)}
         local (util/filter-values some? from-local)]
     (merge context local)))
 
