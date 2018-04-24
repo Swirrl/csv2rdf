@@ -419,11 +419,46 @@
       (update cell :errors concat len-errors))
     cell))
 
+(defn add-cell-error [{:keys [stringValue] :as cell-element} error-message]
+  (-> cell-element
+      (assoc :value stringValue)
+      (assoc :datatype {:base "string"})
+      (update :errors conj error-message)))
+
+;;TODO: create protocol for range validations?
+(defn validate-numeric-value [{:keys [value stringValue datatype] :as cell-element}]
+  (let [{:keys [minimum maximum minExclusive minInclusive maxExclusive maxInclusive]} datatype]
+    (cond
+      (and (some? minimum) (< value minimum))
+      (add-cell-error cell-element (format "'%s' fails constraint minimum" stringValue))
+
+      (and (some? maximum) (> value maximum))
+      (add-cell-error cell-element (format "'%s' fails constraint maximum" stringValue))
+
+      (and (some? minExclusive) (<= value minExclusive))
+      (add-cell-error cell-element (format "'%s' fails constraint minExclusive" stringValue))
+
+      (and (some? minInclusive) (< value minInclusive))
+      (add-cell-error cell-element (format "'%s' fails constraint minInclusive" stringValue))
+
+      (and (some? maxExclusive) (>= value maxExclusive))
+      (add-cell-error cell-element (format "'%s' fails constraint maxExclusive" stringValue))
+
+      (and (some? maxInclusive) (> value maxInclusive))
+      (add-cell-error cell-element (format "'%s' fails constraint maxInclusive" stringValue))
+
+      :else
+      cell-element)))
+
 (defn ^{:table-spec "6.4.9"} validate-value
   "Validates the range of the cell value is valid for the constraints on the column metadata"
-  [cell column]
-  ;;TODO implement
-  cell)
+  [cell {{:keys [base] :as datatype} :datatype :as column}]
+  (cond
+    (xml-datatype/is-numeric-type? base)
+    (validate-numeric-value cell)
+
+    ;;TODO: implement for date/time and duration types
+    :else cell))
 
 (s/def ::stringValue string?)
 (s/def ::list boolean?)
