@@ -401,53 +401,6 @@
     (parse-datatype-format string-value datatype column)
     (parse-datatype-unformatted string-value datatype column)))
 
-(defn ^{:table-spec "6.4.8"} parse-format [string-value {:keys [lang datatype] :as column}]
-
-  (let [base (:base datatype)]
-    (cond
-      (= "string" base)
-      (let [value (if (nil? lang) string-value (language string-value (keyword lang)))]
-        {:value value :datatype datatype :errors []})
-
-      ;;TODO: resolve all type URIs in this way
-      ;;TODO: delay resolution of type URI until CSVW output
-      (xml-datatype/is-string-type? base)
-      {:value (rdf/literal string-value (datatype/get-datatype-iri datatype)) :datatype datatype :errors []}
-
-      (= "boolean" base)
-      (parse-boolean string-value datatype)
-
-      (xml-datatype/is-numeric-type? base)
-      (parse-numeric string-value datatype)
-
-      ;;time is a date/time type but we currently parse it using the XML gregorian calendar
-      ;;TODO: parse all date/time types this way?
-      (= "time" base)
-      (parse-xml-gregorian-calendar string-value datatype)
-
-      (and (nil? (:format datatype))
-           (is-xml-gregorian-calendar-type? base))
-      (parse-xml-gregorian-calendar string-value datatype)
-
-      (and (some? (:format datatype))
-           (xml-datatype/is-date-time-type? base))
-      (parse-date-format string-value datatype)
-
-      (is-xml-gregorian-calendar-type? base)
-      (parse-xml-gregorian-calendar string-value datatype)
-
-      (xml-datatype/is-duration-type? base)
-      (parse-duration string-value datatype)
-
-      (xml-datatype/is-uri-type? base)
-      (parse-anyURI string-value datatype)
-
-      (xml-datatype/is-binary-type? base)
-      (parse-binary string-value datatype)
-
-      :else
-      (throw (IllegalArgumentException. (format "Datatype %s not supported" base))))))
-
 (defn get-length-error [{:keys [stringValue] :as cell} rel-sym length constraint]
   (if (some? constraint)
     (let [f (resolve rel-sym)]
