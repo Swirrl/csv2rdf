@@ -245,6 +245,7 @@
     (catch URISyntaxException _ex
       (fail-parse string-value (format "Cannot parse value '%s' as type URI" base)))))
 
+;;TODO: remove when parse-formatted function has been added to xml.datatype.parsing
 (defn parse-boolean-with-mapping [string-value datatype {:keys [true-values false-values] :as mapping}]
   (cond
     (contains? true-values string-value) {:value true :datatype datatype :errors []}
@@ -253,16 +254,18 @@
                 msg (format "Cannot parse '%s' as a boolean: expected one of %s" string-value (string/join ", " allowed-values))]
             (fail-parse string-value msg))))
 
-(def ^{:tabular-spec "6.4.3"} default-boolean-mapping
-  {:true-values #{"1" "true"}
-   :false-values #{"0" "false"}})
-
 (defn parse-boolean-format [string-value {:keys [format] :as datatype}]
   (parse-boolean-with-mapping string-value datatype format))
 
-(defn parse-boolean [string-value {:keys [format] :as datatype}]
-  (let [mapping (if (some? format) format default-boolean-mapping)]
-    (parse-boolean-with-mapping string-value datatype mapping)))
+(defn parse-xml-unformatted [string-value {:keys [base] :as datatype}]
+  (try
+    (let [value (xml-parsing/parse base string-value)]
+      {:value value :datatype datatype :errors []})
+    (catch IllegalArgumentException ex
+      (fail-parse string-value (format "Cannot parse '%s' as type '%s': %s" string-value base (.getMessage ex))))))
+
+(defn parse-boolean-unformatted [string-value datatype]
+  (parse-xml-unformatted string-value datatype))
 
 (defn parse-duration [^String s] (.newDuration xml-datatype-factory s))
 (defn parse-day-time-duration [^String s] (.newDurationDayTime xml-datatype-factory s))
@@ -289,12 +292,8 @@
         (fail-parse string-value (format "Value '%s' of type %s too large for the implementation" string-value base))))
     (throw (IllegalArgumentException. (str "Unsupported duration type: " base)))))
 
-(defn parse-binary [^String string-value {:keys [base] :as datatype}]
-  (try
-    (let [bytes (xml-parsing/parse base string-value)]
-      {:value bytes :datatype datatype :errors []})
-    (catch IllegalArgumentException _ex
-      (fail-parse string-value (format "Cannot parse '%s' as type '%s'" string-value base)))))
+(defn parse-binary [^String string-value datatype]
+  (parse-xml-unformatted string-value datatype))
 
 (defn parse-datatype-unformatted [string-value {:keys [base] :as datatype} {:keys [lang] :as column}]
   (cond
@@ -311,7 +310,7 @@
     (parse-number-unformatted string-value datatype)
 
     (= "boolean" base)
-    (parse-boolean string-value datatype)
+    (parse-boolean-unformatted string-value datatype)
 
     ;;time is a date/time type but we currently parse it using the XML gregorian calendar
     ;;TODO: parse all date/time types this way?

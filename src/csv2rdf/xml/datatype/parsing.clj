@@ -1,5 +1,6 @@
 (ns csv2rdf.xml.datatype.parsing
-  (:require [csv2rdf.xml.datatype :as xml-datatype])
+  (:require [csv2rdf.xml.datatype :as xml-datatype]
+            [clojure.string :as string])
   (:import [java.net URI URISyntaxException]
            [java.util Base64]))
 
@@ -36,6 +37,21 @@
           (aset bytes idx (byte (bit-and (bit-shift-left b1 4) b2)))))
       bytes)
     (throw (IllegalArgumentException. "Hex string must contain even number of characters"))))
+
+(def ^{:xml-schema-spec "3.3.2.2"} default-boolean-mapping
+  {:true-values #{"1" "true"}
+   :false-values #{"0" "false"}})
+
+(defn parse-boolean-with-mapping [string-value {:keys [true-values false-values] :as mapping}]
+  (cond
+    (contains? true-values string-value) true
+    (contains? false-values string-value) false
+    :else (let [allowed-values (mapcat identity (vals mapping))
+                msg (format "Expected one of %s" (string/join ", " allowed-values))]
+            (throw (IllegalArgumentException. msg)))))
+
+(defmethod parse :boolean [_type-name string-value]
+  (parse-boolean-with-mapping string-value default-boolean-mapping))
 
 
 
