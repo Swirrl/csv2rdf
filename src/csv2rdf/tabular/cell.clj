@@ -46,6 +46,19 @@
       {:value nil :errors []})
     {:value value :errors []}))
 
+(defn add-error [cell error-message]
+  (update cell :errors conj error-message))
+
+(defn fail-parse [string-value error-message]
+  {:value string-value :datatype {:base "string"} :errors [error-message]})
+
+(defn parse-xml-unformatted [string-value {:keys [base] :as datatype}]
+  (try
+    (let [value (xml-parsing/parse base string-value)]
+      {:value value :datatype datatype :errors []})
+    (catch IllegalArgumentException ex
+      (fail-parse string-value (format "Cannot parse '%s' as type '%s': %s" string-value base (.getMessage ex))))))
+
 (defn bound-num [type-name min max]
   {:pre [(or (some? min) (some? max))]}
   (let [check-min (if (some? min)
@@ -88,21 +101,6 @@
    "unsignedByte" (comp (bound-num "unsignedByte" 0 255) parse-short)
    "nonPositiveInteger" (comp (bound-num "nonPositiveInteger" nil 0) parse-integer)
    "negativeInteger" (comp (bound-num "negativeInteger" nil -1) parse-integer)})
-
-(defn add-error [cell error-message]
-  (update cell :errors conj error-message))
-
-(defn fail-parse [string-value error-message]
-  {:value string-value :datatype {:base "string"} :errors [error-message]})
-
-(defn ^{:table-spec "6.4.2"
-        :xml-schema-spec "3"} parse-number-unformatted [string-value {:keys [base] :as datatype}]
-  (let [parser (get numeric-parsers (xml-datatype/resolve-type-name base))]
-    (try
-      (let [result (parser string-value)]
-        {:value result :datatype datatype :errors []})
-      (catch Exception ex
-        (fail-parse string-value (.getMessage ex))))))
 
 (def special-floating-values
   {"float" {"NaN" Float/NaN "INF" Float/POSITIVE_INFINITY "-INF" Float/NEGATIVE_INFINITY}
@@ -166,11 +164,6 @@
       (catch ParseException _ex
         (fail-parse string-value (format "Cannot parse value '%s' with the pattern '%s'" string-value (.toPattern pattern)))))
     (parse-number-from-constructed-format string-value datatype)))
-
-(defn parse-numeric [string-value {:keys [format] :as datatype}]
-  (if (some? format)
-    (parse-number-format string-value datatype)
-    (parse-number-unformatted string-value datatype)))
 
 (defn local-date->date [ld]
   (let [zoned-date (.atStartOfDay ld (ZoneId/systemDefault))]
@@ -237,13 +230,6 @@
   (or (xml-datatype/is-date-time-type? datatype-base)
       (contains? #{"gDay" "gMonth" "gMonthDay" "gYear" "gYearMonth"} datatype-base)))
 
-(defn parse-xml-unformatted [string-value {:keys [base] :as datatype}]
-  (try
-    (let [value (xml-parsing/parse base string-value)]
-      {:value value :datatype datatype :errors []})
-    (catch IllegalArgumentException ex
-      (fail-parse string-value (format "Cannot parse '%s' as type '%s': %s" string-value base (.getMessage ex))))))
-
 ;;TODO: remove when parse-formatted function has been added to xml.datatype.parsing
 (defn parse-boolean-with-mapping [string-value datatype {:keys [true-values false-values] :as mapping}]
   (cond
@@ -280,9 +266,6 @@
     ;;TODO: delay resolution of type URI until CSVW output
     (xml-datatype/is-string-type? base)
     {:value (rdf/literal string-value (datatype/get-datatype-iri datatype)) :datatype datatype :errors []}
-
-    (xml-datatype/is-numeric-type? base)
-    (parse-number-unformatted string-value datatype)
 
     (is-xml-gregorian-calendar-type? base)
     (parse-xml-gregorian-calendar string-value datatype)
