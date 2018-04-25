@@ -74,6 +74,28 @@
            node
            (recur (concat (rest q) (children node)))))))))
 
+(defn make-dispatch-hierarchy
+  "Constructs a hierarchy for the XML datatype hierarchy"
+  ([] (make-dispatch-hierarchy (make-hierarchy) nil type-hierarchy))
+  ([h parent-key node]
+   (let [node-key (keyword (node-name node))
+         h (if (nil? parent-key)
+             h
+             (derive h node-key parent-key))]
+     (if (is-leaf? node)
+       h
+       (reduce (fn [h child-node]
+                 (make-dispatch-hierarchy h node-key child-node))
+               h
+               (children node))))))
+
+(def dispatch-hierarchy (make-dispatch-hierarchy))
+
+(defn dispatch-key [type-name]
+  (if-let [resolved-name (resolve-type-name type-name)]
+    (keyword resolved-name)
+    (throw (IllegalArgumentException. (str "Unknown type: " type-name)))))
+
 (defn node-subtypes [node]
   (if (is-leaf? node)
     [node]
