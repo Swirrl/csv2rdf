@@ -1,5 +1,5 @@
 (ns csv2rdf.metadata.schema
-  (:require [csv2rdf.metadata.validator :refer [make-warning invalid chain array-of eq type-eq]]
+  (:require [csv2rdf.metadata.validator :refer [make-warning make-error invalid chain array-of eq type-eq strict variant]]
             [csv2rdf.metadata.context :refer [append-path]]
             [csv2rdf.metadata.types :refer [object-of object-property link-property column-reference id]]
             [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
@@ -9,22 +9,33 @@
             [clojure.set :as set]))
 
 (defn validate-foreign-key-reference [context reference]
-  (if (and (contains? reference :resource) (contains? reference :schemaReference))
-    (make-warning context "Foreign key reference cannot specify both resource and schemaReference keys" invalid)
-    (v/pure reference)))
+  (let [has-resource? (contains? reference :resource)
+        has-reference? (contains? reference :schemaReference)]
+    (cond
+      (and has-resource? has-reference?)
+      (make-error context "Foreign key reference cannot specify both resource and schemaReference keys")
+
+      (or has-resource? has-reference?)
+      (v/pure reference)
+
+      :else
+      (make-error context "Foreign key reference must specify one of resource or schemaReference keys"))))
 
 (def foreign-key-reference
   (chain
-    (object-of
-      {:optional {"resource" link-property
-                  "schemaReference" link-property
-                  "columnReference" column-reference}})
+    (strict (object-of
+              {:required {:columnReference column-reference}
+               :optional {:resource        link-property
+                          :schemaReference link-property}}))
     validate-foreign-key-reference))
 
+;;NOTE: should be warning if foreign-key is not an object, but if it is then it should not contain any common property
+;;keys
+;;TODO: validate using different combinator?
 (def foreign-key
-  (object-of
-    {:required {"columnReference" column-reference
-                "reference"       (object-property foreign-key-reference)}}))
+  (variant {:object (strict (object-of
+                              {:required {:columnReference column-reference
+                                          :reference       (object-property foreign-key-reference)}}))}))
 
 (defn validate-column-references
   "Validates all the referenced column names under the parent key exist in the given set of column names defined
