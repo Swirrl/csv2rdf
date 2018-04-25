@@ -4,6 +4,7 @@
             [csv2rdf.metadata.column :as mcolumn]
             [csv2rdf.metadata.datatype :as datatype]
             [csv2rdf.xml.datatype :as xml-datatype]
+            [csv2rdf.xml.datatype.parsing :as xml-parsing]
             [grafter.rdf.io :refer [language]]
             [grafter.rdf :as rdf]
             [csv2rdf.vocabulary :refer :all])
@@ -16,7 +17,7 @@
            [java.util Date Base64]
            [javax.xml.datatype DatatypeFactory XMLGregorianCalendar]
            [java.net URI URISyntaxException]
-           (java.time.temporal TemporalAccessor ChronoField)))
+           [java.time.temporal TemporalAccessor ChronoField]))
 
 (def column-required-message "Column value required")
 
@@ -288,45 +289,12 @@
         (fail-parse string-value (format "Value '%s' of type %s too large for the implementation" string-value base))))
     (throw (IllegalArgumentException. (str "Unsupported duration type: " base)))))
 
-(defn parse-base64-binary
-  "Parses a base64 encoded string into a byte array. Throws an IllegalArgumentException if the string
-  is not valid base64."
-  [^String s]
-  (.decode (Base64/getDecoder) s))
-
-(defn parse-hex-digit [^Character c]
-  (let [i (Character/digit c 16)]
-    (if (= -1 i)
-      (throw (IllegalArgumentException. (str "Invalid hex digit " c)))
-      i)))
-
-(defn parse-hex-binary
-  "Parses a hex string into a byte array. Throws an IllegalArgumentException if the string contains an
-  odd number of characters or contains any non-hex characters."
-  [^String s]
-  (if (even? (.length s))
-    (let [byte-count (/ (.length s) 2)
-          bytes (byte-array byte-count)]
-      (doseq [idx (range byte-count)]
-        (let [offset (* 2 idx)
-              b1 (parse-hex-digit (.charAt s offset))
-              b2 (parse-hex-digit (.charAt s (inc offset)))]
-          (aset bytes idx (byte (bit-and (bit-shift-left b1 4) b2)))))
-      bytes)
-    (throw (IllegalArgumentException. "Hex string must contain even number of characters"))))
-
-(def binary-parsers
-  {"base64Binary" parse-base64-binary
-   "hexBinary" parse-hex-binary})
-
 (defn parse-binary [^String string-value {:keys [base] :as datatype}]
-  (if-let [parser (get binary-parsers (xml-datatype/resolve-type-name base))]
-    (try
-      (let [bytes (parser string-value)]
-        {:value bytes :datatype datatype :errors []})
-      (catch IllegalArgumentException _ex
-        (fail-parse string-value (format "Cannot parse '%s' as type '%s'" string-value base))))
-    (throw (IllegalArgumentException. (str "Invalid binary data type: " base)))))
+  (try
+    (let [bytes (xml-parsing/parse base string-value)]
+      {:value bytes :datatype datatype :errors []})
+    (catch IllegalArgumentException _ex
+      (fail-parse string-value (format "Cannot parse '%s' as type '%s'" string-value base)))))
 
 (defn parse-datatype-unformatted [string-value {:keys [base] :as datatype} {:keys [lang] :as column}]
   (cond
