@@ -244,9 +244,6 @@
     (catch IllegalArgumentException ex
       (fail-parse string-value (format "Cannot parse '%s' as type '%s': %s" string-value base (.getMessage ex))))))
 
-(defn parse-anyURI [string-value datatype]
-  (parse-xml-unformatted string-value datatype))
-
 ;;TODO: remove when parse-formatted function has been added to xml.datatype.parsing
 (defn parse-boolean-with-mapping [string-value datatype {:keys [true-values false-values] :as mapping}]
   (cond
@@ -258,9 +255,6 @@
 
 (defn parse-boolean-format [string-value {:keys [format] :as datatype}]
   (parse-boolean-with-mapping string-value datatype format))
-
-(defn parse-boolean-unformatted [string-value datatype]
-  (parse-xml-unformatted string-value datatype))
 
 (defn parse-duration [string-value {:keys [base] :as datatype}]
   (try
@@ -276,9 +270,6 @@
     (catch UnsupportedOperationException _ex
       (fail-parse string-value (format "Value '%s' of type %s too large for the implementation" string-value base)))))
 
-(defn parse-binary [^String string-value datatype]
-  (parse-xml-unformatted string-value datatype))
-
 (defn parse-datatype-unformatted [string-value {:keys [base] :as datatype} {:keys [lang] :as column}]
   (cond
     (= "string" base)
@@ -293,23 +284,14 @@
     (xml-datatype/is-numeric-type? base)
     (parse-number-unformatted string-value datatype)
 
-    (= "boolean" base)
-    (parse-boolean-unformatted string-value datatype)
-
     (is-xml-gregorian-calendar-type? base)
     (parse-xml-gregorian-calendar string-value datatype)
 
     (xml-datatype/is-duration-type? base)
     (parse-duration string-value datatype)
 
-    (xml-datatype/is-uri-type? base)
-    (parse-anyURI string-value datatype)
-
-    (xml-datatype/is-binary-type? base)
-    (parse-binary string-value datatype)
-
     :else
-    (throw (IllegalArgumentException. (format "Datatype %s not supported" base)))))
+    (parse-xml-unformatted string-value datatype)))
 
 (defn ^{:table-spec "6.4.6"} parse-other-types-format [string-value {base :base pattern :format :as datatype} column]
   {:pre [(instance? Pattern pattern)]}
