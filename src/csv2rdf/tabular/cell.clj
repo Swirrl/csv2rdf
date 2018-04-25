@@ -16,7 +16,6 @@
            [java.time LocalDate ZoneId LocalDateTime ZonedDateTime LocalTime]
            [java.util Date]
            [javax.xml.datatype XMLGregorianCalendar]
-           [java.net URI URISyntaxException]
            [java.time.temporal TemporalAccessor ChronoField]))
 
 (def column-required-message "Column value required")
@@ -36,21 +35,17 @@
     (mcolumn/default column)
     value))
 
-(defn is-column-null? [value {:keys [null]}]
+(defn ^{:table-spec "6.4.7"} is-column-null? [value {:keys [null]}]
   (some #(= value %) null))
-
-(defn ^{:table-spec "6.4.7"} apply-column-null [value {:keys [required separator] :as column}]
-  (if (is-column-null? value column)
-    (if (and (nil? separator) required)
-      {:value nil :errors [column-required-message]}
-      {:value nil :errors []})
-    {:value value :errors []}))
-
-(defn add-error [cell error-message]
-  (update cell :errors conj error-message))
 
 (defn fail-parse [string-value error-message]
   {:value string-value :datatype {:base "string"} :errors [error-message]})
+
+(defn add-cell-error [{:keys [stringValue] :as cell-element} error-message]
+  (-> cell-element
+      (assoc :value stringValue)
+      (assoc :datatype {:base "string"})
+      (update :errors conj error-message)))
 
 (defn parse-xml-unformatted [string-value {:keys [base] :as datatype}]
   (try
@@ -352,12 +347,6 @@
                           (remove nil?))]
       (update cell :errors concat len-errors))
     cell))
-
-(defn add-cell-error [{:keys [stringValue] :as cell-element} error-message]
-  (-> cell-element
-      (assoc :value stringValue)
-      (assoc :datatype {:base "string"})
-      (update :errors conj error-message)))
 
 ;;TODO: create protocol for range validations?
 (defn validate-numeric-value [{:keys [value stringValue datatype] :as cell-element}]
