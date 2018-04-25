@@ -25,7 +25,7 @@
 (defn ^{:csvw-spec "4.6.8.3"} cell-predicate [tabular-data-file-url {:keys [propertyUrl column] :as cell}]
   (or propertyUrl (column-about-url tabular-data-file-url column)))
 
-(def stringy-types #{"base64Binary" "hexBinary"})
+(def stringy-types #{"base64Binary" "hexBinary" "anyURI"})
 
 (defn is-lang-string? [x]
   (instance? LangString x))

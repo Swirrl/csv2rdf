@@ -237,12 +237,15 @@
   (or (xml-datatype/is-date-time-type? datatype-base)
       (contains? #{"gDay" "gMonth" "gMonthDay" "gYear" "gYearMonth"} datatype-base)))
 
-(defn parse-anyURI [string-value {:keys [base] :as datatype}]
+(defn parse-xml-unformatted [string-value {:keys [base] :as datatype}]
   (try
-    (URI. string-value)
-    {:value (rdf/literal string-value xsd:anyURI) :datatype datatype :errors []}
-    (catch URISyntaxException _ex
-      (fail-parse string-value (format "Cannot parse value '%s' as type URI" base)))))
+    (let [value (xml-parsing/parse base string-value)]
+      {:value value :datatype datatype :errors []})
+    (catch IllegalArgumentException ex
+      (fail-parse string-value (format "Cannot parse '%s' as type '%s': %s" string-value base (.getMessage ex))))))
+
+(defn parse-anyURI [string-value datatype]
+  (parse-xml-unformatted string-value datatype))
 
 ;;TODO: remove when parse-formatted function has been added to xml.datatype.parsing
 (defn parse-boolean-with-mapping [string-value datatype {:keys [true-values false-values] :as mapping}]
@@ -255,13 +258,6 @@
 
 (defn parse-boolean-format [string-value {:keys [format] :as datatype}]
   (parse-boolean-with-mapping string-value datatype format))
-
-(defn parse-xml-unformatted [string-value {:keys [base] :as datatype}]
-  (try
-    (let [value (xml-parsing/parse base string-value)]
-      {:value value :datatype datatype :errors []})
-    (catch IllegalArgumentException ex
-      (fail-parse string-value (format "Cannot parse '%s' as type '%s': %s" string-value base (.getMessage ex))))))
 
 (defn parse-boolean-unformatted [string-value datatype]
   (parse-xml-unformatted string-value datatype))
