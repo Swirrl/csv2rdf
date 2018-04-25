@@ -10,7 +10,8 @@
             [csv2rdf.validation :as v]
             [clojure.java.io :as io]
             [csv2rdf.metadata.table-group :as table-group]
-            [csv2rdf.metadata.table :as table])
+            [csv2rdf.metadata.table :as table]
+            [csv2rdf.logging :as log])
   (:import [java.net URI]))
 
 ;;TODO: move into http namespace?
@@ -72,8 +73,11 @@
                                (if-let [tabular-uri (util/ignore-exceptions (URI. url))]
                                  (.resolve metadata-uri tabular-uri))))
                         (remove nil?)
-                        (into #{}))]
-    (contains? table-uris csv-uri)))
+                        (into #{}))
+        has-reference? (contains? table-uris csv-uri)]
+    (when-not has-reference?
+      (log/log-warning (format "Metadata document at URI %s does not contain a reference to tabular file at URI %s" metadata-uri csv-uri)))
+    has-reference?))
 
 (defn ^{:table-spec "5.2"} try-resolve-linked-metadata [csv-uri metadata-uri]
   (if (some? metadata-uri)
@@ -112,11 +116,6 @@
 (defn ^{:table-spec "5.3"} ^URI try-expand-location-template [csv-uri template-string]
   (if-let [template (template/try-parse-template template-string)]
     (template/expand-template template {:url (util/remove-fragment csv-uri)})))
-
-(defn ^{:table-spec "5.3"} try-resolve-location-template-metadata [^URI csv-uri template-string]
-  (if-let [expanded-uri (try-expand-location-template csv-uri template-string)]
-    (let [metadata-uri (.resolve csv-uri expanded-uri)]
-      (try-resolve-linked-metadata csv-uri metadata-uri))))
 
 (defn try-resolve-template-uri [^URI csv-uri template]
   (if-let [template-uri (try-expand-location-template csv-uri template)]

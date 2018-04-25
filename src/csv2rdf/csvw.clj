@@ -9,7 +9,8 @@
             [clojure.java.io :as io]
             [csv2rdf.tabular.csv :as csv]
             [grafter.rdf.io :as gio]
-            [csv2rdf.validation :as v]))
+            [csv2rdf.validation :as v]
+            [csv2rdf.logging :as log]))
 
 (defn csv->rdf->destination [tabular-source metadata-source destination {:keys [mode] :as options}]
   (let [mode (or mode :standard)
@@ -39,13 +40,18 @@
 (defn csv->rdf
   ([csv-source metadata-source] (csv->rdf csv-source metadata-source {}))
   ([tabular-source metadata-source options]
-   (let [repo (repo/sail-repo)]
-     (with-open [destination (repo/->connection repo)]
-       (try
-         (let [metadata-validation (csv->rdf->destination tabular-source metadata-source destination options)]
-           {:errors (v/errors metadata-validation) :warnings (v/warnings metadata-validation) :result (into [] (rdf/statements destination))})
-         (catch Exception ex
-           {:errors [(.getMessage ex)] :warnings [] :result nil}))))))
+   (let [repo (repo/sail-repo)
+         logger (log/memory-logger)]
+     (log/with-logger
+       logger
+       (with-open [destination (repo/->connection repo)]
+         (try
+           (let [metadata-validation (csv->rdf->destination tabular-source metadata-source destination options)
+                 logged-warnings @(:warnings logger)
+                 warnings (vec (concat (v/warnings metadata-validation) logged-warnings))]
+             {:errors (v/errors metadata-validation) :warnings warnings :result (into [] (rdf/statements destination))})
+           (catch Exception ex
+             {:errors [(.getMessage ex)] :warnings @(:warnings logger) :result nil})))))))
 
 (defn csv->rdf->file [tabular-source metadata-source dest-file options]
   (with-open [os (io/output-stream dest-file)]
