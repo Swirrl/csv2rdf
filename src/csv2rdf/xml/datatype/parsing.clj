@@ -2,7 +2,8 @@
   (:require [csv2rdf.xml.datatype :as xml-datatype]
             [clojure.string :as string])
   (:import [java.net URI URISyntaxException]
-           [java.util Base64]))
+           [java.util Base64]
+           (javax.xml.datatype DatatypeFactory XMLGregorianCalendar)))
 
 (defmulti parse "Parses a values to one for the named XML datatype"
           (fn [type-name string-value] (xml-datatype/dispatch-key type-name))
@@ -52,6 +53,44 @@
 
 (defmethod parse :boolean [_type-name string-value]
   (parse-boolean-with-mapping string-value default-boolean-mapping))
+
+;;TODO: change representation of parse date/time values?
+;;TODO: validate returned values match expected XML type
+(def xml-datatype-factory (DatatypeFactory/newInstance))
+
+(defmethod parse :date [_type-name string-value]
+  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+
+(defmethod parse :dateTime [_type-name string-value]
+  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+
+(defmethod parse :duration [_type-name string-value]
+  (.newDuration xml-datatype-factory string-value))
+
+(defmethod parse :dayTimeDuration [_type-name string-value]
+  (.newDurationDayTime xml-datatype-factory string-value))
+
+(defmethod parse :yearMonthDuration [_type-name string-value]
+  (.newDurationYearMonth xml-datatype-factory string-value))
+
+(defmethod parse :gDay [_type-name string-value]
+  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+
+(defmethod parse :gMonth [_type-name string-value]
+  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+
+(defmethod parse :gMonthDay [_type-name string-value]
+  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+
+(defmethod parse :gYear [_type-name string-value]
+  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+
+(defmethod parse :gYearMonth [_type-name string-value]
+  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+
+(defmethod parse :time [_type-name string-value]
+  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+
 
 
 

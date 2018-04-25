@@ -13,9 +13,9 @@
            [java.text DecimalFormat ParseException]
            [grafter.rdf.protocols IRDFString]
            [java.time.format DateTimeFormatter DateTimeParseException]
-           [java.time LocalDate ZoneId LocalDateTime ZonedDateTime LocalTime OffsetTime]
-           [java.util Date Base64]
-           [javax.xml.datatype DatatypeFactory XMLGregorianCalendar]
+           [java.time LocalDate ZoneId LocalDateTime ZonedDateTime LocalTime]
+           [java.util Date]
+           [javax.xml.datatype XMLGregorianCalendar]
            [java.net URI URISyntaxException]
            [java.time.temporal TemporalAccessor ChronoField]))
 
@@ -217,8 +217,6 @@
 (defn xml-gregorian-calendar->literal [^XMLGregorianCalendar calendar {:keys [base] :as datatype}]
   (rdf/literal (.toXMLFormat calendar) (xml-datatype/get-datatype-iri base)))
 
-(def xml-datatype-factory (DatatypeFactory/newInstance))
-
 (defn is-compatible-gregorian-calendar-type? [^XMLGregorianCalendar calendar {:keys [base] :as datatype}]
   (let [local-part (.getLocalPart (.getXMLSchemaType calendar))]
     (or (and (= base "dateTimeStamp")
@@ -227,7 +225,8 @@
 
 (defn parse-xml-gregorian-calendar [string-value {:keys [base] :as datatype}]
   (try
-    (let [^XMLGregorianCalendar calendar (.newXMLGregorianCalendar xml-datatype-factory string-value)]
+    (let [^XMLGregorianCalendar calendar (xml-parsing/parse base string-value)]
+      ;;TODO: remove check and validate output types in each parsing function
       (if (is-compatible-gregorian-calendar-type? calendar datatype)
         {:value (xml-gregorian-calendar->literal calendar datatype) :datatype datatype :errors []}
         (fail-parse string-value (format "Cannot parse value '%s' as type %s" string-value base))))
@@ -267,30 +266,19 @@
 (defn parse-boolean-unformatted [string-value datatype]
   (parse-xml-unformatted string-value datatype))
 
-(defn parse-duration [^String s] (.newDuration xml-datatype-factory s))
-(defn parse-day-time-duration [^String s] (.newDurationDayTime xml-datatype-factory s))
-(defn parse-year-month-duration [^String s] (.newDurationYearMonth xml-datatype-factory s))
-
-(def duration-factory-parsers
-  {"duration" parse-duration
-   "dayTimeDuration" parse-day-time-duration
-   "yearMonthDuration" parse-year-month-duration})
-
 (defn parse-duration [string-value {:keys [base] :as datatype}]
-  (if-let [parser (get duration-factory-parsers base)]
-    (try
-      ;;NOTE: just used for validation
-      ;;XML Duration type normalises the parsed value when outputting as strings, which the test cases do not
-      ;;expect e.g. an input string of P20M is formatted as P1Y8M
-      (parser string-value)
-      (let [datatype-uri (xml-datatype/get-datatype-iri base)
-            rdf-lit (rdf/literal string-value datatype-uri)]
-        {:value rdf-lit :datatype datatype :errors []})
-      (catch IllegalArgumentException _ex
-        (fail-parse string-value (format "Cannot parse '%s' as type %s" string-value base)))
-      (catch UnsupportedOperationException _ex
-        (fail-parse string-value (format "Value '%s' of type %s too large for the implementation" string-value base))))
-    (throw (IllegalArgumentException. (str "Unsupported duration type: " base)))))
+  (try
+    ;;NOTE: just used for validation
+    ;;XML Duration type normalises the parsed value when outputting as strings, which the test cases do not
+    ;;expect e.g. an input string of P20M is formatted as P1Y8M
+    (xml-parsing/parse base string-value)
+    (let [datatype-uri (xml-datatype/get-datatype-iri base)
+          rdf-lit (rdf/literal string-value datatype-uri)]
+      {:value rdf-lit :datatype datatype :errors []})
+    (catch IllegalArgumentException _ex
+      (fail-parse string-value (format "Cannot parse '%s' as type %s" string-value base)))
+    (catch UnsupportedOperationException _ex
+      (fail-parse string-value (format "Value '%s' of type %s too large for the implementation" string-value base)))))
 
 (defn parse-binary [^String string-value datatype]
   (parse-xml-unformatted string-value datatype))
@@ -311,11 +299,6 @@
 
     (= "boolean" base)
     (parse-boolean-unformatted string-value datatype)
-
-    ;;time is a date/time type but we currently parse it using the XML gregorian calendar
-    ;;TODO: parse all date/time types this way?
-    (= "time" base)
-    (parse-xml-gregorian-calendar string-value datatype)
 
     (is-xml-gregorian-calendar-type? base)
     (parse-xml-gregorian-calendar string-value datatype)
