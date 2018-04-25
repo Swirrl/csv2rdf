@@ -97,10 +97,17 @@
   (let [col1-non-virtual (column/indexed-non-virtual-columns columns1)
         col2-non-virtual (column/indexed-non-virtual-columns columns2)
         common-indexes (set/intersection (set (keys col1-non-virtual)) (set (keys col2-non-virtual)))
+
+        ;;Two schemas are compatible if they have the same number of non-virtual column descriptions,
+        count-validation (if (= (count col1-non-virtual) (count col2-non-virtual))
+                           (v/pure nil)
+                           (v/with-warning "Schemas have different number of non-virtual columns" nil))
+
+        ;;and the non-virtual column descriptions at the same index within each are compatible with each other
         column-validations (map (fn [idx]
                                   (column/validate-compatible validating? idx (get col1-non-virtual idx) (get col2-non-virtual idx)))
                                 common-indexes)]
-    (v/with-value (v/collect column-validations) nil)))
+    (v/combine (v/collect column-validations) count-validation)))
 
 (defn compatibility-merge [user-schema embedded-schema]
   ;;TODO: validate schemas are compatible
