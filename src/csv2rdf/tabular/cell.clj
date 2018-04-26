@@ -9,8 +9,6 @@
             [grafter.rdf :as rdf]
             [csv2rdf.vocabulary :refer :all])
   (:import [java.util.regex Pattern]
-           [java.math BigDecimal BigInteger]
-           [java.text DecimalFormat ParseException]
            [grafter.rdf.protocols IRDFString]
            [java.time.format DateTimeFormatter DateTimeParseException]
            [java.time LocalDate ZoneId LocalDateTime ZonedDateTime LocalTime]
@@ -61,112 +59,7 @@
     (catch IllegalArgumentException ex
       (fail-parse string-value (format "Cannot parse '%s' as type '%s': %s" string-value base (.getMessage ex))))))
 
-(defn bound-num [type-name min max]
-  {:pre [(or (some? min) (some? max))]}
-  (let [check-min (if (some? min)
-                    (fn [n]
-                      (if (>= n min)
-                        n
-                        (throw (IllegalArgumentException. (format "%s values must be >= %d" type-name min)))))
-                    identity)
-        check-max (if (some? max)
-                    (fn [n]
-                      (if (<= n max)
-                        n
-                        (throw (IllegalArgumentException. (format "%s values must be <= %d" type-name max)))))
-                    identity)]
-    (fn [n]
-      (-> n (check-min) (check-max)))))
-
 ;;TODO: implement Grafter procotol so java Date/DateTime/Duration types can be used as values directly?
-
-(defn parse-integer [^String s]
-  (BigInteger. s))
-(def parse-long #(Long/parseLong %))
-(def parse-int #(Integer/parseInt %))
-(def parse-short #(Short/parseShort %))
-
-(def numeric-parsers
-  {"double" #(Double/parseDouble %)
-   "float" #(Float/parseFloat %)
-   "decimal" (fn [^String s] (BigDecimal. s))
-   "integer" parse-integer
-   "long" parse-long
-   "int" parse-int
-   "short" parse-short
-   "byte" #(Byte/parseByte %)
-   "nonNegativeInteger" (comp (bound-num "nonNegativeInteger" 0 nil) parse-integer)
-   "positiveInteger" (comp (bound-num "positiveInteger" 1 nil) parse-integer)
-   "unsignedLong" (comp (bound-num "unsignedLong" 0 (biginteger 18446744073709551615)) parse-integer)
-   "unsignedInt" (comp (bound-num "unsignedInt" 0 4294967295) parse-long)
-   "unsignedShort" (comp (bound-num "unsignedShort" 0 65535) parse-int)
-   "unsignedByte" (comp (bound-num "unsignedByte" 0 255) parse-short)
-   "nonPositiveInteger" (comp (bound-num "nonPositiveInteger" nil 0) parse-integer)
-   "negativeInteger" (comp (bound-num "negativeInteger" nil -1) parse-integer)})
-
-(def special-floating-values
-  {"float" {"NaN" Float/NaN "INF" Float/POSITIVE_INFINITY "-INF" Float/NEGATIVE_INFINITY}
-   "double" {"NaN" Double/NaN "INF" Double/POSITIVE_INFINITY "-INF" Double/NEGATIVE_INFINITY}})
-
-(def special-floating-names (into #{} (keys (second (first special-floating-values)))))
-
-(defn get-special-floating-value [value base]
-  (if-let [result (get-in special-floating-values [base value])]
-    result
-    (throw (IllegalArgumentException. (format "Unknown numeric constant %s for type %s" value base)))))
-
-(defn parse-number-from-constructed-format [^String string-value {{:keys [decimalChar groupChar]} :format base :base :as datatype}]
-  (let [is-special? (contains? special-floating-names string-value)
-        has-exponent? (or (.contains string-value "e") (.contains string-value "E"))
-        is-decimal-type? (xml-datatype/is-subtype? "decimal" base)
-        strip-group (fn ^String [^String s] (if (some? groupChar) (.replace s (str groupChar) "") s))]
-    (cond
-      (and (some? decimalChar) (xml-datatype/is-integral-type? base))
-      (fail-parse string-value (format "Cannot specify decimalChar for integral datatype %s" base))
-
-      (and is-special? is-decimal-type?)
-      (fail-parse string-value (format "Cannot specify floating point value %s for decimal type %s" string-value base))
-
-      (and has-exponent? is-decimal-type?)
-      (fail-parse string-value (format "Cannot specify exponent for type %s" base))
-
-      is-special?
-      {:value (get-special-floating-value string-value base) :datatype datatype :errors []}
-
-      (xml-datatype/is-integral-type? base)
-      (let [parser (get numeric-parsers base)]
-        (try
-          {:value (parser (strip-group string-value)) :datatype datatype :errors []}
-          (catch Exception _ex
-            (fail-parse string-value (format "Failed to parse '%s' as type %s" string-value base)))))
-
-      :else
-      ;;remove group character, normalise decimal character to . and remove any trailing percent or mph modifier
-      ;;then parse with the type parser and modify the result according to the trailing modifier
-      (let [^String s (strip-group string-value)
-            s (.replace s (str (or decimalChar \.)) ".")
-            [s modifier] (cond (.endsWith s "%") [(.substring s 0 (dec (.length s))) :percent]
-                               (.endsWith s "\u2030") [(.substring s 0 (dec (.length s))) :mph]
-                               :else [s nil])
-            parser (get numeric-parsers base)]
-        (try
-          (let [result (parser s)
-                result (case modifier
-                         :percent (/ result 100)
-                         :mph (/ result 1000)
-                         result)]
-            {:value result :datatype datatype :errors []})
-          (catch Exception _ex
-            (fail-parse string-value (format "Failed to parse '%s' as type %s" string-value base))))))))
-
-(defn parse-number-format [string-value {{:keys [^DecimalFormat pattern]} :format :as datatype}]
-  (if (some? pattern)
-    (try
-      {:value (.parse pattern string-value) :datatype datatype :errors []}
-      (catch ParseException _ex
-        (fail-parse string-value (format "Cannot parse value '%s' with the pattern '%s'" string-value (.toPattern pattern)))))
-    (parse-number-from-constructed-format string-value datatype)))
-
 (defn local-date->date [ld]
   (let [zoned-date (.atStartOfDay ld (ZoneId/systemDefault))]
     (Date/from (.toInstant zoned-date))))
@@ -301,7 +194,7 @@
 (defn parse-datatype-format [string-value {:keys [base format] :as datatype} column]
   (cond
     (xml-datatype/is-numeric-type? base)
-    (parse-number-format string-value format)
+    (parse-xml-formatted string-value datatype)
 
     (= "boolean" base)
     (parse-xml-formatted string-value datatype)
