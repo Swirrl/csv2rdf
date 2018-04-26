@@ -54,6 +54,13 @@
     (catch IllegalArgumentException ex
       (fail-parse string-value (format "Cannot parse '%s' as type '%s': %s" string-value base (.getMessage ex))))))
 
+(defn parse-xml-formatted [string-value {base :base fmt :format :as datatype}]
+  (try
+    (let [value (xml-parsing/parse-format base string-value fmt)]
+      {:value value :datatype datatype :errors []})
+    (catch IllegalArgumentException ex
+      (fail-parse string-value (format "Cannot parse '%s' as type '%s': %s" string-value base (.getMessage ex))))))
+
 (defn bound-num [type-name min max]
   {:pre [(or (some? min) (some? max))]}
   (let [check-min (if (some? min)
@@ -225,18 +232,6 @@
   (or (xml-datatype/is-date-time-type? datatype-base)
       (contains? #{"gDay" "gMonth" "gMonthDay" "gYear" "gYearMonth"} datatype-base)))
 
-;;TODO: remove when parse-formatted function has been added to xml.datatype.parsing
-(defn parse-boolean-with-mapping [string-value datatype {:keys [true-values false-values] :as mapping}]
-  (cond
-    (contains? true-values string-value) {:value true :datatype datatype :errors []}
-    (contains? false-values string-value) {:value false :datatype datatype :errors []}
-    :else (let [allowed-values (mapcat identity (vals mapping))
-                msg (format "Cannot parse '%s' as a boolean: expected one of %s" string-value (string/join ", " allowed-values))]
-            (fail-parse string-value msg))))
-
-(defn parse-boolean-format [string-value {:keys [format] :as datatype}]
-  (parse-boolean-with-mapping string-value datatype format))
-
 (defn parse-duration [string-value {:keys [base] :as datatype}]
   (try
     ;;NOTE: just used for validation
@@ -309,9 +304,8 @@
     (parse-number-format string-value format)
 
     (= "boolean" base)
-    (parse-boolean-format string-value datatype)
+    (parse-xml-formatted string-value datatype)
 
-    ;;TODO: support time formats
     (= "time" base)
     (parse-time-format string-value datatype)
 
@@ -443,7 +437,8 @@
 (defn ^{:table-spec "6.4"} copy-column-annotations
   "Copy required annotations onto a cell from its column"
   [cell column]
-  (merge cell (select-keys column [:ordered :textDirection])))
+  ;;NOTE: lang not required by specification but will be needed to set the string language?
+  (merge cell (select-keys column [:ordered :textDirection :lang])))
 
 (defn ^{:table-spec "6.4"} parse-cell
   "Parses a cell value in the input CSV to obtain the semantic value."
