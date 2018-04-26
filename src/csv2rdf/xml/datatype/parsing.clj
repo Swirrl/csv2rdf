@@ -3,7 +3,11 @@
             [clojure.string :as string])
   (:import [java.net URI URISyntaxException]
            [java.util Base64]
-           [javax.xml.datatype DatatypeFactory XMLGregorianCalendar]))
+           [javax.xml.datatype DatatypeFactory XMLGregorianCalendar]
+           [java.time.format DateTimeFormatter DateTimeParseException]
+           (java.time.temporal ChronoField)
+           (java.time LocalDate LocalDateTime ZonedDateTime OffsetTime LocalTime)
+           (java.util.regex Pattern)))
 
 (defmulti parse "Parses a values to one for the named XML datatype"
           (fn [type-name string-value] (xml-datatype/dispatch-key type-name))
@@ -62,6 +66,10 @@
   (.newXMLGregorianCalendar xml-datatype-factory string-value))
 
 (defmethod parse :dateTime [_type-name string-value]
+  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+
+(defmethod parse :dateTimeStamp [_type-name string-value]
+  ;;TODO: parse as ZonedDateTime?
   (.newXMLGregorianCalendar xml-datatype-factory string-value))
 
 (defmethod parse :duration [_type-name string-value]
@@ -159,3 +167,61 @@
 
 (defmethod parse :negativeInteger [_type-name string-value]
   (check-maximum -1 (parse-integer string-value)))
+
+(defmulti parse-format "Parses a datatype according to the given format"
+          (fn [type-name string-value format]
+            ;;TODO: include format type in dispatch value?
+            (xml-datatype/dispatch-key type-name))
+          :hierarchy #'xml-datatype/dispatch-hierarchy)
+
+;;parse-format
+
+(defmethod parse-format :boolean [_type-name ^String string-value format-mapping]
+  (parse-boolean-with-mapping string-value format-mapping))
+
+(defmethod parse-format :date [_type-name ^String string-value ^DateTimeFormatter date-format]
+  (try
+    (let [ta (.parse date-format string-value)]
+      (if (.isSupported ta ChronoField/OFFSET_SECONDS)
+        (throw (IllegalStateException. "Dates with offset not supported? Use ZonedDateTime?"))
+        (LocalDate/from ta)))
+    (catch DateTimeParseException ex
+      (throw (IllegalArgumentException. "Date does not match format" ex)))))
+
+(defmethod parse-format :dateTime [_type-name ^String string-value ^DateTimeFormatter date-format]
+  (try
+    (let [ta (.parse date-format string-value)]
+      (if (.isSupported ta ChronoField/OFFSET_SECONDS)
+        (ZonedDateTime/from ta)
+        (LocalDateTime/from ta)))
+    (catch DateTimeParseException ex
+      (throw (IllegalArgumentException. "DateTime does not match format" ex)))))
+
+(defmethod parse-format :dateTimeStamp [_type-name ^String string-value ^DateTimeFormatter date-format]
+  (try
+    (ZonedDateTime/parse string-value date-format)
+    (catch DateTimeParseException ex
+      (throw (IllegalArgumentException. "DateTimeStamp does not match format" ex)))))
+
+(defmethod parse-format :time [_type-name ^String string-value ^DateTimeFormatter date-format]
+  (try
+    (let [ta (.parse date-format string-value)]
+      (if (.isSupported ta ChronoField/OFFSET_SECONDS)
+        (OffsetTime/from ta)
+        (LocalTime/from ta)))
+    (catch DateTimeParseException ex
+      (throw (IllegalArgumentException. "Time does not match format" ex)))))
+
+(defmethod parse-format :html [type-name ^String string-value ^Pattern _pattern]
+  (parse type-name string-value))
+
+(defmethod parse-format :xml [type-name ^String string-value ^Pattern _pattern]
+  (parse type-name string-value))
+
+(defmethod parse-format :json [type-name ^String string-value ^Pattern _pattern]
+  (parse type-name string-value))
+
+(defmethod parse-format :default [type-name ^String string-value ^Pattern pattern]
+  (if (some? (re-matches pattern string-value))
+    (parse type-name string-value)
+    (throw (IllegalArgumentException. (format "'%s' does not match regular expression %s" string-value pattern)))))
