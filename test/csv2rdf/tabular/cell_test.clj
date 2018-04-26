@@ -2,10 +2,6 @@
   (:require [clojure.test :refer :all]
             [csv2rdf.tabular.cell :refer :all]))
 
-(defn assert-value-language [expected-lang cell]
-  ;;TODO: check value is grafter LangString?
-  (is (= (keyword expected-lang) (get-in cell [:value :lang]))))
-
 (deftest parse-cell-string-type-test
   (testing "Maintains whitespace"
     (let [s "\r\ncontains\t   whitespace\t\t   "
@@ -26,11 +22,6 @@
     (let [null-values ["null"]
           cell (parse-cell "null" {:datatype {:base "string"} :null null-values :required true})]
       (is (not (empty? (errors cell))))))
-
-  (testing "Should set value lang"
-    (let [col-lang "en"
-          cell (parse-cell "value" {:datatype {:base "string"} :lang col-lang})]
-      (assert-value-language col-lang cell)))
 
   (testing "Invalid exact length"
     (let [cell (parse-cell "value" {:datatype {:base "string"} :length 4})]
@@ -66,11 +57,10 @@
           cell (parse-cell "null" {:datatype {:base "string"} :separator "|" :null null-values})]
       (is (nil? (semantic-value cell)))))
 
-  (testing "Should set column lang for all values"
+  (testing "Should set column lang on cell"
     (let [col-lang "en"
           cell (parse-cell "a|b|c" {:datatype {:base "string"} :separator "|" :lang col-lang})]
-      (doseq [v (value cell)]
-        (assert-value-language col-lang v))))
+      (= col-lang (:lang cell))))
 
   (testing "Multiple values with exact length violation"
     (let [cell (parse-cell "foo|bar|quux|qaal" {:datatype {:base "string"} :separator "|" :length 3})]

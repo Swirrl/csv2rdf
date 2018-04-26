@@ -154,6 +154,22 @@
               (recur endIdx (.appendCodePoint sb decoded))))
           (recur (inc idx) (.append sb c)))))))
 
+(def hex-digits "0123456789abcdef")
+
+(defn to-hex-string
+  "Returns the hex representation of a byte array"
+  [^bytes arr]
+  (let [num-bytes (alength arr)
+        chars (char-array (* 2 num-bytes))]
+    (doseq [idx (range num-bytes)]
+      (let [offset (* 2 idx)
+            b (aget arr idx)
+            c1 (.charAt hex-digits (bit-and (bit-shift-right b 4) 0x0F))
+            c2 (.charAt hex-digits (bit-and b 0x0F))]
+        (aset chars offset c1)
+        (aset chars (inc offset) c2)))
+    (String. chars)))
+
 ;;TODO: move into own namespace?
 (defprotocol StringLike
   (->string [this]))

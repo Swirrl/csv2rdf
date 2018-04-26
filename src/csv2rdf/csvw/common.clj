@@ -4,8 +4,7 @@
             [csv2rdf.vocabulary :refer :all]
             [grafter.rdf :refer [->Triple] :as rdf]
             [csv2rdf.xml.datatype :as xml-datatype]
-            [grafter.rdf.protocols :as gproto])
-  (:import [grafter.rdf.protocols LangString RDFLiteral]))
+            [csv2rdf.xml.datatype.canonical :as xml-canonical]))
 
 (defn gen-blank-node
   "Generates a grafter representation of a new blank node"
@@ -25,44 +24,30 @@
 (defn ^{:csvw-spec "4.6.8.3"} cell-predicate [tabular-data-file-url {:keys [propertyUrl column] :as cell}]
   (or propertyUrl (column-about-url tabular-data-file-url column)))
 
-(def stringy-types #{"base64Binary" "hexBinary" "anyURI"})
+;;TODO: associated lang with cell element?
+(defn cell-element->rdf [{:keys [value stringValue datatype] :as cell-element} lang]
+  (let [{:keys [id base]} datatype]
+    (cond
+      ;;if the datatype's id annotation is not null, then its value MUST be used as the RDF datatype IRI;
+      (some? id)
+      (rdf/literal (xml-canonical/canonical-value value datatype) id)
 
-(defn is-lang-string? [x]
-  (instance? LangString x))
+      ;; if a cell has any datatype other than string, the value of lang MUST be ignored
+      (and (= "string" base) (some? lang))
+      (rdf/language value (keyword lang))
 
-(defn is-grafter-literal? [x]
-  (instance? RDFLiteral x))
+      :else
+      (let [;;NOTE: XML Duration type normalises the parsed value when outputting as strings, which the test cases do not
+            ;;expect e.g. an input string of P20M is formatted as P1Y8M
+            rdf-value (if (xml-datatype/is-duration-type? base)
+                        stringValue
+                        (xml-canonical/canonical-value value datatype))]
+        (rdf/literal rdf-value (xml-datatype/datatype->iri base))))))
 
-(defn ^{:csvw-spec "4.3"} cell-element->rdf [{:keys [value datatype] :as element}]
-  (let [datatype-id (:id datatype)
-        datatype-base (:base datatype)
-        resolved-type-name (xml-datatype/resolve-type-name datatype-base)]
-    (if (some? datatype-id)
-      ;;if the datatype's id annotation is not null, then its value MUST be used as the RDF datatype IRI
-      (cond
-        (contains? stringy-types resolved-type-name)
-        (rdf/literal (:stringValue element) datatype-id)
-
-        ;;If a cell has any datatype other than string, the value of lang MUST be ignored
-        (is-lang-string? value)
-        (if (= "string" datatype-base)
-          value
-          (rdf/literal (gproto/raw-value value) datatype-id))
-
-        ;;TODO: replace with different representation
-        (is-grafter-literal? value)
-        (rdf/literal (gproto/raw-value value) datatype-id)
-
-        :else (rdf/literal value datatype-id))
-      ;;else, the datatype's base annotation value MUST be mapped to the RDF datatype IRI
-      (if (contains? stringy-types resolved-type-name)
-        (rdf/literal (:stringValue element) (xml-datatype/get-datatype-iri datatype-base))
-        value))))
-
-(defn rdf-list [ordered-value-elements]
+(defn rdf-list [ordered-value-elements lang]
   (reduce (fn [[tail-subject tail-statements] value-element]
             (let [list-subject (gen-blank-node "list")
-                  ft (->Triple list-subject rdf:first (cell-element->rdf value-element))
+                  ft (->Triple list-subject rdf:first (cell-element->rdf value-element lang))
                   rt (->Triple list-subject rdf:rest tail-subject)]
               [list-subject (cons ft (cons rt tail-statements))]))
           [rdf:nil []]
@@ -70,7 +55,7 @@
 
 ;;TODO: ensure all cell values have RDF representations in grafter
 ;;TODO: use datatype annotation on cell
-(defn cell-value-statements [subject predicate {:keys [value valueUrl ordered] :as cell}]
+(defn cell-value-statements [subject predicate {:keys [value valueUrl ordered lang] :as cell}]
   (let [is-list? (= true (:list cell))
         semantic-value (cell/semantic-value cell)]
     (cond
@@ -78,14 +63,14 @@
       [(->Triple subject predicate valueUrl)]
 
       (and is-list? ordered)
-      (let [[list-subject list-triples] (rdf-list value)]
+      (let [[list-subject list-triples] (rdf-list value lang)]
         (cons (->Triple subject predicate list-subject) list-triples))
 
       is-list?
-      (map (fn [ve] (->Triple subject predicate (cell-element->rdf ve))) value)
+      (map (fn [ve] (->Triple subject predicate (cell-element->rdf ve lang))) value)
 
       (some? semantic-value)
-      [(->Triple subject predicate (cell-element->rdf cell))]
+      [(->Triple subject predicate (cell-element->rdf cell lang))]
 
       :else [])))
 

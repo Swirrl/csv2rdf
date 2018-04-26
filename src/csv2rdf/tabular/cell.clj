@@ -9,12 +9,7 @@
             [grafter.rdf :as rdf]
             [csv2rdf.vocabulary :refer :all])
   (:import [java.util.regex Pattern]
-           [grafter.rdf.protocols IRDFString]
-           [java.time.format DateTimeFormatter DateTimeParseException]
-           [java.time LocalDate ZoneId LocalDateTime ZonedDateTime LocalTime]
-           [java.util Date]
-           [javax.xml.datatype XMLGregorianCalendar]
-           [java.time.temporal TemporalAccessor ChronoField]))
+           [grafter.rdf.protocols IRDFString]))
 
 (def column-required-message "Column value required")
 
@@ -45,177 +40,14 @@
       (assoc :datatype {:base "string"})
       (update :errors conj error-message)))
 
-(defn parse-xml-unformatted [string-value {:keys [base] :as datatype}]
+(defn ^{:table-spec "6.4.8"} parse-datatype [string-value {fmt :format base :base :as datatype}]
   (try
-    (let [value (xml-parsing/parse base string-value)]
+    (let [value (if (some? fmt)
+                  (xml-parsing/parse-format base string-value fmt)
+                  (xml-parsing/parse base string-value))]
       {:value value :datatype datatype :errors []})
     (catch IllegalArgumentException ex
       (fail-parse string-value (format "Cannot parse '%s' as type '%s': %s" string-value base (.getMessage ex))))))
-
-(defn parse-xml-formatted [string-value {base :base fmt :format :as datatype}]
-  (try
-    (let [value (xml-parsing/parse-format base string-value fmt)]
-      {:value value :datatype datatype :errors []})
-    (catch IllegalArgumentException ex
-      (fail-parse string-value (format "Cannot parse '%s' as type '%s': %s" string-value base (.getMessage ex))))))
-
-;;TODO: implement Grafter procotol so java Date/DateTime/Duration types can be used as values directly?
-(defn local-date->date [ld]
-  (let [zoned-date (.atStartOfDay ld (ZoneId/systemDefault))]
-    (Date/from (.toInstant zoned-date))))
-
-(defn try-parse-date-format [string-value datatype]
-  (let [dtf (or (:format datatype) DateTimeFormatter/ISO_DATE)
-        local-date (LocalDate/parse string-value dtf)
-        formatted (.format DateTimeFormatter/ISO_DATE local-date)]
-    (rdf/literal formatted xsd:date)))
-
-(defn try-parse-datetime-format [string-value datatype]
-  (let [dtf (or (:format datatype) DateTimeFormatter/ISO_DATE_TIME)
-        local-datetime (LocalDateTime/parse string-value dtf)
-        formatted (.format DateTimeFormatter/ISO_DATE_TIME local-datetime)]
-    (rdf/literal formatted xsd:dateTime)))
-
-(defn try-parse-datetimestamp-format [string-value datatype]
-  (let [dtf (or (:format datatype) DateTimeFormatter/ISO_ZONED_DATE_TIME)
-        zoned-datetime (ZonedDateTime/parse string-value dtf)
-        formatted (.format zoned-datetime DateTimeFormatter/ISO_ZONED_DATE_TIME)]
-    (rdf/literal formatted xsd:dateTimeStamp)))
-
-(defn try-parse-time-format [string-value datatype]
-  (let [tf (or (:format datatype) DateTimeFormatter/ISO_TIME)
-        local-date (LocalTime/parse string-value tf)
-        formatted (.format local-date DateTimeFormatter/ISO_TIME)]
-    (rdf/literal formatted xsd:time)))
-
-(def date-parsers
-  {"date" try-parse-date-format
-   "dateTime" try-parse-datetime-format
-   "dateTimeStamp" try-parse-datetimestamp-format
-   "time" try-parse-time-format})
-
-(defn parse-date-format [string-value {:keys [base] :as datatype}]
-  (if-let [parser (get date-parsers (xml-datatype/resolve-type-name base))]
-    (try
-      {:value (parser string-value datatype) :datatype datatype :errors []}
-      (catch DateTimeParseException ex
-        (fail-parse string-value (format "Cannot parse value '%s' with the expected date pattern for type '%s'" string-value base))))
-    (throw (IllegalArgumentException. (format "Invalid date/time type '%s'" base)))))
-
-(defn xml-gregorian-calendar->literal [^XMLGregorianCalendar calendar {:keys [base] :as datatype}]
-  (rdf/literal (.toXMLFormat calendar) (xml-datatype/get-datatype-iri base)))
-
-(defn is-compatible-gregorian-calendar-type? [^XMLGregorianCalendar calendar {:keys [base] :as datatype}]
-  (let [local-part (.getLocalPart (.getXMLSchemaType calendar))]
-    (or (and (= base "dateTimeStamp")
-             (= local-part "dateTime"))
-        (= (xml-datatype/resolve-type-name base) local-part))))
-
-(defn parse-xml-gregorian-calendar [string-value {:keys [base] :as datatype}]
-  (try
-    (let [^XMLGregorianCalendar calendar (xml-parsing/parse base string-value)]
-      ;;TODO: remove check and validate output types in each parsing function
-      (if (is-compatible-gregorian-calendar-type? calendar datatype)
-        {:value (xml-gregorian-calendar->literal calendar datatype) :datatype datatype :errors []}
-        (fail-parse string-value (format "Cannot parse value '%s' as type %s" string-value base))))
-    (catch IllegalArgumentException _ex
-      (fail-parse string-value (format "Cannot parse value '%s' as type %s" string-value base)))))
-
-(defn is-xml-gregorian-calendar-type? [datatype-base]
-  (or (xml-datatype/is-date-time-type? datatype-base)
-      (contains? #{"gDay" "gMonth" "gMonthDay" "gYear" "gYearMonth"} datatype-base)))
-
-(defn parse-duration [string-value {:keys [base] :as datatype}]
-  (try
-    ;;NOTE: just used for validation
-    ;;XML Duration type normalises the parsed value when outputting as strings, which the test cases do not
-    ;;expect e.g. an input string of P20M is formatted as P1Y8M
-    (xml-parsing/parse base string-value)
-    (let [datatype-uri (xml-datatype/get-datatype-iri base)
-          rdf-lit (rdf/literal string-value datatype-uri)]
-      {:value rdf-lit :datatype datatype :errors []})
-    (catch IllegalArgumentException _ex
-      (fail-parse string-value (format "Cannot parse '%s' as type %s" string-value base)))
-    (catch UnsupportedOperationException _ex
-      (fail-parse string-value (format "Value '%s' of type %s too large for the implementation" string-value base)))))
-
-(defn parse-datatype-unformatted [string-value {:keys [base] :as datatype} {:keys [lang] :as column}]
-  (cond
-    (= "string" base)
-    (let [value (if (nil? lang) string-value (language string-value (keyword lang)))]
-      {:value value :datatype datatype :errors []})
-
-    ;;TODO: resolve all type URIs in this way
-    ;;TODO: delay resolution of type URI until CSVW output
-    (xml-datatype/is-string-type? base)
-    {:value (rdf/literal string-value (datatype/get-datatype-iri datatype)) :datatype datatype :errors []}
-
-    (is-xml-gregorian-calendar-type? base)
-    (parse-xml-gregorian-calendar string-value datatype)
-
-    (xml-datatype/is-duration-type? base)
-    (parse-duration string-value datatype)
-
-    :else
-    (parse-xml-unformatted string-value datatype)))
-
-(defn ^{:table-spec "6.4.6"} parse-other-types-format [string-value {base :base pattern :format :as datatype} column]
-  {:pre [(instance? Pattern pattern)]}
-  (if (contains? #{"html" "xml" "json"} base)
-    ;;Values that are labelled as html, xml, or json SHOULD NOT be validated against those formats
-    (parse-datatype-unformatted string-value datatype column)
-    (if (some? (re-matches pattern string-value))
-      (parse-datatype-unformatted string-value datatype column)
-      (fail-parse string-value (format "'%s' does not match regular expression %s" string-value pattern)))))
-
-(defn ^{:table-spec "6.4.5"} parse-duration-format [string-value {pattern :format :as datatype}]
-  {:pre [(instance? Pattern pattern)]}
-  ;;NOTE: it's not clear from the spec whether values which pass the regex must also be validated to check
-  ;;they match the required duration format
-  (if (some? (re-matches pattern string-value))
-    (parse-duration string-value datatype)
-    (fail-parse string-value (format "'%s' does not match regular expression %s" string-value pattern))))
-
-(defn parse-time-format [string-value {time-format :format base :base :as datatype}]
-  ;;TODO: merge this with parse-date-format
-  (try
-    (let [^TemporalAccessor ta (.parse time-format string-value)
-
-          ;;assume OffsetTime if format has an associated offest otherwise LocalDate
-          output-format (if (.isSupported ta ChronoField/OFFSET_SECONDS)
-                          DateTimeFormatter/ISO_OFFSET_TIME
-                          DateTimeFormatter/ISO_TIME)
-          formatted (.format output-format ta)
-          lit (rdf/literal formatted (xml-datatype/datatype->iri base))]
-      {:value lit :datatype datatype :errors []})
-    (catch DateTimeParseException _ex
-      (fail-parse string-value (format "'%s' does not match the time format")))))
-
-(defn parse-datatype-format [string-value {:keys [base format] :as datatype} column]
-  (cond
-    (xml-datatype/is-numeric-type? base)
-    (parse-xml-formatted string-value datatype)
-
-    (= "boolean" base)
-    (parse-xml-formatted string-value datatype)
-
-    (= "time" base)
-    (parse-time-format string-value datatype)
-
-    (xml-datatype/is-date-time-type? base)
-    (parse-date-format string-value datatype)
-
-    (xml-datatype/is-duration-type? base)
-    (parse-duration-format string-value datatype)
-
-    :else
-    (parse-other-types-format string-value datatype column)))
-
-(defn ^{:table-spec "6.4.8"} parse-datatype [string-value {:keys [datatype] :as column}]
-  ;;TODO: create protcol for parsing?
-  (if (some? (:format datatype))
-    (parse-datatype-format string-value datatype column)
-    (parse-datatype-unformatted string-value datatype column)))
 
 (defn get-length-error [{:keys [stringValue] :as cell} rel-sym length constraint]
   (if (some? constraint)
@@ -286,11 +118,11 @@
 (defn ^{:table-spec "6.4.[6,7,8,9]"} parse-atomic-value
   "Parses an 'atomic' value within a cell i.e. one which should be parsed directly according to the
   column datatype."
-  [string-value {:keys [required] :as column}]
+  [string-value {:keys [required datatype] :as column}]
   (let [value (column-default-if-empty string-value column)]
     (if (is-column-null? value column)
       {:value nil :stringValue string-value :errors (if required [column-required-message] [])}
-      (let [result (parse-datatype string-value column)
+      (let [result (parse-datatype string-value datatype)
             cell (assoc result :stringValue string-value)]
         (-> cell
             (validate-length column)
@@ -331,6 +163,7 @@
   "Copy required annotations onto a cell from its column"
   [cell column]
   ;;NOTE: lang not required by specification but will be needed to set the string language?
+  ;;TODO: associate lang with each cell element?
   (merge cell (select-keys column [:ordered :textDirection :lang])))
 
 (defn ^{:table-spec "6.4"} parse-cell
