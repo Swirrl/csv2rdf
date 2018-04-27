@@ -1,7 +1,7 @@
 (ns csv2rdf.metadata.types
   (:require [csv2rdf.metadata.validator :refer [make-warning variant invalid array-of kvp kvps optional-key
                                                 required-key invalid-key-pair any map-of one-of string invalid?
-                                                chain try-parse-with where strict make-error tuple eq uri]]
+                                                chain try-parse-with where strict make-error tuple eq uri ignore-invalid]]
             [csv2rdf.metadata.context :refer [resolve-uri append-path language-code-or-default
                                               base-key language-key id-key update-from-local-context with-document-uri]]
             [csv2rdf.json-ld :refer [expand-uri-string]]
@@ -257,13 +257,6 @@
   (if (or (contains? m base-key) (contains? m language-key))
     (v/pure m)
     (make-error context "Top-level object must contain @base or @language keys")))
-
-;;TODO: remove invalid marker value?
-(defn ignore-invalid
-  "Validator which wraps an inner validator and converts invalid values into nil"
-  [validator]
-  (fn [context x]
-    (v/fmap (fn [r] (if (invalid? r) nil r)) (validator context x))))
 
 (def parse-context-pair (tuple
                           (eq csvw-ns)

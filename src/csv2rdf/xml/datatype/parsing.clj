@@ -5,13 +5,19 @@
            [java.util Base64]
            [javax.xml.datatype DatatypeFactory XMLGregorianCalendar]
            [java.time.format DateTimeFormatter DateTimeParseException]
-           (java.time.temporal ChronoField)
-           (java.time LocalDate LocalDateTime ZonedDateTime OffsetTime LocalTime)
-           (java.util.regex Pattern)
-           (java.text DecimalFormat ParseException)))
+           [java.time.temporal ChronoField]
+           [java.time LocalDate LocalDateTime ZonedDateTime OffsetTime LocalTime]
+           [java.util.regex Pattern]
+           [java.text DecimalFormat ParseException]))
 
 (defmulti parse "Parses a values to one for the named XML datatype"
           (fn [type-name string-value] (xml-datatype/dispatch-key type-name))
+          :hierarchy #'xml-datatype/dispatch-hierarchy)
+
+(defmulti parse-format "Parses a datatype according to the given format"
+          (fn [type-name string-value format]
+            ;;TODO: include format type in dispatch value?
+            (xml-datatype/dispatch-key type-name))
           :hierarchy #'xml-datatype/dispatch-hierarchy)
 
 (defmethod parse :string [_type-name string-value]
@@ -59,19 +65,20 @@
 (defmethod parse :boolean [_type-name string-value]
   (parse-boolean-with-mapping string-value default-boolean-mapping))
 
-;;TODO: change representation of parse date/time values?
 ;;TODO: validate returned values match expected XML type
 (def xml-datatype-factory (DatatypeFactory/newInstance))
 
-(defmethod parse :date [_type-name string-value]
-  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+(defmethod parse :date [type-name string-value]
+  (parse-format type-name string-value DateTimeFormatter/ISO_DATE))
 
-(defmethod parse :dateTime [_type-name string-value]
-  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+(defmethod parse :time [type-name string-value]
+  (parse-format type-name string-value DateTimeFormatter/ISO_TIME))
 
-(defmethod parse :dateTimeStamp [_type-name string-value]
-  ;;TODO: parse as ZonedDateTime?
-  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+(defmethod parse :dateTime [type-name string-value]
+  (parse-format type-name string-value DateTimeFormatter/ISO_DATE_TIME))
+
+(defmethod parse :dateTimeStamp [type-name string-value]
+  (parse-format type-name string-value DateTimeFormatter/ISO_ZONED_DATE_TIME))
 
 (defmethod parse :duration [_type-name string-value]
   (.newDuration xml-datatype-factory string-value))
@@ -95,9 +102,6 @@
   (.newXMLGregorianCalendar xml-datatype-factory string-value))
 
 (defmethod parse :gYearMonth [_type-name string-value]
-  (.newXMLGregorianCalendar xml-datatype-factory string-value))
-
-(defmethod parse :time [_type-name string-value]
   (.newXMLGregorianCalendar xml-datatype-factory string-value))
 
 ;;numeric parsers
@@ -169,12 +173,6 @@
 (defmethod parse :negativeInteger [_type-name string-value]
   (check-maximum -1 (parse-integer string-value)))
 
-(defmulti parse-format "Parses a datatype according to the given format"
-          (fn [type-name string-value format]
-            ;;TODO: include format type in dispatch value?
-            (xml-datatype/dispatch-key type-name))
-          :hierarchy #'xml-datatype/dispatch-hierarchy)
-
 ;;parse-format
 
 (defmethod parse-format :boolean [_type-name ^String string-value format-mapping]
@@ -184,7 +182,7 @@
   (try
     (let [ta (.parse date-format string-value)]
       (if (.isSupported ta ChronoField/OFFSET_SECONDS)
-        (throw (IllegalStateException. "Dates with offset not supported? Use ZonedDateTime?"))
+        (throw (IllegalStateException. "Dates with offset not supported? Use OffsetDateTime?"))
         (LocalDate/from ta)))
     (catch DateTimeParseException ex
       (throw (IllegalArgumentException. "Date does not match format" ex)))))

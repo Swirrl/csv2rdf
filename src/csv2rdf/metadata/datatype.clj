@@ -1,12 +1,14 @@
 (ns csv2rdf.metadata.datatype
   (:require [csv2rdf.metadata.validator :refer [variant one-of make-error make-warning any chain eq type-eq
                                                 character try-parse-with invalid? invalid type-error-message
-                                                string]]
+                                                string map-of ignore-invalid]]
             [csv2rdf.metadata.json :refer [object?]]
             [csv2rdf.metadata.types :refer [object-of non-negative id]]
             [csv2rdf.metadata.context :refer [append-path]]
             [csv2rdf.xml.datatype :as xml-datatype]
             [csv2rdf.validation :as v]
+            [csv2rdf.xml.datatype.parsing :as xml-parsing]
+            [csv2rdf.xml.datatype.compare :refer [neql? lt? lte?]]
             [clojure.string :as string])
   (:import [java.time.format DateTimeFormatter]
            [java.text DecimalFormat]))
@@ -53,15 +55,15 @@
     ;;applications MUST raise an error if length, maxLength, or minLength are specified and the base datatype is
     ;;neither string, a subtype of string, nor a binary type
     (and (or (some? length) (some? minLength) (some? maxLength))
-         (not (or (xml-datatype/is-subtype? "string" base) (xml-datatype/is-binary-type? base))))
+         (not (or (xml-datatype/is-string-type? base) (xml-datatype/is-binary-type? base))))
     (make-error context "length, minLength and maxLength properties only valid on string or binary data types")
 
     ;;Applications MUST raise an error if both minimum and minInclusive are specified and they do not have the same value
-    (and (some? minimum) (some? minInclusive) (not= minimum minInclusive))
+    (and (some? minimum) (some? minInclusive) (neql? minimum minInclusive))
     (make-error context "minimum and minInclusive must be equal when both specified")
 
     ;;applications MUST raise an error if both maximum and maxInclusive are specified and they do not have the same value
-    (and (some? maximum) (some? maxInclusive) (not= maximum maxInclusive))
+    (and (some? maximum) (some? maxInclusive) (neql? maximum maxInclusive))
     (make-error context "maximum and maxInclusive must be equal when both specified")
 
     ;;applications MUST raise an error if both minInclusive and minExclusive are specified
@@ -73,19 +75,19 @@
     (make-error context "Cannot specify both maxInclusive and maxExclusive")
 
     ;;Applications MUST raise an error if both minInclusive and maxInclusive are specified and maxInclusive is less than minInclusive
-    (and (some? minInclusive) (some? maxInclusive) (< maxInclusive minInclusive))
+    (and (some? minInclusive) (some? maxInclusive) (lt? maxInclusive minInclusive))
     (make-error context "minInclusive must be <= maxInclusive")
 
     ;;...or if both minInclusive and maxExclusive are specified and maxExclusive is less than or equal to minInclusive
-    (and (some? minInclusive) (some? maxExclusive) (<= maxExclusive minInclusive))
+    (and (some? minInclusive) (some? maxExclusive) (lte? maxExclusive minInclusive))
     (make-error context "minInclusive must be < maxExclusive")
 
     ;;applications MUST raise an error if both minExclusive and maxExclusive are specified and maxExclusive is less than minExclusive
-    (and (some? minExclusive) (some? maxExclusive) (< maxExclusive minExclusive))
+    (and (some? minExclusive) (some? maxExclusive) (lt? maxExclusive minExclusive))
     (make-error context "minExclusive must be <= maxExclusive")
 
     ;;...or if both minExclusive and maxInclusive are specified and maxInclusive is less than or equal to minExclusive
-    (and (some? minExclusive) (some? maxInclusive) (<= maxInclusive minExclusive))
+    (and (some? minExclusive) (some? maxInclusive) (lte? maxInclusive minExclusive))
     (make-error context "maxInclusive must be > minExclusive")
 
     ;;Applications MUST raise an error if minimum, minInclusive, maximum, maxInclusive, minExclusive, or maxExclusive
@@ -150,6 +152,24 @@
       (v/fmap set-format
               ((try-parse-with re-pattern) (append-path context "format") format)))))
 
+(defn parse-datatype-bound [datatype-base]
+  (fn [context bound-value]
+    (if (number? bound-value)
+      (if (xml-datatype/is-numeric-type? datatype-base)
+        (v/pure bound-value)
+        (v/with-warning (format "Numeric bound not valid for non-numeric datatype %s" datatype-base) nil))
+      (let [parser (fn [s] (xml-parsing/parse datatype-base s))
+            validator (ignore-invalid (try-parse-with parser))]
+        (validator context bound-value)))))
+
+(defn parse-datatype-bounds [context {:keys [base] :as derived-datatype}]
+  (let [bounds-keys [:minimum :maximum :minInclusive :maxInclusive :minExclusive :maxExclusive]
+        bound-validator (parse-datatype-bound base)
+        bounds (select-keys derived-datatype bounds-keys)
+        validator (map-of any bound-validator)
+        validation (validator context bounds)]
+    (v/fmap (fn [parsed-obj] (merge derived-datatype parsed-obj)) validation)))
+
 (def derived-datatype
   (chain
     (object-of
@@ -167,6 +187,7 @@
                   :id          (chain id validate-datatype-id)
                   :type        (type-eq "Datatype")}
        :allow-common-properties? true})
+    parse-datatype-bounds
     validate-derived-datatype
     validate-derived-datatype-format))
 
@@ -176,10 +197,6 @@
 (def ^{:metadata-spec "5.7"} datatype
   (variant {:string (chain datatype-name normalise-datatype-name)
             :object derived-datatype}))
-
-;;TODO: move this into CSVW namespace
-(defn ^{:csvw-spec "4.3"} get-datatype-iri [{:keys [base id] :as datatype}]
-  (or id (xml-datatype/get-datatype-iri base)))
 
 (def datatype-defaults {:base "string"})
 

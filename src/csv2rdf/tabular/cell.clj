@@ -5,8 +5,8 @@
             [csv2rdf.metadata.datatype :as datatype]
             [csv2rdf.xml.datatype :as xml-datatype]
             [csv2rdf.xml.datatype.parsing :as xml-parsing]
+            [csv2rdf.xml.datatype.compare :refer [lt? lte? gt? gte?]]
             [grafter.rdf.io :refer [language]]
-            [grafter.rdf :as rdf]
             [csv2rdf.vocabulary :refer :all])
   (:import [java.util.regex Pattern]
            [grafter.rdf.protocols IRDFString]))
@@ -70,40 +70,36 @@
       (add-cell-errors cell-element len-errors))
     cell-element))
 
-;;TODO: create protocol for range validations?
-(defn validate-numeric-value [{:keys [value stringValue datatype] :as cell-element}]
+(defn ^{:table-spec "6.4.9"} validate-value-bounds
+  "Validates the cell value is valid for any bounds specified on its datatype"
+  [{:keys [value stringValue datatype] :as cell-element}]
   (let [{:keys [minimum maximum minExclusive minInclusive maxExclusive maxInclusive]} datatype]
     (cond
-      (and (some? minimum) (< value minimum))
+      (and (some? minimum) (lt? value minimum))
       (add-cell-error cell-element (format "'%s' fails constraint minimum" stringValue))
 
-      (and (some? maximum) (> value maximum))
+      (and (some? maximum) (gt? value maximum))
       (add-cell-error cell-element (format "'%s' fails constraint maximum" stringValue))
 
-      (and (some? minExclusive) (<= value minExclusive))
+      (and (some? minExclusive) (lte? value minExclusive))
       (add-cell-error cell-element (format "'%s' fails constraint minExclusive" stringValue))
 
-      (and (some? minInclusive) (< value minInclusive))
+      (and (some? minInclusive) (lt? value minInclusive))
       (add-cell-error cell-element (format "'%s' fails constraint minInclusive" stringValue))
 
-      (and (some? maxExclusive) (>= value maxExclusive))
+      (and (some? maxExclusive) (gte? value maxExclusive))
       (add-cell-error cell-element (format "'%s' fails constraint maxExclusive" stringValue))
 
-      (and (some? maxInclusive) (> value maxInclusive))
+      (and (some? maxInclusive) (gt? value maxInclusive))
       (add-cell-error cell-element (format "'%s' fails constraint maxInclusive" stringValue))
 
       :else
       cell-element)))
 
-(defn ^{:table-spec "6.4.9"} validate-value
-  "Validates the range of the cell value is valid for the constraints on the column metadata"
-  [cell {{:keys [base] :as datatype} :datatype :as column}]
-  (cond
-    (xml-datatype/is-numeric-type? base)
-    (validate-numeric-value cell)
-
-    ;;TODO: implement for date/time and duration types
-    :else cell))
+(defn validate-value [{{:keys [base]} :datatype :as cell-element}]
+  (if (or (xml-datatype/is-numeric-type? base) (xml-datatype/is-date-time-type? base) (xml-datatype/is-duration-type? base))
+    (validate-value-bounds cell-element)
+    cell-element))
 
 (s/def ::stringValue string?)
 (s/def ::list boolean?)
@@ -129,7 +125,7 @@
             cell (assoc result :stringValue string-value)]
         (-> cell
             (validate-length)
-            (validate-value column))))))
+            (validate-value))))))
 
 (s/fdef parse-atomic-value
   :args (s/cat :value string? :column (constantly true))

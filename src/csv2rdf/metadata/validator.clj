@@ -28,6 +28,13 @@
               validation))
           validation))
 
+;;TODO: remove invalid marker value?
+(defn ignore-invalid
+  "Validator which wraps an inner validator and converts invalid values into nil"
+  [validator]
+  (fn [context x]
+    (v/fmap (fn [r] (if (invalid? r) nil r)) (validator context x))))
+
 (defn make-error [{:keys [path] :as context} msg]
   (v/of-error (str "Error at path " path ": " msg)))
 
