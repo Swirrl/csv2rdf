@@ -24,15 +24,15 @@
       (is (not (empty? (errors cell))))))
 
   (testing "Invalid exact length"
-    (let [cell (parse-cell "value" {:datatype {:base "string"} :length 4})]
+    (let [cell (parse-cell "value" {:datatype {:base "string" :length 4}})]
       (is (not (empty? (errors cell))))))
 
   (testing "Invalid min length"
-    (let [cell (parse-cell "value" {:datatype {:base "string"} :minLength 10})]
+    (let [cell (parse-cell "value" {:datatype {:base "string" :minLength 10}})]
       (is (not (empty? (errors cell))))))
 
   (testing "Invalid max length"
-    (let [cell (parse-cell "value" {:datatype {:base "string"} :maxLength 3})]
+    (let [cell (parse-cell "value" {:datatype {:base "string" :maxLength 3}})]
       (is (not (empty? (errors cell))))))
 
   (testing "Multiple values"
@@ -63,13 +63,13 @@
       (= col-lang (:lang cell))))
 
   (testing "Multiple values with exact length violation"
-    (let [cell (parse-cell "foo|bar|quux|qaal" {:datatype {:base "string"} :separator "|" :length 3})]
+    (let [cell (parse-cell "foo|bar|quux|qaal" {:datatype {:base "string" :length 3} :separator "|"})]
       (is (= 2 (count (errors cell))))))
 
   (testing "Multiple values with min length violations"
-    (let [cell (parse-cell "a|b|foo|bar||" {:datatype {:base "string"} :separator "|" :minLength 3})]
+    (let [cell (parse-cell "a|b|foo|bar||" {:datatype {:base "string" :minLength 3} :separator "|"})]
       (is (= 2 (count (errors cell))))))
 
   (testing "Multiple values with max length violations"
-    (let [cell (parse-cell "foo|bar|quux|qaal" {:datatype {:base "string"} :separator "|" :maxLength 3})]
+    (let [cell (parse-cell "foo|bar|quux|qaal" {:datatype {:base "string" :maxLength 3} :separator "|"})]
       (is (= 2 (count (errors cell)))))))

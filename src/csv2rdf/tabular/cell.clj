@@ -40,6 +40,9 @@
       (assoc :datatype {:base "string"})
       (update :errors conj error-message)))
 
+(defn add-cell-errors [cell-element errors]
+  (reduce add-cell-error cell-element errors))
+
 (defn ^{:table-spec "6.4.8"} parse-datatype [string-value {fmt :format base :base :as datatype}]
   (try
     (let [value (if (some? fmt)
@@ -49,7 +52,7 @@
     (catch IllegalArgumentException ex
       (fail-parse string-value (format "Cannot parse '%s' as type '%s': %s" string-value base (.getMessage ex))))))
 
-(defn get-length-error [{:keys [stringValue] :as cell} rel-sym length constraint]
+(defn get-length-error [{:keys [stringValue] :as cell-element} rel-sym length constraint]
   (if (some? constraint)
     (let [f (resolve rel-sym)]
       (if-not (f length constraint)
@@ -59,13 +62,13 @@
 
 (defn ^{:table-spec "6.4.9"} validate-length
   "Validates the length of the cell value is valid for the constraints on the column metadata"
-  [{:keys [value datatype] :as cell} column]
+  [{:keys [value datatype] :as cell-element}]
   (if-let [len (xml-datatype/get-length value datatype)]
     (let [len-errors (->> length-relations
-                          (map (fn [[k sym]] (get-length-error cell sym len (get column k))))
+                          (map (fn [[k sym]] (get-length-error cell-element sym len (get datatype k))))
                           (remove nil?))]
-      (update cell :errors concat len-errors))
-    cell))
+      (add-cell-errors cell-element len-errors))
+    cell-element))
 
 ;;TODO: create protocol for range validations?
 (defn validate-numeric-value [{:keys [value stringValue datatype] :as cell-element}]
@@ -125,7 +128,7 @@
       (let [result (parse-datatype string-value datatype)
             cell (assoc result :stringValue string-value)]
         (-> cell
-            (validate-length column)
+            (validate-length)
             (validate-value column))))))
 
 (s/fdef parse-atomic-value
@@ -184,4 +187,5 @@
         :else value))
 
 (def errors :errors)
+
 (def lang :lang)
