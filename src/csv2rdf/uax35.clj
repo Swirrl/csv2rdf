@@ -1,12 +1,5 @@
 (ns csv2rdf.uax35)
 
-{:prefix ""
- :sign #{\- \+ nil}
- :modifier #{\% \u2030 nil}
- :int-primary-group-size #{nil 4}
- :int-secondary-group-size #{nil 2}
- :int-min-length 4}
-
 (def mph-char \u2030)
 
 (defn is-modifier-char? [^Character c]
@@ -234,10 +227,11 @@
         (throw (IllegalArgumentException. "Cannot specify modifier in both prefix and suffix"))
 
         (is-modifier-char? maybe-modifier)
-        (let [suffix (.substring format-string (inc start-index))]
-          (if (some is-modifier-char? suffix)
+        (let [remaining-suffix (.substring format-string (inc start-index))]
+          ;;check no other modifier exists in the rest of the suffix after the first modifier
+          (if (some is-modifier-char? remaining-suffix)
             (throw (IllegalArgumentException. "Multiple modifiers in suffix"))
-            {:suffix suffix :modifier maybe-modifier}))
+            {:suffix (.substring format-string start-index) :modifier maybe-modifier}))
 
         :else
         (let [suffix (.substring format-string start-index)]
@@ -261,3 +255,219 @@
       :group-char   (or group-char \,)
       :decimal-char (or decimal-char \.)
       :modifier (or prefix-modifier (:modifier suffix-state))})))
+
+;;numeric parsing
+
+(defn parse-numeric-prefix [^String s {:keys [prefix sign] :as prefix-spec}]
+  (if (.startsWith s prefix)
+    (cond
+      (= \+ sign) [(.length prefix) {:negative? false}]
+      (= \- sign) [(.length prefix) {:negative? true}]
+
+      ;;sign is optional in format so see if one exists
+      (nil? sign) (let [maybe-sign-index (.length prefix)]
+                    (if (< maybe-sign-index (.length s))
+                      (case (.charAt s maybe-sign-index)
+                        \+ [(inc maybe-sign-index) {:negative? false}]
+                        \- [(inc maybe-sign-index) {:negative? true}]
+                        [maybe-sign-index {:negative false}])
+                      ;;NOTE: error if no numeric part but this will be detected later
+                      [(.length prefix) {:negative? false}]))
+
+      ;;TODO: create spec for number format
+      :else (throw (IllegalArgumentException. (format "Invalid number format - bad sign %c in prefix definition" sign))))
+    (throw (IllegalArgumentException. (format "String does not contain expected prefix '%s'" prefix)))))
+
+;;TODO: check numeric characters are ASCII digits (i.e. [0-9]) instead of using Character/isDigit?
+(defn parse-numeric-groups [^String s start-index group-char]
+  (loop [idx start-index
+         state :number
+         buf (StringBuilder.)
+         groups []]
+    (if (< idx (.length s))
+      (let [c (.charAt s idx)]
+        (case state
+          :number
+          (if (Character/isDigit c)
+            (recur (inc idx) :number-or-group (.append buf c) groups)
+            (throw (IllegalArgumentException. (format "Expected digit at index %d" idx))))
+
+          :number-or-group
+          (cond
+            (Character/isDigit c)
+            (recur (inc idx) :number-or-group (.append buf c) groups)
+
+            (= group-char c)
+            (recur (inc idx) :number (StringBuilder.) (conj groups (.toString buf)))
+
+            :else [idx (conj groups (.toString buf))])
+
+          (throw (IllegalStateException. (format "Invalid state: %s" (name state))))))
+      (if (pos? (.length buf))
+        [idx (conj groups (.toString buf))]
+        [idx groups]))))
+
+(defn validate-group-size [group-index ^String group group-size]
+  (if (= 0 group-index)
+    (if (> (.length group) group-size)
+      (throw (IllegalArgumentException. (format "First integer group exceeds expected group size %d" group-size))))
+    (if (not= group-size (.length group))
+      (throw (IllegalArgumentException. (format "Integer group %d invalid - expected size %d" group-index group-size))))))
+
+(defn validate-group-sizes [groups group-size]
+  (doseq [[idx group] (map-indexed vector groups)]
+    (validate-group-size idx group group-size)))
+
+(defn validate-numeric-groups [groups {:keys [primary-group-size secondary-group-size]}]
+  (cond
+    ;;no defined group sizes
+    (nil? primary-group-size)
+    nil
+
+    ;;only primary group size is defined
+    ;;first group size can be up to primary group size, remaining groups must
+    (nil? secondary-group-size)
+    (validate-group-sizes groups primary-group-size)
+
+    ;;both primary and secondary group exist
+    :else
+    (case (count groups)
+      ;;NOTE: invalid but will be validated later
+      0 nil
+
+      ;;single group so validate against primary group size
+      1 (validate-group-size 0 (first groups) primary-group-size)
+
+      ;;mutliple groups - validate last against primary group size, rest against secondary group size
+      (let [primary-group (last groups)
+            secondary-groups (butlast groups)]
+        (validate-group-size (dec (count groups)) primary-group primary-group-size)
+        (validate-group-sizes secondary-groups secondary-group-size)))))
+
+(defn validate-digit-count [^String digits part-name {:keys [min-length max-length] :as part-spec}]
+  (let [digit-count (.length digits)]
+    (when (and (some? min-length) (< digit-count min-length))
+      (throw (IllegalArgumentException. (format "Not enough digits in %s part (expected at least %d, got %d)" part-name min-length digit-count))))
+    (when (and (some? max-length) (> digit-count max-length))
+      (throw (IllegalArgumentException. (format "Too many digits in %s part (expected at most %d, got %d)" part-name max-length digit-count))))))
+
+(defn parse-numeric-integer [^String s start-index group-char {:keys [min-length max-length] :as integer-spec}]
+  (let [[index groups] (parse-numeric-groups s start-index group-char)
+        digits (apply str groups)
+        digit-count (count digits)]
+    (validate-numeric-groups groups integer-spec)
+    (cond
+      ;;TODO: min-length always non-nil?
+      (and (some? min-length) (< digit-count min-length))
+      (throw (IllegalArgumentException. (format "Not enough digits in integer part (expected at least %d, got %d)" min-length digit-count)))
+
+      (and (some? max-length) (> digit-count max-length))
+      (throw (IllegalArgumentException. (format "Too many digits in integer part (expected at most %d, got %d)" max-length digit-count)))
+
+      :else [index {:integer-digits digits}])))
+
+(defn validate-decimal-groups [groups {:keys [group-size] :as decimal-spec}]
+  ;;if decimal group size specified, then all groups except the last must match the expected size
+  ;;the last group must be at most group-size in length
+  ;;TODO: refactor to use validate-group-size/validate-group-sizes?
+  (if (some? group-size)
+    (let [exact-groups (butlast groups)
+          ^String last-group (last groups)]
+      (if (> (.length last-group) group-size)
+        (throw (IllegalArgumentException. (format "Last decimal group exceeds expected group size %d" group-size))))
+
+      (doseq [group exact-groups]
+        (if (not= (.length group) group-size)
+          (throw (IllegalArgumentException. (format "Decimal group does not have expected size %d" group-size))))))))
+
+(defn parse-numeric-decimal [^String s start-index decimal-char group-char decimal-spec]
+  (if (< start-index (.length s))
+    (let [c (.charAt s start-index)]
+      (if (= decimal-char c)
+        (if (= ::none decimal-spec)
+          (throw (IllegalArgumentException. (format "Invalid decimal char %c at index %d - format forbids decimal component" decimal-char start-index)))
+          (let [[index groups] (parse-numeric-groups s (inc start-index) group-char)
+                decimal-digits (apply str groups)]
+            (validate-decimal-groups groups decimal-spec)
+            (validate-digit-count decimal-digits "decimal" decimal-spec)
+            [index {:decimal-digits decimal-digits}]))
+        [start-index {:decimal-digits ""}]))
+    [start-index {:decimal-digits ""}]))
+
+(defn parse-exponent-digits [^String s start-index]
+  (loop [idx start-index
+         buf (StringBuilder.)]
+    (if (< idx (.length s))
+      (let [c (.charAt s idx)]
+        (if (Character/isDigit c)
+          (recur (inc idx) (.append buf c))
+          [idx (.toString buf)]))
+      [idx (.toString buf)])))
+
+(defn parse-numeric-exponent-part [^String s start-index {:keys [sign] :as exponent-spec}]
+  ;;NOTE: number format does allow an empty exponent?
+  (if (< start-index (.length s))
+    (let [c (.charAt s start-index)]
+      (cond
+        ;;sign is optional within exponent
+        (nil? sign)
+        (let [[exp-index negative?] (case c
+                                      \+ [(inc start-index) false]
+                                      \- [(inc start-index) true]
+                                      [start-index false])
+              [index digits] (parse-exponent-digits s exp-index)]
+          [index {:exponent-digits digits :exponent-negative? negative?}])
+
+        ;;sign is equal to required value
+        (= sign c)
+        (let [[index digits] (parse-exponent-digits s (inc start-index))
+              exponent-negative? (case sign
+                                   \+ false
+                                   \- true
+                                   (throw (IllegalStateException. (format "Invalid sign character %c" sign))))]
+          [index {:exponent-digits digits :exponent-negative? exponent-negative?}])
+
+        ;;sign is required but actual character does not match
+        :else
+        (throw (IllegalArgumentException. (format "Invalid exponent - expect sign character %c at index %d" sign start-index)))))
+    [start-index {:exponent-digits "" :exponent-negative? false}]))
+
+(defn parse-numeric-exponent [^String s start-index exponent-spec]
+  (if (< start-index (.length s))
+    (let [c (.charAt s start-index)]
+      (if (= \E c)
+        (if (= ::none exponent-spec)
+          (throw (IllegalArgumentException. (format "Invalid exponent at index %d - format forbids exponent" start-index)))
+          (let [[index {:keys [exponent-digits] :as exp}] (parse-numeric-exponent-part s (inc start-index) exponent-spec)]
+            (validate-digit-count exponent-digits "exponent" exponent-spec)
+            [index exp]))
+        [start-index {:exponent-digits "" :exponent-negative? false}]))
+    [start-index {:exponent-digits "" :exponent-negative? false}]))
+
+(defn parse-numeric-suffix [^String s start-index suffix-spec]
+  (let [remaining (.substring s start-index)]
+    (if (= ::optional-modifier suffix-spec)
+      (case (.length remaining)
+        0 {:suffix remaining :suffix-modifier nil}
+        1 (let [c (.charAt remaining 0)]
+            (if (is-modifier-char? c)
+              {:suffix remaining :suffix-modifier c}
+              (throw (IllegalArgumentException. (format "Invalid suffix %s - expected modifier character" remaining)))))
+        (throw (IllegalArgumentException. (format "Invalid suffix %s - expected modifier character" remaining))))
+
+      (let [{expected-suffix :suffix modifier :modifier} suffix-spec]
+        (if (= expected-suffix remaining)
+          {:suffix remaining :suffix-modifier modifier}
+          (throw (IllegalArgumentException. (format "Invalid suffix - expected '%s' got '%s'" expected-suffix remaining))))))))
+
+(defn parse-number [^String s {:keys [prefix integer decimal exponent suffix modifier group-char decimal-char] :as fmt}]
+  (let [[index prefix-def] (parse-numeric-prefix s prefix)
+        [index integer-def] (parse-numeric-integer s index group-char integer)
+        [index decimal-def] (parse-numeric-decimal s index decimal-char group-char decimal)
+        [index exponent-def] (parse-numeric-exponent s index exponent)
+        {:keys [suffix-modifier] :as suffix-data} (parse-numeric-suffix s index suffix)
+        modifier (or suffix-modifier modifier)]
+    (assoc (merge prefix-def integer-def decimal-def exponent-def) :modifier modifier)))
+
+(defn parse-number-with-format [format-string numeric-string]
+  (parse-number numeric-string (parse-number-format format-string)))
