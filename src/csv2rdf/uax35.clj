@@ -99,7 +99,17 @@
         1 (let [group (first groups)]
             [index {:primary-group-size nil :secondary-group-size nil :min-length min-length :max-length (count group)}])
 
-        ;;at least 2 groups exist - length of last group is the primary group size, length of penultimate group is the secondary group size
+        ;;two groups e.g. ##,#00
+        ;;length of last group is the primary group size
+        ;;no secondary group
+        2
+        (let [primary-group (last groups)]
+          [index {:primary-group-size (count primary-group)
+                  :secondary-group-size nil
+                  :min-length min-length
+                  :max-length nil}])
+
+        ;;at least 3 groups exist - length of last group is the primary group size, length of penultimate group is the secondary group size
         ;;any other groups are ignored
         (let [[secondary-group primary-group] (take-last 2 groups)]
           [index {:primary-group-size   (count primary-group)
