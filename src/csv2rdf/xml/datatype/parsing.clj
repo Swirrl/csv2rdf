@@ -1,6 +1,7 @@
 (ns csv2rdf.xml.datatype.parsing
   (:require [csv2rdf.xml.datatype :as xml-datatype]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [csv2rdf.uax35 :as uax35])
   (:import [java.net URI URISyntaxException]
            [java.util Base64]
            [javax.xml.datatype DatatypeFactory XMLGregorianCalendar]
@@ -269,13 +270,55 @@
           :mph (/ result 1000)
           result)))))
 
-(defmethod parse-format :decimal [type-name string-value {:keys [^DecimalFormat pattern] :as fmt}]
-  (if (some? pattern)
-    (try
-      (.parse pattern string-value)
-      (catch ParseException ex
-        (throw (IllegalArgumentException. (format "Number does not match format '%s'" (.toPattern pattern)) ex))))
-    (parse-number-from-constructed-format type-name string-value fmt)))
+(defn construct-integer-string [{:keys [negative integer-digits]}]
+  (format "%s%s" (if negative "-" "") integer-digits))
+
+(defmethod parse-format :integer [type-name string-value {:keys [pattern decimalChar groupChar] :as fmt}]
+  (let [int-format (if (some? pattern)
+                     pattern
+                     (uax35/create-integer-format groupChar decimalChar))
+        result (uax35/parse-number string-value int-format)
+        constructed (construct-integer-string result)]
+    (parse type-name constructed)))
+
+(defn construct-decimal-string [{:keys [decimal-digits] :as result}]
+  (format "%s.%s" (construct-integer-string result) decimal-digits))
+
+(defmethod parse-format :decimal [type-name string-value {:keys [pattern decimalChar groupChar] :as fmt}]
+  (let [decimal-format (or pattern (uax35/create-decimal-format groupChar decimalChar))
+        result (uax35/parse-number string-value decimal-format)
+        constructed (construct-decimal-string result)]
+    (parse type-name constructed)))
+
+(defn construct-floating-string [{:keys [negative integer-digits decimal-digits exponent-digits exponent-negative?]}]
+  (let [exponent (if (string/blank? exponent-digits)
+                  ""
+                  (format "e%s%s" (if exponent-negative? "-" "") exponent-digits))]
+    (format "%s%s.%s%s"
+            (if negative "-" "")
+            integer-digits
+            decimal-digits
+            exponent)))
+
+(defn normalise-formatted-floating [string-value {:keys [pattern decimalChar groupChar] :as fmt}]
+  (let [float-format (if (some? pattern)
+                       pattern
+                       (uax35/create-floating-format groupChar decimalChar))
+        result (uax35/parse-number string-value float-format)
+        constructed (construct-floating-string result)]
+    constructed))
+
+(defmethod parse-format :float [_type-name string-value {:keys [pattern decimalChar groupChar] :as fmt}]
+  (if-let [special (get-in special-floating-values ["float" string-value])]
+    special
+    (let [normalised (normalise-formatted-floating string-value fmt)]
+      (Float/parseFloat normalised))))
+
+(defmethod parse-format :double [_type-name string-value fmt]
+  (if-let [special (get-in special-floating-values ["double" string-value])]
+    special
+    (let [normalised (normalise-formatted-floating string-value fmt)]
+      (Double/parseDouble normalised))))
 
 (defmethod parse-format :default [type-name ^String string-value ^Pattern pattern]
   (if (some? (re-matches pattern string-value))

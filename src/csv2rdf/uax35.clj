@@ -256,6 +256,46 @@
       :decimal-char (or decimal-char \.)
       :modifier (or prefix-modifier (:modifier suffix-state))})))
 
+(def optional-sign-prefix {:prefix "" :sign nil})
+(def flexible-integer {:primary-group-size nil
+                       :secondary-group-size nil
+                       :min-length 1
+                       :max-length nil})
+
+(def flexible-decimal {:group-size nil
+                       :min-length nil
+                       :max-length nil})
+
+(defn create-floating-format [group-char decimal-char]
+  {:prefix optional-sign-prefix
+   :integer flexible-integer
+   :decimal flexible-decimal
+   :exponent {:sign nil
+              :min-length nil
+              :max-length nil}
+   :suffix ::optional-modifier
+   :decimal-char (or decimal-char \.)
+   :group-char (or group-char \,)})
+
+;;TODO: integers cannot contain decimal chars - validate in schema parsing?
+(defn create-integer-format [group-char decimal-char]
+  {:prefix optional-sign-prefix
+   :integer flexible-integer
+   :decimal ::none
+   :exponent ::none
+   :suffix ::optional-modifier
+   :decimal-char (or decimal-char \.)
+   :group-char (or group-char \,)})
+
+(defn create-decimal-format [group-char decimal-char]
+  {:prefix optional-sign-prefix
+   :integer flexible-integer
+   :decimal flexible-decimal
+   :exponent ::none
+   :suffix ::optional-modifier
+   :decimal-char (or decimal-char \.)
+   :group-char (or group-char \,)})
+
 ;;numeric parsing
 
 (defn parse-numeric-prefix [^String s {:keys [prefix sign] :as prefix-spec}]

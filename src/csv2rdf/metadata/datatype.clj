@@ -9,14 +9,14 @@
             [csv2rdf.validation :as v]
             [csv2rdf.xml.datatype.parsing :as xml-parsing]
             [csv2rdf.xml.datatype.compare :refer [neql? lt? lte?]]
+            [csv2rdf.uax35 :as uax35]
             [clojure.string :as string])
-  (:import [java.time.format DateTimeFormatter]
-           [java.text DecimalFormat]))
+  (:import [java.time.format DateTimeFormatter]))
 
 (def ^{:metadata-spec "5.11.2"} datatype-name
   (variant {:string (one-of xml-datatype/type-names)}))
 
-(def number-format-pattern (chain string (try-parse-with #(DecimalFormat. %))))
+(def number-format-pattern (chain string (try-parse-with #(uax35/parse-number-format %))))
 
 (def numeric-type-format
   (object-of {:optional {:decimalChar character
