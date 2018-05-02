@@ -223,53 +223,6 @@
 
 ;;numbers
 
-(def special-floating-values
-  {"float" {"NaN" Float/NaN "INF" Float/POSITIVE_INFINITY "-INF" Float/NEGATIVE_INFINITY}
-   "double" {"NaN" Double/NaN "INF" Double/POSITIVE_INFINITY "-INF" Double/NEGATIVE_INFINITY}})
-
-(def special-floating-names (into #{} (keys (second (first special-floating-values)))))
-
-(defn get-special-floating-value [value base]
-  (if-let [result (get-in special-floating-values [base value])]
-    result
-    (throw (IllegalArgumentException. (format "Unknown numeric constant %s for type %s" value base)))))
-
-(defn parse-number-from-constructed-format [type-name ^String string-value {:keys [decimalChar groupChar] :as fmt}]
-  (let [is-special? (contains? special-floating-names string-value)
-        has-exponent? (or (.contains string-value "e") (.contains string-value "E"))
-        is-decimal-type? (xml-datatype/is-subtype? "decimal" type-name)
-        strip-group (fn ^String [^String s]
-                      (if (some? groupChar) (.replace s (str groupChar) "") s))]
-    (cond
-      (and (some? decimalChar) (xml-datatype/is-integral-type? type-name))
-      (throw (IllegalArgumentException. "Cannot specify decimalChar for integral datatype"))
-
-      (and is-special? is-decimal-type?)
-      (throw (IllegalArgumentException. "Cannot specify floating point value for decimal type"))
-
-      (and has-exponent? is-decimal-type?)
-      (throw (IllegalArgumentException. "Numeric type does not support exponent"))
-
-      is-special?
-      (get-special-floating-value string-value type-name)
-
-      (xml-datatype/is-integral-type? type-name)
-      (parse type-name (strip-group string-value))
-
-      :else
-      ;;remove group character, normalise decimal character to . and remove any trailing percent or mph modifier
-      ;;then parse with the type parser and modify the result according to the trailing modifier
-      (let [^String s (strip-group string-value)
-            s (.replace s (str (or decimalChar \.)) ".")
-            [s modifier] (cond (.endsWith s "%") [(.substring s 0 (dec (.length s))) :percent]
-                               (.endsWith s "\u2030") [(.substring s 0 (dec (.length s))) :mph]
-                               :else [s nil])
-            result (parse type-name s)]
-        (case modifier
-          :percent (/ result 100)
-          :mph (/ result 1000)
-          result)))))
-
 (defn construct-integer-string [{:keys [negative integer-digits]}]
   (format "%s%s" (if negative "-" "") integer-digits))
 
@@ -308,14 +261,18 @@
         constructed (construct-floating-string result)]
     constructed))
 
-(defmethod parse-format :float [_type-name string-value {:keys [pattern decimalChar groupChar] :as fmt}]
-  (if-let [special (get-in special-floating-values ["float" string-value])]
+(def special-float-values {"NaN" Float/NaN "INF" Float/POSITIVE_INFINITY "-INF" Float/NEGATIVE_INFINITY})
+
+(defmethod parse-format :float [_type-name string-value fmt]
+  (if-let [special (get special-float-values string-value)]
     special
     (let [normalised (normalise-formatted-floating string-value fmt)]
       (Float/parseFloat normalised))))
 
+(def special-double-values {"NaN" Double/NaN "INF" Double/POSITIVE_INFINITY "-INF" Double/NEGATIVE_INFINITY})
+
 (defmethod parse-format :double [_type-name string-value fmt]
-  (if-let [special (get-in special-floating-values ["double" string-value])]
+  (if-let [special (get-in special-double-values string-value)]
     special
     (let [normalised (normalise-formatted-floating string-value fmt)]
       (Double/parseDouble normalised))))
