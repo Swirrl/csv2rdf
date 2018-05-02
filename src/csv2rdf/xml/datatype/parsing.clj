@@ -131,8 +131,10 @@
 (defmethod parse :float [_type-name string-value]
   (Float/parseFloat string-value))
 
-(defmethod parse :decimal [_type-name ^String string-value]
-  (BigDecimal. string-value))
+(defmethod parse :decimal [type-name ^String string-value]
+  ;;NOTE: BigDecimal constructor allows exponent to be specified but XML schema lexical representation
+  ;;for decimal type does not. Use the default format for decimal numbers instead to parse.
+  (parse-format type-name string-value {}))
 
 (defmethod parse :integer [_type-name ^String string-value]
   (parse-integer string-value))
@@ -233,14 +235,14 @@
         constructed (construct-integer-string result)]
     (parse type-name constructed)))
 
-(defn construct-decimal-string [{:keys [decimal-digits] :as result}]
+(defn ^String construct-decimal-string [{:keys [decimal-digits] :as result}]
   (format "%s.%s" (construct-integer-string result) decimal-digits))
 
 (defmethod parse-format :decimal [type-name string-value {:keys [pattern decimalChar groupChar] :as fmt}]
   (let [decimal-format (or pattern (uax35/create-decimal-format groupChar decimalChar))
         result (uax35/parse-number string-value decimal-format)
         constructed (construct-decimal-string result)]
-    (parse type-name constructed)))
+    (BigDecimal. constructed)))
 
 (defn construct-floating-string [{:keys [negative integer-digits decimal-digits exponent-digits exponent-negative?]}]
   (let [exponent (if (string/blank? exponent-digits)
