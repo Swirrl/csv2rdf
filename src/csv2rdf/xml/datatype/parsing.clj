@@ -8,8 +8,7 @@
            [java.time.format DateTimeFormatter DateTimeParseException]
            [java.time.temporal ChronoField]
            [java.time LocalDate LocalDateTime ZonedDateTime OffsetTime LocalTime]
-           [java.util.regex Pattern]
-           [java.text DecimalFormat ParseException]))
+           [java.util.regex Pattern]))
 
 (defmulti parse "Parses a values to one for the named XML datatype"
           (fn [type-name string-value] (xml-datatype/dispatch-key type-name))
