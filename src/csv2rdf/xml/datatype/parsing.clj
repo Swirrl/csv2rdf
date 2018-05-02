@@ -7,7 +7,7 @@
            [javax.xml.datatype DatatypeFactory XMLGregorianCalendar]
            [java.time.format DateTimeFormatter DateTimeParseException]
            [java.time.temporal ChronoField]
-           [java.time LocalDate LocalDateTime ZonedDateTime OffsetTime LocalTime]
+           [java.time LocalDate LocalDateTime ZonedDateTime OffsetTime LocalTime OffsetDateTime ZoneOffset ZoneId]
            [java.util.regex Pattern]))
 
 (defmulti parse "Parses a values to one for the named XML datatype"
@@ -184,7 +184,9 @@
   (try
     (let [ta (.parse date-format string-value)]
       (if (.isSupported ta ChronoField/OFFSET_SECONDS)
-        (throw (IllegalStateException. "Dates with offset not supported? Use OffsetDateTime?"))
+        (let [date (LocalDate/from ta)
+              offset (ZoneOffset/from ta)]
+          (.. date (atStartOfDay) (atOffset offset)))
         (LocalDate/from ta)))
     (catch DateTimeParseException ex
       (throw (IllegalArgumentException. "Date does not match format" ex)))))

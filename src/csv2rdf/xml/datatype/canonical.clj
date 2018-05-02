@@ -3,7 +3,7 @@
             [csv2rdf.util :as util])
   (:import [java.util Base64]
            [javax.xml.datatype XMLGregorianCalendar]
-           [java.time LocalDate LocalDateTime ZonedDateTime LocalTime OffsetTime]
+           [java.time LocalDate LocalDateTime ZonedDateTime LocalTime OffsetTime OffsetDateTime]
            [java.time.format DateTimeFormatter]
            [java.net URI]))
 
@@ -35,6 +35,10 @@
   ZonedDateTime
   (canonical-value [datetime _type-name]
     (.format DateTimeFormatter/ISO_ZONED_DATE_TIME datetime))
+
+  OffsetDateTime
+  (canonical-value [datetime _type-name]
+    (.format DateTimeFormatter/ISO_OFFSET_DATE datetime))
 
   LocalTime
   (canonical-value [time _type-name]

@@ -112,7 +112,8 @@
     :else (throw (IllegalArgumentException. "Resolving URI must be either string or URI instance"))))
 
 
-(def ^{:rfc3986 "2.2"} ^String percent-reserved-chars " :/?#[]@!$&'()*+,;=%")
+;;NOTE: '-' and ' ' are not mentioned in the spec? Some test cases expected '-' to be encoded
+(def ^{:rfc3986 "2.2"} ^String percent-reserved-chars "- :/?#[]@!$&'()*+,;=%")
 
 (defn ^{:rfc3986 "2.2"} percent-encode
   "Percent-encodes the bytes in the given string."
