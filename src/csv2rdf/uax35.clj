@@ -237,7 +237,8 @@
         (let [suffix (.substring format-string start-index)]
           (if (some is-modifier-char? suffix)
             (throw (IllegalArgumentException. "Modifier must be first character of suffix"))
-            {:suffix suffix :modifier nil}))))))
+            {:suffix suffix :modifier nil}))))
+    {:suffix "" :modifier nil}))
 
 (defn parse-number-format
   ([format-str] (parse-number-format format-str nil nil))
