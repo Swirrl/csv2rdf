@@ -4,7 +4,9 @@
             [csv2rdf.vocabulary :refer :all]
             [grafter.rdf :refer [->Triple] :as rdf]
             [csv2rdf.xml.datatype :as xml-datatype]
-            [csv2rdf.xml.datatype.canonical :as xml-canonical]))
+            [csv2rdf.xml.datatype.canonical :as xml-canonical])
+  (:import [java.net URI]
+           [org.openrdf.model.impl URIImpl]))
 
 (defn gen-blank-node
   "Generates a grafter representation of a new blank node"
@@ -18,8 +20,16 @@
             (= false (get-in cell [:column :suppressOutput])))
           cells))
 
+(defn set-encoded-fragment
+  "Returns a sesame URI containing for the given URI whose fragment is replaced with the encoded string. The java URI
+   constructor encodes only % character within fragements, so cannot be used to encode an unencoded fragment. When
+   given an encoded fragment, it encodes the % character which leads to a double-encoding. The sesame URIImpl does
+   not process the constructed string so can be used when output."
+  [^URI uri encoded-fragment]
+  (URIImpl. (str (.getScheme uri) ":" (.getRawSchemeSpecificPart uri) "#" encoded-fragment)))
+
 (defn column-about-url [tabular-data-file-url column]
-  (util/set-fragment tabular-data-file-url (:name column)))
+  (set-encoded-fragment tabular-data-file-url (:name column)))
 
 (defn ^{:csvw-spec "4.6.8.3"} cell-predicate [tabular-data-file-url {:keys [propertyUrl column] :as cell}]
   (or propertyUrl (column-about-url tabular-data-file-url column)))

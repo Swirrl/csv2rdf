@@ -112,7 +112,7 @@
     :else (throw (IllegalArgumentException. "Resolving URI must be either string or URI instance"))))
 
 
-(def ^{:rfc3986 "2.2"} ^String percent-reserved-chars ":/?#[]@!$&'()*+,;=%")
+(def ^{:rfc3986 "2.2"} ^String percent-reserved-chars " :/?#[]@!$&'()*+,;=%")
 
 (defn ^{:rfc3986 "2.2"} percent-encode
   "Percent-encodes the bytes in the given string."
@@ -129,7 +129,7 @@
                ci (Byte/toUnsignedInt octet)
                requires-encoding? (not= -1 (.indexOf percent-reserved-chars ci))]
            (if requires-encoding?
-             (doto sb (.append \%) (.append (Integer/toHexString ci)))
+             (doto sb (.append \%) (.append (string/upper-case (Integer/toHexString ci))))
              (.appendCodePoint sb ci))
            (recur (inc idx))))))))
 
