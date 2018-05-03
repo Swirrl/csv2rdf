@@ -9,13 +9,6 @@
 (defn ^{:table-spec "6.1"} from-tabular-source [file-source]
   (table-group/expand-properties (tmeta/get-metadata file-source)))
 
-(defn check-table-metadata-compatible [dialect {:keys [url] :as table}]
-  ;;TODO: fix CSV parser!
-  ;;TODO: only return table metadata from extract-embedded-metadata
-  (let [embedded-metadata (csv/extract-embedded-metadata url (assoc dialect :doubleQuote false))
-        table-metadata (get-in embedded-metadata [:tables 0])]
-    (table/compatibility-merge table table-metadata)))
-
 (defn validate-merge-table [validating? dialect {:keys [url] :as user-table}]
   (let [embedded-metadata (csv/extract-embedded-metadata url (assoc dialect :doubleQuote false))
         table-metadata (get-in embedded-metadata [:tables 0])

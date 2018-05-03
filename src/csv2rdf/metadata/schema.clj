@@ -94,20 +94,24 @@
 
 ;;TODO: should this be done before metadata is normalised/expanded/inherited?
 (defn ^{:metadata-spec "5.5.1"} validate-compatible [validating? {columns1 :columns :as schema1} {columns2 :columns :as schema2}]
-  (let [col1-non-virtual (column/indexed-non-virtual-columns columns1)
-        col2-non-virtual (column/indexed-non-virtual-columns columns2)
-        common-indexes (set/intersection (set (keys col1-non-virtual)) (set (keys col2-non-virtual)))
+  ;;NOTE: it is legal for the metadata table to only include the URL of the tabular file and not include a schema
+  ;;in this case, consider the schemas trivially compatible
+  (if (or (nil? schema1) (nil? schema2))
+    (v/pure nil)
+    (let [col1-non-virtual (column/indexed-non-virtual-columns columns1)
+          col2-non-virtual (column/indexed-non-virtual-columns columns2)
+          common-indexes (set/intersection (set (keys col1-non-virtual)) (set (keys col2-non-virtual)))
 
-        ;;Two schemas are compatible if they have the same number of non-virtual column descriptions,
-        count-validation (if (= (count col1-non-virtual) (count col2-non-virtual))
-                           (v/pure nil)
-                           (v/with-warning "Schemas have different number of non-virtual columns" nil))
+          ;;Two schemas are compatible if they have the same number of non-virtual column descriptions,
+          count-validation (if (= (count col1-non-virtual) (count col2-non-virtual))
+                             (v/pure nil)
+                             (v/with-warning "Schemas have different number of non-virtual columns" nil))
 
-        ;;and the non-virtual column descriptions at the same index within each are compatible with each other
-        column-validations (map (fn [idx]
-                                  (column/validate-compatible validating? idx (get col1-non-virtual idx) (get col2-non-virtual idx)))
-                                common-indexes)]
-    (v/combine (v/collect column-validations) count-validation)))
+          ;;and the non-virtual column descriptions at the same index within each are compatible with each other
+          column-validations (map (fn [idx]
+                                    (column/validate-compatible validating? idx (get col1-non-virtual idx) (get col2-non-virtual idx)))
+                                  common-indexes)]
+      (v/combine (v/collect column-validations) count-validation))))
 
 (defn compatibility-merge [user-schema embedded-schema]
   ;;TODO: validate schemas are compatible
