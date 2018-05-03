@@ -95,10 +95,8 @@
 
         ;;single group e.g. ###0
         ;;no group separator is expected in the integer part
-        ;;all numbers should contain no more than (count group) characters (?)
-        ;;TODO: check if max size should apply
-        1 (let [group (first groups)]
-            [index {:primary-group-size nil :secondary-group-size nil :min-length min-length :max-length (count group)}])
+        1
+        [index {:primary-group-size nil :secondary-group-size nil :min-length min-length :max-length nil}]
 
         ;;two groups e.g. ##,#00
         ;;length of last group is the primary group size
@@ -120,7 +118,7 @@
 
 (defn parse-decimal-groups [^String format-string start-index]
   (loop [idx start-index
-         state :required-num
+         state :any-num
          buf (StringBuilder.)
          groups []
          min-length 0]
@@ -132,10 +130,12 @@
         {:min-length min-length :groups groups :index idx})
       (let [c (.charAt format-string idx)]
         (case state
-          :required-num
-          (if (= c \0)
-            (recur (inc idx) :any-num-or-group (.append buf c) groups (inc min-length))
-            (throw (IllegalArgumentException. "At least one required character 0 required in decimal format")))
+          :any-num
+          (case c
+            \0 (recur (inc idx) :any-num-or-group (.append buf c) groups (inc min-length))
+            \# (recur (inc idx) :padding-num-or-group (.append buf c) groups min-length)
+            \, (throw (IllegalArgumentException. (format "Invalid decimal group - unexpected , at index %d" idx)))
+            {:min-length min-length :groups (conj groups (.toString buf) :index idx)})
 
           :any-num-or-group
           (case c
@@ -143,13 +143,6 @@
             \# (recur (inc idx) :padding-num-or-group (.append buf c) groups min-length)
             \, (recur (inc idx) :any-num (StringBuilder.) (conj groups (.toString buf)) min-length)
             {:min-length min-length :groups (conj groups (.toString buf)) :index idx})
-
-          :any-num
-          (case c
-            \0 (recur (inc idx) :any-num-or-group (.append buf c) groups (inc min-length))
-            \# (recur (inc idx) :padding-num-or-group (.append buf c) groups min-length)
-            \, (throw (IllegalArgumentException. (format "Invalid decimal group - unexpected , at index %d" idx)))
-            {:min-length min-length :groups (conj groups (.toString buf) :index idx)})
 
           :padding-num-or-group
           (case c
@@ -165,27 +158,27 @@
 
 (defn parse-decimal-part [^String format-string start-index]
   (if (>= start-index (.length format-string))
-    [start-index nil]
+    [start-index ::none]
     (let [c (.charAt format-string start-index)]
       (if (= \. c)
         (let [{:keys [min-length groups index]} (parse-decimal-groups format-string (inc start-index))]
-          (if (= 0 min-length)
-            (throw (IllegalArgumentException. "At least one required character 0 required in decimal part"))
-            (case (count groups)
-              ;;should never happen since min-length > 0
-              0 (throw (IllegalArgumentException. "At least one decimal group required"))
+          (case (count groups)
+            0
+            [index {:min-length 0
+                    :max-length nil
+                    :group-size nil}]
 
-              ;;if one group, set the max length as the length of the group
-              1
+            ;;if one group, set the max length as the length of the group
+            1
+            [index {:min-length min-length
+                    :max-length (count (first groups))
+                    :group-size nil}]
+
+            ;;TODO: check how to handle decimal groups
+            (let [primary-group (first groups)]
               [index {:min-length min-length
-                      :max-length (count (first groups))
-                      :group-size nil}]
-
-              ;;TODO: check how to handle decimal groups
-              (let [primary-group (first groups)]
-                [index {:min-length min-length
-                        :max-length nil
-                        :group-size (count primary-group)}]))))
+                      :max-length nil
+                      :group-size (count primary-group)}])))
         [start-index nil]))))
 
 (defn parse-exponent-part [^String format-string start-index]
@@ -218,7 +211,7 @@
 
 (defn parse-exponent [^String format-string start-index]
   (if (>= start-index (.length format-string))
-    [start-index nil]
+    [start-index ::none]
     (let [c (.charAt format-string start-index)]
       (if (= \E c)
         (let [{:keys [min-length index] :as exp} (parse-exponent-part format-string (inc start-index))]
