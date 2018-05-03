@@ -155,9 +155,7 @@
 (defn parse-datatype-bound [datatype-base]
   (fn [context bound-value]
     (if (number? bound-value)
-      (if (xml-datatype/is-numeric-type? datatype-base)
-        (v/pure bound-value)
-        (v/with-warning (format "Numeric bound not valid for non-numeric datatype %s" datatype-base) nil))
+      (v/pure bound-value)
       (let [parser (fn [s] (xml-parsing/parse datatype-base s))
             validator (ignore-invalid (try-parse-with parser))]
         (validator context bound-value)))))
