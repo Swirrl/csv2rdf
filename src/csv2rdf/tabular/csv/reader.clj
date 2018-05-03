@@ -23,7 +23,8 @@
 (defn make-row [cells source-row-num {:keys [delimiter commentPrefix trim-mode] :as options}]
   (let [content (string/join delimiter cells)
         is-comment? (and (some? commentPrefix)
-                         (.startsWith content (str commentPrefix)))]
+                         (.startsWith content (str commentPrefix)))
+        is-comment? false]
     {:source-row-number source-row-num
      :content content
      :comment (if is-comment?
