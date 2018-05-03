@@ -5,6 +5,14 @@
 (defn is-modifier-char? [^Character c]
   (contains? #{\% mph-char} c))
 
+(defn apply-modifier
+  "Modifies the result of parsing a formatted number according to any contained modifier (percent or mph)."
+  [value modifier]
+  (cond
+    (= \% modifier) (/ value 100)
+    (= mph-char modifier) (/ value 1000)
+    :else value))
+
 ;; <prefix>([#0,])*.([#0,])*E[+-]?(\d)+<modifier>?<suffix>?
 (defn parse-prefix [^String format-str]
   (loop [idx 0

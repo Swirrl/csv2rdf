@@ -233,18 +233,18 @@
   (let [int-format (if (some? pattern)
                      pattern
                      (uax35/create-integer-format groupChar decimalChar))
-        result (uax35/parse-number string-value int-format)
+        {:keys [modifier] :as result} (uax35/parse-number string-value int-format)
         constructed (construct-integer-string result)]
-    (parse type-name constructed)))
+    (uax35/apply-modifier (parse type-name constructed) modifier)))
 
 (defn ^String construct-decimal-string [{:keys [decimal-digits] :as result}]
   (format "%s.%s" (construct-integer-string result) decimal-digits))
 
 (defmethod parse-format :decimal [type-name string-value {:keys [pattern decimalChar groupChar] :as fmt}]
   (let [decimal-format (or pattern (uax35/create-decimal-format groupChar decimalChar))
-        result (uax35/parse-number string-value decimal-format)
+        {:keys [modifier] :as result} (uax35/parse-number string-value decimal-format)
         constructed (construct-decimal-string result)]
-    (BigDecimal. constructed)))
+    (uax35/apply-modifier (BigDecimal. constructed) modifier)))
 
 (defn construct-floating-string [{:keys [negative integer-digits decimal-digits exponent-digits exponent-negative?]}]
   (let [exponent (if (string/blank? exponent-digits)
@@ -260,25 +260,25 @@
   (let [float-format (if (some? pattern)
                        pattern
                        (uax35/create-floating-format groupChar decimalChar))
-        result (uax35/parse-number string-value float-format)
+        {:keys [modifier] :as result} (uax35/parse-number string-value float-format)
         constructed (construct-floating-string result)]
-    constructed))
+    {:floating-string constructed :modifier modifier}))
 
 (def special-float-values {"NaN" Float/NaN "INF" Float/POSITIVE_INFINITY "-INF" Float/NEGATIVE_INFINITY})
 
 (defmethod parse-format :float [_type-name string-value fmt]
   (if-let [special (get special-float-values string-value)]
     special
-    (let [normalised (normalise-formatted-floating string-value fmt)]
-      (Float/parseFloat normalised))))
+    (let [{:keys [floating-string modifier] :as normalised} (normalise-formatted-floating string-value fmt)]
+      (uax35/apply-modifier (Float/parseFloat floating-string) modifier))))
 
 (def special-double-values {"NaN" Double/NaN "INF" Double/POSITIVE_INFINITY "-INF" Double/NEGATIVE_INFINITY})
 
 (defmethod parse-format :double [_type-name string-value fmt]
   (if-let [special (get-in special-double-values string-value)]
     special
-    (let [normalised (normalise-formatted-floating string-value fmt)]
-      (Double/parseDouble normalised))))
+    (let [{:keys [floating-string modifier] :as normalised} (normalise-formatted-floating string-value fmt)]
+      (uax35/apply-modifier (Double/parseDouble floating-string) modifier))))
 
 (defmethod parse-format :default [type-name ^String string-value ^Pattern pattern]
   (if (some? (re-matches pattern string-value))
