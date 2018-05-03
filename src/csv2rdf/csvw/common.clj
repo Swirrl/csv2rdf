@@ -40,7 +40,7 @@
     (cond
       ;;if the datatype's id annotation is not null, then its value MUST be used as the RDF datatype IRI;
       (some? id)
-      (rdf/literal (xml-canonical/canonical-value value datatype) id)
+      (rdf/literal (xml-canonical/canonical-value value base) id)
 
       ;; if a cell has any datatype other than string, the value of lang MUST be ignored
       (and (= "string" base) (some? lang))
@@ -51,7 +51,7 @@
             ;;expect e.g. an input string of P20M is formatted as P1Y8M
             rdf-value (if (xml-datatype/is-duration-type? base)
                         stringValue
-                        (xml-canonical/canonical-value value datatype))]
+                        (xml-canonical/canonical-value value base))]
         (rdf/literal rdf-value (xml-datatype/datatype->iri base))))))
 
 (defn rdf-list [ordered-value-elements lang]

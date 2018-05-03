@@ -46,7 +46,7 @@
         (let [offset (* 2 idx)
               b1 (parse-hex-digit (.charAt string-value offset))
               b2 (parse-hex-digit (.charAt string-value (inc offset)))]
-          (aset bytes idx (byte (bit-and (bit-shift-left b1 4) b2)))))
+          (aset bytes idx (.byteValue (bit-or (bit-shift-left b1 4) b2)))))
       bytes)
     (throw (IllegalArgumentException. "Hex string must contain even number of characters"))))
 

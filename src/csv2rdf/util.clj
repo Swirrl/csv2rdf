@@ -155,7 +155,7 @@
               (recur endIdx (.appendCodePoint sb decoded))))
           (recur (inc idx) (.append sb c)))))))
 
-(def hex-digits "0123456789abcdef")
+(def hex-digits "0123456789ABCDEF")
 
 (defn to-hex-string
   "Returns the hex representation of a byte array"
