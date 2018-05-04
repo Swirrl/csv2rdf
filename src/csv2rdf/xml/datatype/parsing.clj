@@ -226,8 +226,8 @@
 
 ;;numbers
 
-(defn construct-integer-string [{:keys [negative integer-digits]}]
-  (format "%s%s" (if negative "-" "") integer-digits))
+(defn construct-integer-string [{:keys [negative? integer-digits]}]
+  (format "%s%s" (if negative? "-" "") integer-digits))
 
 (defmethod parse-format :integer [type-name string-value {:keys [pattern decimalChar groupChar] :as fmt}]
   (let [int-format (if (some? pattern)
@@ -246,12 +246,12 @@
         constructed (construct-decimal-string result)]
     (uax35/apply-modifier (BigDecimal. constructed) modifier)))
 
-(defn construct-floating-string [{:keys [negative integer-digits decimal-digits exponent-digits exponent-negative?]}]
+(defn construct-floating-string [{:keys [negative? integer-digits decimal-digits exponent-digits exponent-negative?]}]
   (let [exponent (if (string/blank? exponent-digits)
                   ""
                   (format "e%s%s" (if exponent-negative? "-" "") exponent-digits))]
     (format "%s%s.%s%s"
-            (if negative "-" "")
+            (if negative? "-" "")
             integer-digits
             decimal-digits
             exponent)))

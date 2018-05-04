@@ -58,6 +58,52 @@
         12.34M "12.34"
         12.245M "12.24,5")))
 
+  ;;test 283
+  (testing "+0"
+    (let [format (uax35/parse-number-format "+0")]
+      (are [expected numeric-string] (= expected (parse-format "decimal" numeric-string {:pattern format}))
+           1M "+1")))
+
+  (testing "-0"
+    (let [format (uax35/parse-number-format "-0")]
+      (are [expected numeric-string] (= expected (parse-format "decimal" numeric-string {:pattern format}))
+           -1M "-1")))
+
+  (testing "%000"
+    (let [format (uax35/parse-number-format "%000")]
+      (are [expected numeric-string] (= expected (parse-format "decimal" numeric-string {:pattern format}))
+           1.23M "%123"
+        1.23M "%+123"
+        -1.23M "%-123")))
+
+  (testing "‰000"
+    (let [format (uax35/parse-number-format "‰000")]
+      (are [expected numeric-string] (= expected (parse-format "decimal" numeric-string {:pattern format}))
+           0.123M "‰123"
+        0.123M "‰+123"
+        -0.123M "‰-123")))
+
+  (testing "000%"
+    (let [format (uax35/parse-number-format "000%")]
+      (are [expected numeric-string] (= expected (parse-format "decimal" numeric-string {:pattern format}))
+           1.23M "123%"
+        1.23M "+123%"
+        -1.23M "-123%")))
+
+  (testing "000‰"
+    (let [format (uax35/parse-number-format "000‰")]
+      (are [expected numeric-string] (= expected (parse-format "decimal" numeric-string {:pattern format}))
+           0.123M "123‰"
+        0.123M "+123‰"
+        -0.123M "-123‰")))
+
+  (testing "000.0%"
+    (let [format (uax35/parse-number-format "000.0%")]
+      (are [expected numeric-string] (= expected (parse-format "decimal" numeric-string {:pattern format}))
+           1.234M "123.4%"
+        1.234M "+123.4%"
+        -1.234M "-123.4%")))
+
   ;;test 284
   (testing "###0.#####"
     (let [format (uax35/parse-number-format "###0.#####")]
@@ -170,9 +216,11 @@
   (testing "0.000,000"
     (let [format (uax35/parse-number-format "0.000,000")]
       (are [expected numeric-string] (= expected (parse-format "decimal" numeric-string {:pattern format}))
-        1.199999M "1.199,999"
+           1.199999M "1.199,999"
         1.129999M "1.129,999"
         1.123999M "1.123,999"
         1.123499M "1.123,499"
         1.123459M "1.123,459"
         1.123456M "1.123,456"))))
+
+
