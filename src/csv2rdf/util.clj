@@ -6,7 +6,8 @@
   (:import [java.net URI]
            [java.lang.reflect InvocationTargetException Method]
            [java.nio.charset Charset]
-           [grafter.rdf.protocols LangString RDFLiteral]))
+           [grafter.rdf.protocols LangString RDFLiteral]
+           [java.io ByteArrayOutputStream]))
 
 (defmacro ignore-exceptions [& body]
   `(try
@@ -111,9 +112,8 @@
 
     :else (throw (IllegalArgumentException. "Resolving URI must be either string or URI instance"))))
 
-
 ;;NOTE: '-' and ' ' are not mentioned in the spec? Some test cases expected '-' to be encoded
-(def ^{:rfc3986 "2.2"} ^String percent-reserved-chars "- :/?#[]@!$&'()*+,;=%")
+(def ^{:rfc3986 "2.2"} ^String percent-unreserved-chars "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.~")
 
 (defn ^{:rfc3986 "2.2"} percent-encode
   "Percent-encodes the bytes in the given string."
@@ -128,7 +128,7 @@
          (str sb)
          (let [octet (aget bytes idx)
                ci (Byte/toUnsignedInt octet)
-               requires-encoding? (not= -1 (.indexOf percent-reserved-chars ci))]
+               requires-encoding? (= -1 (.indexOf percent-unreserved-chars ci))]
            (if requires-encoding?
              (doto sb (.append \%) (.append (string/upper-case (Integer/toHexString ci))))
              (.appendCodePoint sb ci))
@@ -138,22 +138,25 @@
   "Decodes a percent-encoded string. Assumes all characters in the input are in the ASCII range. Throws an
    IllegalArgumentException if the input is malformed."
   [^String s]
-  (loop [idx 0
-         sb (StringBuilder. (.length s))]
-    (if (>= idx (.length s))
-      (str sb)
-      (let [c (.charAt s idx)]
-        (if (= \% c)
-          (if (>= (+ 2 idx) (.length s))
-            (throw (IllegalArgumentException. (str "Out of range at index " idx)))
-            (let [endIdx (+ 3 idx)
-                  hex (.substring s (inc idx) endIdx)
-                  ^Integer decoded (try
-                                     (Integer/valueOf hex 16)
-                                     (catch NumberFormatException _ex
-                                       (throw (IllegalArgumentException. (str "Bad hex number: " hex)))))]
-              (recur endIdx (.appendCodePoint sb decoded))))
-          (recur (inc idx) (.append sb c)))))))
+  (let [buf (ByteArrayOutputStream.)]
+    (loop [idx 0]
+      (if (>= idx (.length s))
+        (String. (.toByteArray buf) (Charset/forName "utf-8"))
+        (let [c (.charAt s idx)]
+          (if (= \% c)
+            (if (>= (+ 2 idx) (.length s))
+              (throw (IllegalArgumentException. (str "Out of range at index " idx)))
+              (let [endIdx (+ 3 idx)
+                    hex (.substring s (inc idx) endIdx)
+                    ^Integer decoded (try
+                                       (Integer/valueOf hex 16)
+                                       (catch NumberFormatException _ex
+                                         (throw (IllegalArgumentException. (str "Bad hex number: " hex)))))]
+                (.write buf decoded)
+                (recur endIdx)))
+            (do
+              (.write buf (int c))
+              (recur (inc idx)))))))))
 
 (def hex-digits "0123456789ABCDEF")
 
