@@ -70,7 +70,7 @@
             \# (recur (inc idx) :any-num-or-group (.append buf c) groups min-length)
             \0 (recur (inc idx) :required-num-or-group (.append buf c) groups (inc min-length))
             \, (recur (inc idx) :any-num (StringBuilder.) (conj groups (.toString buf)) min-length)
-            {:index idx :groups (conj groups (.toString buf) :min-length min-length)})
+            {:index idx :groups (conj groups (.toString buf)) :min-length min-length})
 
           :required-num-or-group
           (case c
@@ -87,34 +87,31 @@
 
 (defn parse-integer-part [^String format-str start-index]
   (let [{:keys [index groups min-length]} (parse-integer-groups format-str start-index)]
-    (if (= 0 min-length)
-      (throw (IllegalArgumentException. "At least one required character 0 required in integer format"))
-      (case (count groups)
-        ;;should never happen since min-length > 0!
-        0 (throw (IllegalArgumentException. "At least one integer group required"))
+    (case (count groups)
+      0 (throw (IllegalArgumentException. "At least one integer group required"))
 
-        ;;single group e.g. ###0
-        ;;no group separator is expected in the integer part
-        1
-        [index {:min-length min-length :max-length nil :groups ::single}]
+      ;;single group e.g. ###0
+      ;;no group separator is expected in the integer part
+      1
+      [index {:min-length min-length :max-length nil :groups ::single}]
 
-        ;;two groups e.g. ##,#00
-        ;;length of last group is the primary group size
-        ;;no secondary group
-        2
-        (let [primary-group (last groups)]
-          [index {:min-length min-length
-                  :max-length nil
-                  :groups {:primary-group-size (count primary-group)
-                          :secondary-group-size nil}}])
+      ;;two groups e.g. ##,#00
+      ;;length of last group is the primary group size
+      ;;no secondary group
+      2
+      (let [primary-group (last groups)]
+        [index {:min-length min-length
+                :max-length nil
+                :groups {:primary-group-size (count primary-group)
+                         :secondary-group-size nil}}])
 
-        ;;at least 3 groups exist - length of last group is the primary group size, length of penultimate group is the secondary group size
-        ;;any other groups are ignored
-        (let [[secondary-group primary-group] (take-last 2 groups)]
-          [index {:min-length           min-length
-                  :max-length           nil
-                  :groups {:primary-group-size (count primary-group)
-                          :secondary-group-size (count secondary-group)}}])))))
+      ;;at least 3 groups exist - length of last group is the primary group size, length of penultimate group is the secondary group size
+      ;;any other groups are ignored
+      (let [[secondary-group primary-group] (take-last 2 groups)]
+        [index {:min-length           min-length
+                :max-length           nil
+                :groups {:primary-group-size (count primary-group)
+                         :secondary-group-size (count secondary-group)}}]))))
 
 (defn parse-decimal-groups [^String format-string start-index]
   (loop [idx start-index
