@@ -226,4 +226,8 @@
 (deftest bad-number-formats-test
   (testing "##0"
     (let [format (uax35/parse-number-format "##0")]
-      (is (thrown? IllegalArgumentException (parse-format "integer" "1,234" {:pattern format}))))))
+      (is (thrown? IllegalArgumentException (parse-format "integer" "1,234" {:pattern format})))))
+
+  (testing "#0.0"
+    (let [format (uax35/parse-number-format "#0.0")]
+      (is (thrown? IllegalArgumentException (parse-format "decimal" "1" {:pattern format}))))))

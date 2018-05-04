@@ -416,31 +416,38 @@
   ;;if decimal group size specified, then all groups except the last must match the expected size
   ;;the last group must be at most group-size in length
   ;;TODO: refactor to use validate-group-size/validate-group-sizes?
-  (if (and (= ::single group) (> (count groups) 1))
-    (throw (IllegalArgumentException. "Expected single decimal group, got %d" (count groups)))
-    (if (some? group-size)
-      (let [exact-groups (butlast groups)
-            ^String last-group (last groups)]
-        (if (> (.length last-group) group-size)
-          (throw (IllegalArgumentException. (format "Last decimal group exceeds expected group size %d" group-size))))
+  (cond
+    (and (= ::none decimal-spec) (pos? (count groups)))
+    (throw (IllegalArgumentException. "Format forbids decimal component"))
 
-        (doseq [group exact-groups]
-          (if (not= (.length group) group-size)
-            (throw (IllegalArgumentException. (format "Decimal group does not have expected size %d" group-size)))))))))
+    (and (= ::single group) (> (count groups) 1))
+    (throw (IllegalArgumentException. "Expected single decimal group, got %d" (count groups)))
+
+    (some? group-size)
+    (let [exact-groups (butlast groups)
+          ^String last-group (last groups)]
+      (if (> (.length last-group) group-size)
+        (throw (IllegalArgumentException. (format "Last decimal group exceeds expected group size %d" group-size))))
+
+      (doseq [group exact-groups]
+        (if (not= (.length group) group-size)
+          (throw (IllegalArgumentException. (format "Decimal group does not have expected size %d" group-size))))))
+
+    :else nil))
 
 (defn parse-numeric-decimal [^String s start-index decimal-char group-char decimal-spec]
-  (if (< start-index (.length s))
-    (let [c (.charAt s start-index)]
-      (if (= decimal-char c)
-        (if (= ::none decimal-spec)
-          (throw (IllegalArgumentException. (format "Invalid decimal char %c at index %d - format forbids decimal component" decimal-char start-index)))
-          (let [[index groups] (parse-numeric-groups s (inc start-index) group-char)
-                decimal-digits (apply str groups)]
-            (validate-decimal-groups groups decimal-spec)
-            (validate-digit-count decimal-digits "decimal" decimal-spec)
-            [index {:decimal-digits decimal-digits}]))
-        [start-index {:decimal-digits ""}]))
-    [start-index {:decimal-digits ""}]))
+  (let [[index groups] (if (< start-index (.length s))
+                         (let [c (.charAt s start-index)]
+                           (if (= decimal-char c)
+                             (if (= ::none decimal-spec)
+                               (throw (IllegalArgumentException. (format "Invalid decimal char %c at index %d - format forbids decimal component" decimal-char start-index)))
+                               (parse-numeric-groups s (inc start-index) group-char))
+                             [start-index []]))
+                         [start-index []])
+        decimal-digits (apply str groups)]
+    (validate-decimal-groups groups decimal-spec)
+    (validate-digit-count decimal-digits "decimal" decimal-spec)
+    [index {:decimal-digits decimal-digits}]))
 
 (defn parse-exponent-digits [^String s start-index]
   (loop [idx start-index
