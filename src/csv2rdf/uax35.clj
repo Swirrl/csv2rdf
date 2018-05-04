@@ -96,25 +96,25 @@
         ;;single group e.g. ###0
         ;;no group separator is expected in the integer part
         1
-        [index {:primary-group-size nil :secondary-group-size nil :min-length min-length :max-length nil}]
+        [index {:min-length min-length :max-length nil :groups ::single}]
 
         ;;two groups e.g. ##,#00
         ;;length of last group is the primary group size
         ;;no secondary group
         2
         (let [primary-group (last groups)]
-          [index {:primary-group-size (count primary-group)
-                  :secondary-group-size nil
-                  :min-length min-length
-                  :max-length nil}])
+          [index {:min-length min-length
+                  :max-length nil
+                  :groups {:primary-group-size (count primary-group)
+                          :secondary-group-size nil}}])
 
         ;;at least 3 groups exist - length of last group is the primary group size, length of penultimate group is the secondary group size
         ;;any other groups are ignored
         (let [[secondary-group primary-group] (take-last 2 groups)]
-          [index {:primary-group-size   (count primary-group)
-                  :secondary-group-size (count secondary-group)
-                  :min-length           min-length
-                  :max-length           nil}])))))
+          [index {:min-length           min-length
+                  :max-length           nil
+                  :groups {:primary-group-size (count primary-group)
+                          :secondary-group-size (count secondary-group)}}])))))
 
 (defn parse-decimal-groups [^String format-string start-index]
   (loop [idx start-index
@@ -166,20 +166,20 @@
             0
             [index {:min-length 0
                     :max-length nil
-                    :group-size nil}]
+                    :group ::single}]
 
             ;;if one group, set the max length as the length of the group
             1
             [index {:min-length min-length
                     :max-length (count (first groups))
-                    :group-size nil}]
+                    :group {:size nil}}]
 
             ;;TODO: check how to handle decimal groups
             (let [primary-group (first groups)]
               [index {:min-length min-length
                       :max-length nil
-                      :group-size (count primary-group)}])))
-        [start-index nil]))))
+                      :group {:size (count primary-group)}}])))
+        [start-index ::none]))))
 
 (defn parse-exponent-part [^String format-string start-index]
   (if (>= start-index (.length format-string))
@@ -249,7 +249,7 @@
          [index decimal-state] (parse-decimal-part format-str index)
          [index exponent-state] (parse-exponent format-str index)
          suffix-state (parse-suffix format-str index prefix-modifier)]
-     {:prefix       (dissoc prefix-state :index)
+     {:prefix       prefix-state
       :integer      integer-state
       :decimal      decimal-state
       :exponent     exponent-state
@@ -360,8 +360,12 @@
   (doseq [[idx group] (map-indexed vector groups)]
     (validate-group-size idx group group-size)))
 
-(defn validate-numeric-groups [groups {:keys [primary-group-size secondary-group-size]}]
+(defn validate-numeric-groups [groups {:keys [primary-group-size secondary-group-size] :as group-spec}]
   (cond
+    ;;only single group permitted
+    (and (= ::single group-spec) (> (count groups) 1))
+    (throw (IllegalArgumentException. (format "Expected single group but found %d" (count groups))))
+
     ;;no defined group sizes
     (nil? primary-group-size)
     nil
@@ -397,7 +401,7 @@
   (let [[index groups] (parse-numeric-groups s start-index group-char)
         digits (apply str groups)
         digit-count (count digits)]
-    (validate-numeric-groups groups integer-spec)
+    (validate-numeric-groups groups (:groups integer-spec))
     (cond
       ;;TODO: min-length always non-nil?
       (and (some? min-length) (< digit-count min-length))
@@ -408,19 +412,21 @@
 
       :else [index {:integer-digits digits}])))
 
-(defn validate-decimal-groups [groups {:keys [group-size] :as decimal-spec}]
+(defn validate-decimal-groups [groups {{group-size :size :as group} :group :as decimal-spec}]
   ;;if decimal group size specified, then all groups except the last must match the expected size
   ;;the last group must be at most group-size in length
   ;;TODO: refactor to use validate-group-size/validate-group-sizes?
-  (if (some? group-size)
-    (let [exact-groups (butlast groups)
-          ^String last-group (last groups)]
-      (if (> (.length last-group) group-size)
-        (throw (IllegalArgumentException. (format "Last decimal group exceeds expected group size %d" group-size))))
+  (if (and (= ::single group) (> (count groups) 1))
+    (throw (IllegalArgumentException. "Expected single decimal group, got %d" (count groups)))
+    (if (some? group-size)
+      (let [exact-groups (butlast groups)
+            ^String last-group (last groups)]
+        (if (> (.length last-group) group-size)
+          (throw (IllegalArgumentException. (format "Last decimal group exceeds expected group size %d" group-size))))
 
-      (doseq [group exact-groups]
-        (if (not= (.length group) group-size)
-          (throw (IllegalArgumentException. (format "Decimal group does not have expected size %d" group-size))))))))
+        (doseq [group exact-groups]
+          (if (not= (.length group) group-size)
+            (throw (IllegalArgumentException. (format "Decimal group does not have expected size %d" group-size)))))))))
 
 (defn parse-numeric-decimal [^String s start-index decimal-char group-char decimal-spec]
   (if (< start-index (.length s))

@@ -223,4 +223,7 @@
         1.123459M "1.123,459"
         1.123456M "1.123,456"))))
 
-
+(deftest bad-number-formats-test
+  (testing "##0"
+    (let [format (uax35/parse-number-format "##0")]
+      (is (thrown? IllegalArgumentException (parse-format "integer" "1,234" {:pattern format}))))))
