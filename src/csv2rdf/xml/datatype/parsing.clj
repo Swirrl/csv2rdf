@@ -4,11 +4,14 @@
             [csv2rdf.uax35 :as uax35])
   (:import [java.net URI URISyntaxException]
            [java.util Base64]
-           [javax.xml.datatype DatatypeFactory XMLGregorianCalendar]
+           [javax.xml.datatype DatatypeFactory]
            [java.time.format DateTimeFormatter DateTimeParseException]
            [java.time.temporal ChronoField]
-           [java.time LocalDate LocalDateTime ZonedDateTime OffsetTime LocalTime OffsetDateTime ZoneOffset ZoneId]
+           [java.time LocalDate LocalDateTime ZonedDateTime OffsetTime LocalTime ZoneOffset]
            [java.util.regex Pattern]))
+
+(def special-float-values {"NaN" Float/NaN "INF" Float/POSITIVE_INFINITY "-INF" Float/NEGATIVE_INFINITY})
+(def special-double-values {"NaN" Double/NaN "INF" Double/POSITIVE_INFINITY "-INF" Double/NEGATIVE_INFINITY})
 
 (defmulti parse "Parses a values to one for the named XML datatype"
           (fn [type-name string-value] (xml-datatype/dispatch-key type-name))
@@ -126,10 +129,14 @@
   (check-maximum maximum (check-minimum minimum value)))
 
 (defmethod parse :double [_type-name string-value]
-  (Double/parseDouble string-value))
+  (if-let [v (get special-double-values string-value)]
+    v
+    (Double/parseDouble string-value)))
 
 (defmethod parse :float [_type-name string-value]
-  (Float/parseFloat string-value))
+  (if-let [v (get special-float-values string-value)]
+    v
+    (Float/parseFloat string-value)))
 
 (defmethod parse :decimal [type-name ^String string-value]
   ;;NOTE: BigDecimal constructor allows exponent to be specified but XML schema lexical representation
@@ -264,15 +271,11 @@
         constructed (construct-floating-string result)]
     {:floating-string constructed :modifier modifier}))
 
-(def special-float-values {"NaN" Float/NaN "INF" Float/POSITIVE_INFINITY "-INF" Float/NEGATIVE_INFINITY})
-
 (defmethod parse-format :float [_type-name string-value fmt]
   (if-let [special (get special-float-values string-value)]
     special
     (let [{:keys [floating-string modifier] :as normalised} (normalise-formatted-floating string-value fmt)]
       (uax35/apply-modifier (Float/parseFloat floating-string) modifier))))
-
-(def special-double-values {"NaN" Double/NaN "INF" Double/POSITIVE_INFINITY "-INF" Double/NEGATIVE_INFINITY})
 
 (defmethod parse-format :double [_type-name string-value fmt]
   (if-let [special (get-in special-double-values string-value)]
