@@ -135,7 +135,7 @@
             \0 (recur (inc idx) :any-num-or-group (.append buf c) groups (inc min-length))
             \# (recur (inc idx) :padding-num-or-group (.append buf c) groups min-length)
             \, (throw (IllegalArgumentException. (format "Invalid decimal group - unexpected , at index %d" idx)))
-            {:min-length min-length :groups (conj groups (.toString buf) :index idx)})
+            {:min-length min-length :groups (conj groups (.toString buf)) :index idx})
 
           :any-num-or-group
           (case c
@@ -149,7 +149,7 @@
             \0 (throw (IllegalArgumentException. (format "Required decimal character 0 at index %d not permitted after first padding character" idx)))
             \# (recur (inc idx) :padding-num-or-group (.append buf c) groups min-length)
             \, (recur (inc idx) :padding-num (StringBuilder.) (conj groups (.toString buf)) min-length)
-            {:min-length min-length :groups (conj groups (.toString buf) :index idx)})
+            {:min-length min-length :groups (conj groups (.toString buf)) :index idx})
 
           :padding-num
           (if (= \# c)
@@ -161,7 +161,7 @@
     [start-index ::none]
     (let [c (.charAt format-string start-index)]
       (if (= \. c)
-        (let [{:keys [min-length groups index]} (parse-decimal-groups format-string (inc start-index))]
+        (let [{:keys [min-length groups index] :as res} (parse-decimal-groups format-string (inc start-index))]
           (case (count groups)
             0
             [index {:min-length 0
@@ -185,28 +185,29 @@
   (if (>= start-index (.length format-string))
     (throw (IllegalArgumentException. "Invalid exponent - expected +, - or 0"))
     (let [c (.charAt format-string start-index)
-          [sign min-length] (cond
-                              (or (= \+ c) (= \- c)) [c 0]
-                              (= \0 c) [nil 1]
-                              :else (throw (IllegalArgumentException. (format "Invalid exponent - expected +, - or 0 at index %d" start-index))))]
+          [sign min-length max-length] (cond
+                                         (or (= \+ c) (= \- c)) [c 0 0]
+                                         (= \0 c) [nil 1 1]
+                                         (= \# c) [nil 0 1]
+                                         :else (throw (IllegalArgumentException. (format "Invalid exponent - expected +, -, # or 0 at index %d" start-index))))]
       (loop [idx (inc start-index)
              state :any-num
              min-length min-length
-             max-length min-length]
+             max-length max-length]
         (if (>= idx (.length format-string))
           {:sign sign :min-length min-length :max-length max-length :index idx}
           (let [c (.charAt format-string idx)]
             (case state
               :any-num
               (case c
-                \0 (recur (inc idx) :any-num (inc min-length) (inc max-length))
-                \# (recur (inc idx) :padding-num min-length (inc max-length))
+                \0 (recur (inc idx) :required-num (inc min-length) (inc max-length))
+                \# (recur (inc idx) :any-num min-length (inc max-length))
                 {:sign sign :min-length min-length :max-length max-length :index idx})
 
-              :padding-num
+              :required-num
               (case c
-                \0 (throw (IllegalArgumentException. (format "Required decimal character 0 at index %d not permitted in exponent after first padding character" idx)))
-                \# (recur (inc idx) :padding-num min-length (inc max-length))
+                \0 (recur (inc idx) :required-num min-length (inc max-length))
+                \# (throw (IllegalArgumentException. (format "Exponent padding character # at index %d not permitted in exponent after first required character" idx)))
                 {:sign sign :min-length min-length :max-length max-length :index idx}))))))))
 
 (defn parse-exponent [^String format-string start-index]
