@@ -10,7 +10,9 @@
                  [com.github.fge/uri-template "0.9"]
                  [org.apache.httpcomponents/httpcore "4.4.9"]
                  [com.opencsv/opencsv "4.0"]
-                 [clj-http "3.7.0"]]
+                 [clj-http "3.7.0"]
+                 [org.clojure/tools.cli "0.3.7"]]
+  :main csv2rdf.main
   :profiles
   {:dev
    {:dependencies [[org.clojure/test.check "0.9.0"]]
