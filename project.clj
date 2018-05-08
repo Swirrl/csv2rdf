@@ -4,16 +4,15 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0"]
-                 [org.clojure/data.csv "0.1.4"]
                  [org.clojure/data.json "0.2.6"]
                  [grafter "0.11.2"]
                  [com.github.fge/uri-template "0.9"]
                  [org.apache.httpcomponents/httpcore "4.4.9"]
-                 [com.opencsv/opencsv "4.0"]
                  [clj-http "3.7.0"]
                  [org.clojure/tools.cli "0.3.7"]]
   :main csv2rdf.main
   :profiles
   {:dev
-   {:dependencies [[org.clojure/test.check "0.9.0"]]
+   {:dependencies [[org.clojure/test.check "0.9.0"]
+                   [org.clojure/data.csv "0.1.4"]]
     :resource-paths ["test/resources"]}})
