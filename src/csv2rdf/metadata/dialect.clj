@@ -14,7 +14,7 @@
    :quoteChar \"
    :doubleQuote nil                                         ;;NOTE: differs from spec - see calculate-quote-escape-chars
    :skipRows 0
-   :commentPrefix \#
+   :commentPrefix nil                                       ;;NOTE: differs from spec - some tests contain header lines starting with # without unsetting the comment prefix
    :header nil                                              ;;NOTE: differs from spec - see calculate-header-row-count
    :headerRowCount nil                                      ;;NOTE: differs from spec - see calculate-header-row-count
    :delimiter \,
@@ -77,7 +77,7 @@
   "Calculates the options used to configure reading for the source CSV data from the given dialect definition"
   [dialect]
   ;;TODO: line terminators cannot currently be configured
-  (merge (select-keys dialect [:encoding :skipRows :commentPrefix :delimiter :skipColumns :skipBlankRows])
+  (merge (select-keys dialect [:encoding :skipRows :commentPrefix :delimiter :skipColumns :skipBlankRows :line-terminators])
          (calculate-quote-escape-chars dialect)
          {:trim-mode (calculate-trim-mode dialect)
           :num-header-rows (calculate-header-row-count dialect)}))
@@ -97,6 +97,7 @@
 (s/def ::trim #{nil "true" "false" "start" "end"})
 (s/def ::trim-mode #{:none :all :start :end})
 
+;;TODO: can quote, escape or delimiters be nil?
 (s/def ::dialect (s/keys :req-un [::commentPrefix ::delimiter ::doubleQuote ::encoding ::header ::headerRowCount
                                   ::lineTerminators ::quoteChar ::skipBlankRows ::skipColumns ::skipInitialSpace
                                   ::skipRows ::trim]))
