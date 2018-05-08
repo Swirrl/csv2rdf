@@ -10,7 +10,7 @@
   (table-group/expand-properties (tmeta/get-metadata file-source)))
 
 (defn validate-merge-table [validating? dialect {:keys [url] :as user-table}]
-  (let [embedded-metadata (csv/extract-embedded-metadata url (assoc dialect :doubleQuote false))
+  (let [embedded-metadata (csv/extract-embedded-metadata url dialect)
         table-metadata (get-in embedded-metadata [:tables 0])
         compatible-validation (table/validate-compatible validating? user-table table-metadata)
         merged (table/compatibility-merge user-table table-metadata)]

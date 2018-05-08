@@ -61,7 +61,7 @@
 
 ;;TODO: section 8.10.4.5.1 - add any extra columns for rows not defined in the input table
 (defn ^{:table-spec "8"} extract-embedded-metadata
-  ([csv-source] (extract-embedded-metadata csv-source {:doubleQuote false}))
+  ([csv-source] (extract-embedded-metadata csv-source dialect/default-dialect))
   ([csv-source {:keys [encoding] :as dialect}]
    (with-open [r (io/reader csv-source :encoding encoding)]
      (let [{:keys [skipRows] :as options} (dialect/dialect->options dialect)
