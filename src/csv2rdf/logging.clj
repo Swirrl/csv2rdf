@@ -1,6 +1,5 @@
-(ns csv2rdf.logging)
-
-;;TODO: configure logging framework
+(ns csv2rdf.logging
+  (:require [clojure.tools.logging :as log]))
 
 (defprotocol Logger
   (warn [this msg])
@@ -11,10 +10,10 @@
   (warn [_this msg] (swap! warnings conj msg))
   (error [_this msg] (swap! errors conj msg)))
 
-(defrecord ConsoleLogger []
+(defrecord ForwardingLogger []
   Logger
-  (warn [_this msg] (println "WARNING: " msg))
-  (error [_this msg] (throw (ex-info msg {}))))
+  (warn [_this msg] (log/warn msg))
+  (error [_this msg] (log/error msg)))
 
 (defrecord NullLogger []
   Logger

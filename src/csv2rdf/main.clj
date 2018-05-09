@@ -4,7 +4,8 @@
             [csv2rdf.csvw :as csvw]
             [clojure.java.io :as io]
             [grafter.rdf.io :as gio]
-            [grafter.rdf.formats :as formats])
+            [grafter.rdf.formats :as formats]
+            [clojure.tools.logging :as log])
   (:import [java.net URI URISyntaxException]
            [org.openrdf.rio RDFFormat]))
 
@@ -34,16 +35,18 @@
     errors
     (cons "User metadata or tabular data file required" errors)))
 
+(defn usage-error [errors summary]
+  (doseq [e errors]
+    (log/error e))
+  (log/info "Usage:")
+  (log/info summary)
+  (System/exit 1))
+
 (defn -main [& args]
   (let [{:keys [summary options] :as parse-result} (cli/parse-opts args options-spec)
         errors (get-errors parse-result)]
     (if (seq errors)
-      (binding [*out* *err*]
-        (doseq [e errors]
-          (println e))
-        (println)
-        (println "Usage:")
-        (println summary))
+      (usage-error errors summary)
       (let [{:keys [mode tabular user-metadata output-file]} options
             tabular-source (some-> tabular parse-source)
             metadata-source (some-> user-metadata parse-source)
@@ -54,6 +57,4 @@
             (let [dest (gio/rdf-serializer w :format rdf-format :prefixes nil)]
               (csvw/csv->rdf->destination tabular-source metadata-source dest {:mode mode}))
             (catch Exception ex
-              (binding [*out* *err*]
-                (println (.getMessage ex))
-                (.printStackTrace ex)))))))))
+              (log/error ex))))))))

@@ -9,7 +9,13 @@
                  [com.github.fge/uri-template "0.9"]
                  [org.apache.httpcomponents/httpcore "4.4.9"]
                  [clj-http "3.7.0"]
-                 [org.clojure/tools.cli "0.3.7"]]
+                 [org.clojure/tools.cli "0.3.7"]
+
+                 [org.clojure/tools.logging "0.4.1"]
+                 [org.slf4j/slf4j-api "1.7.25"]
+                 [org.apache.logging.log4j/log4j-api "2.11.0"]
+                 [org.apache.logging.log4j/log4j-core "2.11.0"]
+                 [org.apache.logging.log4j/log4j-slf4j-impl "2.11.0"]]
   :main csv2rdf.main
   :profiles
   {:dev
