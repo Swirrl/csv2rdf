@@ -37,7 +37,8 @@
 (defn ^{:table-spec "5.2"} get-metadata-link-uri [^URI csv-uri csv-response]
   (if-let [link-header (get-metadata-link csv-response)]
     ;;TODO: URIs must be normalised (section 6.3)
-    (.resolve csv-uri (::http/link-uri link-header))))
+    (let [^URI link-uri (::http/link-uri link-header)]
+      (.resolve csv-uri link-uri))))
 
 (defn read-json-response [{:keys [body] :as response}]
   ;;TODO: create protocol for reading from HTTP responses?
@@ -56,7 +57,7 @@
       (read-json-response response))))
 
 
-(defn ^{:table-spec "5.2"} linked-metadata-references-data-file? [csv-uri metadata-uri metadata-doc]
+(defn ^{:table-spec "5.2"} linked-metadata-references-data-file? [csv-uri ^URI metadata-uri metadata-doc]
   ;;from the spec: If the metadata file found at this location does not explicitly include a reference
   ;; to the requested tabular data file then it MUST be ignored
   ;;TODO: possible shared logic with csv2rdf.metadata/parse-metadata-json
@@ -70,7 +71,7 @@
                  :else [])
         table-uris (->> tables
                         (map (fn [{:strs [url]}]
-                               (if-let [tabular-uri (util/ignore-exceptions (URI. url))]
+                               (if-let [^URI tabular-uri (util/ignore-exceptions (URI. url))]
                                  (.resolve metadata-uri tabular-uri))))
                         (remove nil?)
                         (into #{}))

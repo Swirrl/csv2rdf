@@ -126,7 +126,7 @@
     :end (string/trimr value)
     value))
 
-(defn ^{:tabular-spec "8"} parse-row-cells [^String row-content {:keys [escapeChar quoteChar delimiter trim-mode] :as options}]
+(defn ^{:tabular-spec "8"} parse-row-cells [^String row-content {:keys [^Character escapeChar ^Character quoteChar ^Character delimiter trim-mode] :as options}]
   (loop [idx 0
          cells []
          quoted false
@@ -180,7 +180,7 @@
 (defn is-comment-row? [{:keys [type]}]
   (= :comment type))
 
-(defn make-row [row-content source-row-num {:keys [commentPrefix] :as options}]
+(defn make-row [^String row-content source-row-num {:keys [commentPrefix] :as options}]
   (let [is-comment? (and (some? commentPrefix)
                          (.startsWith row-content (str commentPrefix)))]
     {:source-row-number source-row-num

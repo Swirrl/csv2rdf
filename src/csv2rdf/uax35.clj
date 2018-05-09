@@ -16,7 +16,9 @@
 ;; <prefix>([#0,])*.([#0,])*E[+-]?(\d)+<modifier>?<suffix>?
 (defn parse-prefix [^String format-str]
   (loop [idx 0
-         {:keys [prefix-buf sign modifier] :as state} {:prefix-buf (StringBuilder.) :sign nil :modifier nil}]
+         prefix-buf (StringBuilder.)
+         sign nil
+         modifier nil]
     (if (>= idx (.length format-str))
       ;;NOTE: guaranteed to error but defer until parsing int part
       [idx {:prefix (.toString prefix-buf) :sign sign :modifier modifier}]
@@ -26,14 +28,12 @@
           (if (some? modifier)
             (throw (IllegalArgumentException. "Multiple modifiers in prefix"))
             (do (.append prefix-buf c)
-                (recur (inc idx) (assoc state :modifier c))))
+                (recur (inc idx) prefix-buf sign c)))
 
           (or (= \+ c) (= \- c))
           (if (some? sign)
             (throw (IllegalArgumentException. "Multiple signs in prefix"))
-            (do
-              (.append prefix-buf c)
-              (recur (inc idx) (assoc state :sign c))))
+            (recur (inc idx) (.append prefix-buf c) c modifier))
 
           ;;reached start of int format
           (or (= \0 c) (= \# c))
@@ -41,9 +41,7 @@
 
           ;;literal char
           :else
-          (do
-            (.append prefix-buf c)
-            (recur (inc idx) state)))))))
+          (recur (inc idx) (.append prefix-buf c) sign modifier))))))
 
 (defn parse-integer-groups [^String format-str start-index]
   (loop [idx start-index
@@ -298,7 +296,7 @@
 
 ;;numeric parsing
 
-(defn parse-numeric-prefix [^String s {:keys [prefix sign] :as prefix-spec}]
+(defn parse-numeric-prefix [^String s {:keys [^String prefix sign] :as prefix-spec}]
   (if (.startsWith s prefix)
     (cond
       (= \+ sign) [(.length prefix) {:negative? false}]
@@ -319,7 +317,7 @@
     (throw (IllegalArgumentException. (format "String does not contain expected prefix '%s'" prefix)))))
 
 ;;TODO: check numeric characters are ASCII digits (i.e. [0-9]) instead of using Character/isDigit?
-(defn parse-numeric-groups [^String s start-index group-char]
+(defn parse-numeric-groups [^String s start-index ^Character group-char]
   (loop [idx start-index
          state :number
          buf (StringBuilder.)
@@ -427,13 +425,13 @@
       (if (> (.length last-group) group-size)
         (throw (IllegalArgumentException. (format "Last decimal group exceeds expected group size %d" group-size))))
 
-      (doseq [group exact-groups]
+      (doseq [^String group exact-groups]
         (if (not= (.length group) group-size)
           (throw (IllegalArgumentException. (format "Decimal group does not have expected size %d" group-size))))))
 
     :else nil))
 
-(defn parse-numeric-decimal [^String s start-index decimal-char group-char decimal-spec]
+(defn parse-numeric-decimal [^String s start-index ^Character decimal-char group-char decimal-spec]
   (let [[index groups] (if (< start-index (.length s))
                          (let [c (.charAt s start-index)]
                            (if (= decimal-char c)
@@ -457,7 +455,7 @@
           [idx (.toString buf)]))
       [idx (.toString buf)])))
 
-(defn parse-numeric-exponent-part [^String s start-index {:keys [sign] :as exponent-spec}]
+(defn parse-numeric-exponent-part [^String s start-index {:keys [^Character sign] :as exponent-spec}]
   ;;NOTE: number format does allow an empty exponent?
   (if (< start-index (.length s))
     (let [c (.charAt s start-index)]

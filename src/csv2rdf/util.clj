@@ -158,7 +158,7 @@
               (.write buf (int c))
               (recur (inc idx)))))))))
 
-(def hex-digits "0123456789ABCDEF")
+(def ^String hex-digits "0123456789ABCDEF")
 
 (defn to-hex-string
   "Returns the hex representation of a byte array"

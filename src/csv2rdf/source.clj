@@ -28,4 +28,3 @@
   "Creates a source from a URI and an instance of IOFactory."
   {:pre [(satisfies? io/IOFactory io)]}
   (->IOSource uri io))
-

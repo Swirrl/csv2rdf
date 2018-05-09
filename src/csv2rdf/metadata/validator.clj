@@ -2,9 +2,8 @@
   (:require [csv2rdf.validation :as v]
             [csv2rdf.metadata.context :refer :all]
             [csv2rdf.metadata.json :as mjson]
-            [csv2rdf.util :as util]
             [clojure.string :as string])
-  (:import (java.net URI)))
+  (:import [java.net URI]))
 
 (def invalid {:type ::invalid})
 

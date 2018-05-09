@@ -67,7 +67,7 @@
 (defn ^String ^{:jsonld-api-spec "6.3"} expand-uri-string [^String uri-str]
   (if (is-keyword? uri-str)
     uri-str
-    (let [[prefix suffix] (split-colon uri-str)]
+    (let [[^String prefix ^String suffix] (split-colon uri-str)]
       (if (or (= "_" prefix) (.startsWith suffix "//"))
         uri-str
         (if-let [prefix-uri (get prefixes prefix)]

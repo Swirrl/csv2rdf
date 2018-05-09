@@ -4,8 +4,7 @@
             [csv2rdf.json-ld :as json-ld]
             [csv2rdf.util :as util]
             [csv2rdf.tabular.cell :as cell]
-            [csv2rdf.metadata.column :as column]
-            [clojure.string :as string])
+            [csv2rdf.metadata.column :as column])
   (:import [java.net URI]))
 
 (s/def ::_column pos?)

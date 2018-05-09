@@ -78,8 +78,11 @@
 (defn id
   "An id is a link property whose value cannot begin with _:"
   [context x]
-  (if (and (string? x) (.startsWith x "_:"))
-    (make-error context "Ids cannot start with _:")
+  (if (string? x)
+    (let [^String s x]
+      (if (.startsWith s "_:")
+        (make-error context "Ids cannot start with _:")
+        (link-property context s)))
     (link-property context x)))
 
 (def ^{:metadata-spec "5.1.3"} default-template-property (template/parse-template ""))

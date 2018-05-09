@@ -5,7 +5,8 @@
             [csv2rdf.metadata.schema :as schema]
             [csv2rdf.metadata.transformation :as transformation]
             [csv2rdf.validation :as v]
-            [csv2rdf.metadata.dialect :as dialect]))
+            [csv2rdf.metadata.dialect :as dialect])
+  (:import [java.net URI]))
 
 (def table-defaults
   {:suppressOutput false
@@ -54,7 +55,7 @@
   {:url table-uri
    :tableSchema schema})
 
-(defn ^{:metadata-spec "5.4.3"} validate-compatible [validating? {uri1 :url schema1 :tableSchema :as table1} {uri2 :url schema2 :tableSchema :as table2}]
+(defn ^{:metadata-spec "5.4.3"} validate-compatible [validating? {^URI uri1 :url schema1 :tableSchema :as table1} {^URI uri2 :url schema2 :tableSchema :as table2}]
   ;;TODO: normalise URIs during parsing?
   (let [uri-validation (if (= (.normalize uri1) (.normalize uri2))
                          (v/pure nil)
