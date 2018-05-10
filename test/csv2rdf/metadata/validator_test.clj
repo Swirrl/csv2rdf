@@ -229,3 +229,16 @@
       (let [{:keys [warnings result]} (logging/capture-warnings (v context "invalid"))]
         (is (= 1 (count warnings)))
         (is (invalid? result))))))
+
+(deftest where-test
+  (let [v (where even? "even")
+        context (context/make-context (URI. "http://example"))]
+    (testing "Valid"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context 2))]
+        (is (empty? warnings))
+        (is (= 2 result))))
+
+    (testing "Invalid"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context 3))]
+        (is (= 1 (count warnings)))
+        (is (invalid? result))))))

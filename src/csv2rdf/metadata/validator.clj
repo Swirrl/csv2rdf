@@ -246,5 +246,5 @@
   [pred desc]
   (fn [context x]
     (if (pred x)
-      (v/pure x)
+      x
       (make-warning context (str "Expected '" x "' to be " desc) invalid))))
