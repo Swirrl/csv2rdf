@@ -56,7 +56,7 @@
   (fn [context x]
     (if (= expected x)
       x
-      (make-warning context (str "Expected '" expected "' received '" x "'") nil))))
+      (make-warning context (str "Expected '" expected "' received '" x "'") invalid))))
 
 (defn type-eq
   "Validator that an object's @type property is the expected value"
@@ -68,7 +68,7 @@
 
 (defn any "Matches any value successfully"
   [_context x]
-  (v/pure x))
+  x)
 
 (def string (expect-type :string))
 (def number (expect-type :number))
@@ -76,12 +76,15 @@
 (def array (expect-type :array))
 (def object (expect-type :object))
 
+;;TODO: rewrite to use chain?
 (defn character [context x]
-  (->> (string context x)
-       (v/bind (fn [^String s]
-                 (cond (invalid? s) (v/pure s)
-                       (= 1 (.length s)) (v/pure (.charAt s 0))
-                       :else (make-warning context "Expected single character" invalid))))))
+  (let [s (string context x)]
+    (if (invalid? s)
+      invalid
+      (let [^String s s]
+        (if (= 1 (.length s))
+          (.charAt s 0)
+          (make-warning context "Expected single character" invalid))))))
 
 (defn variant [{:keys [default] :as tag-validators}]
   {:pre [(pos? (count tag-validators))]}
