@@ -6,6 +6,9 @@
   (:import [clojure.lang ExceptionInfo]
            [java.net URI]))
 
+(defmacro validation-error [& body]
+  `(is (~'thrown? ExceptionInfo ~@body)))
+
 (deftest eq-test
   (let [v (eq "value")]
     (testing "Matches value"
@@ -25,7 +28,7 @@
       (is (= value (v {} value))))
 
     (testing "Does not match value"
-      (is (thrown? ExceptionInfo (v {} "Schema"))))))
+      (validation-error (v {} "Schema")))))
 
 (deftest character-test
   (is (= \c (character {} "c")))
@@ -134,7 +137,7 @@
         (is (= [:k "value"] result))))
 
     (testing "Key missing"
-      (is (thrown? ExceptionInfo (v context {:other 4}))))
+      (validation-error (v context {:other 4})))
 
     (testing "Key exists with invalid value"
-      (is (thrown? ExceptionInfo (v context {:k ["not" "a" "string"]}))))))
+      (validation-error (v context {:k ["not" "a" "string"]})))))
