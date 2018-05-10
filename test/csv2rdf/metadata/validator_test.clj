@@ -75,3 +75,21 @@
       (let [{:keys [warnings result]} (logging/capture-warnings (v context 5))]
         (is (= 1 (count warnings)))
         (is (invalid? result))))))
+
+(deftest nullable-test
+  (let [v (nullable string)
+        context (context/make-context (URI. "http://example"))]
+    (testing "nil"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context nil))]
+        (is (empty? warnings))
+        (is (nil? result))))
+
+    (testing "Non-nil and valid for inner validator"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context "s"))]
+        (is (empty? warnings))
+        (is (= "s" result))))
+
+    (testing "Non-nil and invalid for inner validator"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context [1,2,3]))]
+        (is (some? (seq warnings)))
+        (is (invalid? result))))))

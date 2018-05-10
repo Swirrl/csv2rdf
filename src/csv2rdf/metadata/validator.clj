@@ -138,7 +138,7 @@
   [validator]
   (fn [context x]
     (if (nil? x)
-      (v/pure x)
+      nil
       (validator context x))))
 
 (defn chain
