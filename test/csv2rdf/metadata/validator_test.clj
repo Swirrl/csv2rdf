@@ -1,13 +1,10 @@
 (ns csv2rdf.metadata.validator-test
   (:require [clojure.test :refer :all]
+            [csv2rdf.metadata.test-common :refer :all]
             [csv2rdf.metadata.validator :refer :all]
             [csv2rdf.logging :as logging]
             [csv2rdf.metadata.context :as context])
-  (:import [clojure.lang ExceptionInfo]
-           [java.net URI]))
-
-(defmacro validation-error [& body]
-  `(is (~'thrown? ExceptionInfo ~@body)))
+  (:import [java.net URI]))
 
 (deftest default-if-invalid-test
   (let [default "default"

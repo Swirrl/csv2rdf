@@ -1,6 +1,7 @@
 (ns csv2rdf.metadata.types-test
   (:require [clojure.test :refer :all]
             [csv2rdf.metadata.types :refer :all]
+            [csv2rdf.metadata.test-common :refer :all]
             [csv2rdf.metadata.validator :refer [invalid?]]
             [csv2rdf.metadata.context :as context]
             [csv2rdf.logging :as logging])
@@ -136,5 +137,27 @@
 
     (testing "Invalid type"
       (let [{:keys [warnings result]} (logging/capture-warnings (link-property context 43))]
+        (is (= 1 (count warnings)))
+        (is (= base-uri result))))))
+
+(deftest id-test
+  (let [base-uri (URI. "http://example.com/")
+        context (context/make-context base-uri)]
+    (testing "Valid value"
+      (let [id-value "id"
+            {:keys [warnings result]} (logging/capture-warnings (id context id-value))]
+        (is (empty? warnings))
+        (is (= (.resolve base-uri id-value) result))))
+
+    (testing "Invalid prefix"
+      (validation-error (id context "_:id")))
+
+    (testing "Invalid value"
+      (let [{:keys [warnings result]} (logging/capture-warnings (id context "invalid id"))]
+        (is (= 1 (count warnings)))
+        (is (= base-uri result))))
+
+    (testing "Invalid type"
+      (let [{:keys [warnings result]} (logging/capture-warnings (id context 4))]
         (is (= 1 (count warnings)))
         (is (= base-uri result))))))
