@@ -214,3 +214,18 @@
       (let [{:keys [warnings result]} (logging/capture-warnings (v context "invalid"))]
         (is (= 1 (count warnings)))
         (is (invalid? result))))))
+
+(deftest mapping-test
+  (let [value-map {"foo" 1 "bar" 2 "baz" 3}
+        context (context/make-context (URI. "http://example"))
+        v (mapping value-map)]
+    (testing "Valid value"
+      (doseq [[key value] value-map]
+        (let [{:keys [warnings result]} (logging/capture-warnings (v context key))]
+          (is (empty? warnings))
+          (is (= value result)))))
+
+    (testing "Invalid value"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context "invalid"))]
+        (is (= 1 (count warnings)))
+        (is (invalid? result))))))

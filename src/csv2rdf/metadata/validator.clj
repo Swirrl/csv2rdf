@@ -237,7 +237,7 @@
   [m]
   (fn [context k]
     (if (contains? m k)
-      (v/pure (get m k))
+      (get m k)
       (make-warning context (str "Expected one of " (string/join ", " (keys m))) invalid))))
 
 (defn where
