@@ -85,6 +85,13 @@
     (catch Exception ex
       (make-warning context (str "Invalid compact URI: '" s "'") invalid))))
 
+(def ^{:metadata-spec "5.8.2"} common-property-value-type
+  (variant {:string (fn [context s]
+                      ;;TODO: normalise into data type record?
+                      (if (xml-datatype/valid-type-name? s)
+                        (v/pure s)
+                        (expand-compact-uri context s)))}))
+
 ;;common propeties
 ;;TODO: move into separate namespace?
 (defn ordinary-common-property-value-key [special-keys]
@@ -93,12 +100,6 @@
       (make-error context (str "Only keys " (string/join ", " special-keys) " can start with an @"))
       (v/pure x))))
 
-(def ^{:metadata-spec "5.8.2"} common-property-value-type
-  (variant {:string (fn [context s]
-                      ;;TODO: normalise into data type record?
-                      (if (xml-datatype/valid-type-name? s)
-                        (v/pure s)
-                        (expand-compact-uri context s)))}))
 
 (defn ^{:metadata-spec "5.8"} validate-common-property-value [context v]
   (cond
