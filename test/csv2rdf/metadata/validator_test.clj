@@ -180,3 +180,22 @@
           (let [{:keys [warnings result]} (logging/capture-warnings (v context {key 5 :other "ignored"}))]
             (is (some? (seq warnings)))
             (is (= [key default] result))))))))
+
+(deftest map-of-test
+  (let [v (map-of string number)
+        context (context/make-context (URI. "http://example"))]
+    (testing "All keys and values valid"
+      (let [m {"foo" 1 "bar" 2 "baz" 3}
+            {:keys [warnings result]} (logging/capture-warnings (v context m))]
+        (is (empty? warnings))
+        (is (= m result))))
+
+    (testing "Invalid keys"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context {"foo" 1 [] 2 true 3 "bar" 4 {} 5}))]
+        (is (some? (seq warnings)))
+        (is (= {"foo" 1 "bar" 4} result))))
+
+    (testing "Invalid values"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context {"foo" 1 "bar" false "baz" "x" "quux" 4}))]
+        (is (some? (seq warnings)))
+        (is (= {"foo" 1 "quux" 4} result))))))

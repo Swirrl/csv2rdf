@@ -1,5 +1,5 @@
 (ns csv2rdf.metadata.types
-  (:require [csv2rdf.metadata.validator :refer [make-warning variant invalid array-of kvp kvps optional-key
+  (:require [csv2rdf.metadata.validator :refer [make-warning variant invalid array-of kvps optional-key
                                                 required-key invalid-key-pair any map-of one-of string invalid?
                                                 chain try-parse-with where strict make-error tuple eq uri ignore-invalid]]
             [csv2rdf.metadata.context :refer [resolve-uri append-path language-code-or-default

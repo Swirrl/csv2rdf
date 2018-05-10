@@ -190,41 +190,37 @@
          [k (if (invalid? value) default value)])
        [k default]))))
 
+;;TODO: remove this and explicitly log a warning
 (defn ^{:metadata-spec "4"} invalid-key-pair
   "Generates a warning for any invalid keys found in an object."
   [context [k _]]
   (make-warning context (str "Invalid key '" k "'") nil))
-
-(defn- combine-kvp-validations [kvp-validations]
-  (v/fmap (fn [pairs]
-            (into {} (remove invalid? pairs)))
-          (v/collect kvp-validations)))
 
 (defn kvps
   "Takes a collection of kvp specs which validate a map and return a key-value pair (or invalid).
    Combines results for all kvps into a map."
   [kvp-specs]
   (fn [context m]
-    (combine-kvp-validations (map (fn [key-spec]
-                                    (key-spec context m))
-                                  kvp-specs))))
+    (->> kvp-specs
+         (map (fn [kvp-spec] (kvp-spec context m)))
+         (remove invalid?)
+         (into {}))))
 
 (defn kvp [key-validator value-validator]
   (fn [context [k v]]
-    (v/bind (fn [key-result]
-              (if (invalid? key-result)
-                (v/pure key-result)
-                (v/bind (fn [value-result]
-                          (if (invalid? value-result)
-                            (v/pure value-result)
-                            (v/pure [key-result value-result])))
-                        (value-validator (append-path context k) v))))
-            (key-validator context k))))
+    (let [key (key-validator context k)
+          value (value-validator (append-path context k) v)]
+      (if (or (invalid? key) (invalid? value))
+        invalid
+        [key value]))))
 
 (defn map-of [key-validator value-validator]
   (let [pair-validator (kvp key-validator value-validator)]
     (fn [context m]
-      (combine-kvp-validations (map (fn [kvp] (pair-validator context kvp)) m)))))
+      (->> m
+           (map (fn [kvp] (pair-validator context kvp)))
+           (remove invalid?)
+           (into {})))))
 
 (defn one-of
   "Returns a validator which expects its input to be one of the given values. Returns a sucessful
