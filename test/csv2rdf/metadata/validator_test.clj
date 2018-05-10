@@ -93,3 +93,16 @@
       (let [{:keys [warnings result]} (logging/capture-warnings (v context [1,2,3]))]
         (is (some? (seq warnings)))
         (is (invalid? result))))))
+
+(deftest try-parse-with-test
+  (let [v (try-parse-with #(Integer/parseInt %))
+        context (context/make-context (URI. "http://example"))]
+    (testing "Valid"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context "123"))]
+        (is (empty? warnings))
+        (is (= 123 result))))
+
+    (testing "Invalid"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context "not a number"))]
+        (is (= 1 (count warnings)))
+        (is (invalid? result))))))

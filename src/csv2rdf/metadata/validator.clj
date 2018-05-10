@@ -147,17 +147,19 @@
    call any subsequent validators in the chain."
   [& validators]
   (reduce (fn [acc validator]
-            (fn [context value]
-              (v/bind (fn [v]
-                        (if (invalid? v)
-                          (v/pure v)
-                          (validator context v)))
-                      (acc context value)))) any validators))
+            (fn [context x]
+              (let [r (acc context x)]
+                (if (invalid? r)
+                  invalid
+                  (validator context r))))) any validators))
 
-(defn try-parse-with [f]
+(defn try-parse-with
+  "Returns a validator which tries to parse the incoming value with the function f. Returns invalid if f
+   throws an exception."
+  [f]
   (fn [context x]
     (try
-      (v/pure (f x))
+      (f x)
       (catch Exception ex
         (make-warning context (.getMessage ex) invalid)))))
 
