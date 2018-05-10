@@ -35,7 +35,7 @@
 (def ^{:metadata-spec "5.1.6"
        :doc "Validates a value in a natual language property defined as an object. Values can
         be either strings or string arrays, and returns an array if valid."} language-code-map-value
-  (variant {:string (fn [_context s] (v/pure [s]))
+  (variant {:string (fn [_context s] [s])
             :array (array-of string)
             :default []}))
 
@@ -44,9 +44,9 @@
    codes to an array of associated values. Uses the default language if none specified in the context."
   [context x]
   (cond
-    (string? x) (v/pure (normalise-string-natural-language-property context x))
-    (array? x) (v/fmap #(normalise-array-natural-language-property context %)
-                       ((array-of string) context x))
+    (string? x) (normalise-string-natural-language-property context x)
+    (array? x) (let [values ((array-of string) context x)]
+                 (normalise-array-natural-language-property context values))
     (object? x) ((map-of language-code language-code-map-value) context x)
     :else (make-warning context "Expected string, array or object for natual language property" {(language-code-or-default context) []})))
 
