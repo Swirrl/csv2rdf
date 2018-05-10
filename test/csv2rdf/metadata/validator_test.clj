@@ -107,6 +107,24 @@
         (is (= 1 (count warnings)))
         (is (invalid? result))))))
 
+(deftest uri-test
+  (let [context (context/make-context (URI. "http://example"))]
+    (testing "Valid URI"
+      (let [uri-str "http://example.com/some/file.txt"
+            {:keys [warnings result]} (logging/capture-warnings (uri context uri-str))]
+        (is (empty? warnings))
+        (is (= (URI. uri-str) result))))
+
+    (testing "Invalid URI"
+      (let [{:keys [warnings result]} (logging/capture-warnings (uri context "not a URI"))]
+        (is (= 1 (count warnings)))
+        (is (invalid? result))))
+
+    (testing "Invalid type"
+      (let [{:keys [warnings result]} (logging/capture-warnings (uri context 4))]
+        (is (= 1 (count warnings)))
+        (is (invalid? result))))))
+
 (deftest required-key-test
   (let [v (required-key :k string)
         context (context/make-context (URI. "http://example"))]
