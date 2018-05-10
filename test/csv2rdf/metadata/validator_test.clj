@@ -141,3 +141,42 @@
 
     (testing "Key exists with invalid value"
       (validation-error (v context {:k ["not" "a" "string"]})))))
+
+(deftest optional-key-test
+  (let [context (context/make-context (URI. "http://example"))]
+    (testing "Without default"
+      (let [v (optional-key :k string)]
+        (testing "Key exists with valid value"
+          (let [{:keys [warnings result]} (logging/capture-warnings (v context {:k "value" :other "ignored"}))]
+            (is (empty? warnings))
+            (is (= [:k "value"] result))))
+
+        (testing "Key missing"
+          (let [{:keys [warnings result]} (logging/capture-warnings (v context {:other "ignored"}))]
+            (is (empty? warnings))
+            (is (nil? result))))
+
+        (testing "Key exists with invalid value"
+          (let [{:keys [warnings result]} (logging/capture-warnings (v context {:k 4}))]
+            (is (some? (seq warnings)))
+            (is (nil? result))))))
+
+    (testing "With default"
+      (let [default "default"
+            key :k
+            v (optional-key key string default)]
+        (testing "Key exists with valid value"
+          (let [value "value"
+                {:keys [warnings result]} (logging/capture-warnings (v context {key value :other "ignored"}))]
+            (is (empty? warnings))
+            (is (= [key value] result))))
+
+        (testing "Key missing"
+          (let [{:keys [warnings result]} (logging/capture-warnings (v context {:other "ignored"}))]
+            (is (empty? warnings))
+            (is (= [key default] result))))
+
+        (testing "Key exists with invalid value"
+          (let [{:keys [warnings result]} (logging/capture-warnings (v context {key 5 :other "ignored"}))]
+            (is (some? (seq warnings)))
+            (is (= [key default] result))))))))

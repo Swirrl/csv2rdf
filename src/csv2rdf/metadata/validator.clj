@@ -178,20 +178,17 @@
   ([k value-validator]
    (fn [context m]
      (if (contains? m k)
-       (let [value-validation (value-validator (append-path context k) (get m k))]
-         (v/bind (fn [v]
-                   (if (invalid? v)
-                     nil
-                     (v/pure [k v])))
-                 value-validation))
-       (v/pure nil))))
+       (let [value (value-validator (append-path context k) (get m k))]
+         (if (invalid? value)
+           nil
+           [k value]))
+       nil)))
   ([k value-validator default]
    (fn [context m]
      (if (contains? m k)
-       (let [value-validation (value-validator (append-path context k) (get m k))]
-         (v/fmap (fn [v] [k (if (invalid? v) default v)])
-                 value-validation))
-       (v/pure [k default])))))
+       (let [value (value-validator (append-path context k) (get m k))]
+         [k (if (invalid? value) default value)])
+       [k default]))))
 
 (defn ^{:metadata-spec "4"} invalid-key-pair
   "Generates a warning for any invalid keys found in an object."
