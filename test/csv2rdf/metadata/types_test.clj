@@ -119,3 +119,22 @@
               {:keys [warnings result]} (logging/capture-warnings (natural-language context 3))]
           (is (= 1 (count warnings)))
           (is (= {language []} result)))))))
+
+(deftest link-property-test
+  (let [base-uri (URI. "http://example.com/")
+        context (context/make-context base-uri)]
+    (testing "Valid value"
+      (let [rel "file.csv"
+            {:keys [warnings result]} (logging/capture-warnings (link-property context rel))]
+        (is (empty? warnings))
+        (is (= (.resolve base-uri rel) result))))
+
+    (testing "Invalid value"
+      (let [{:keys [warnings result]} (logging/capture-warnings (link-property context "not a URI"))]
+        (is (= 1 (count warnings)))
+        (is (= base-uri result))))
+
+    (testing "Invalid type"
+      (let [{:keys [warnings result]} (logging/capture-warnings (link-property context 43))]
+        (is (= 1 (count warnings)))
+        (is (= base-uri result))))))

@@ -55,7 +55,7 @@
 (defn ^{:metadata-spec "6.3"} normalise-link-property
   "Normalises a link property URI by resolving it against the current base URI."
   [context uri]
-  (v/pure (resolve-uri context uri)))
+  (resolve-uri context uri))
 
 (defn ^{:metadata-spec "5.1.2"} parse-link-property
   "Converts link properties to URIs, or logs a warning if the URI is invalid. Link properties are resolved
@@ -63,7 +63,7 @@
   [context x]
   (if (string? x)
     (try
-      (v/pure (URI. x))
+      (URI. x)
       (catch URISyntaxException _ex
         (make-warning context (format "Link property '%s' cannot be parsed as a URI" x) default-uri)))
     (make-warning context (format "Invalid link property '%s': expected string containing URI, got %s" x (mjson/get-json-type-name x)) default-uri)))
