@@ -17,18 +17,13 @@
 
 (def non-negative (variant {:number (where util/non-negative? "non-negative")}))
 
-(defn validate-language-code [context s]
-  (try
-    (do
-      (.setLanguageTag (Locale$Builder.) s)
-      ;;TODO: validate against known list of language codes?
-      (v/pure s))
-    (catch IllformedLocaleException _ex
-      (make-warning context (str "Invalid language code: '" s "'") invalid))))
-
 (defn language-code [context x]
   (if (string? x)
-    (validate-language-code context x)
+    (try
+      (.setLanguageTag (Locale$Builder.) x)
+      x
+      (catch IllformedLocaleException _ex
+        (make-warning context (str "Invalid language code: '" x "'") invalid)))
     (make-warning context (str "Expected language code, got " (mjson/get-json-type-name x)) invalid)))
 
 (defn ^{:metadata-spec "6.6"} normalise-string-natural-language-property [context code]

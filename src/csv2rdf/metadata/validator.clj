@@ -32,9 +32,8 @@
 
 (defn strict [validator]
   "Returns a validator which converts any warnings from the given validator into errors."
-  (throw (IllegalStateException. "Replace with explicit validator!"))
   (fn [context x]
-    (v/warnings-as-errors (validator context x))))
+    (throw (IllegalStateException. "Replace with explicit validator!"))))
 
 (defn type-error-message [permitted-types actual-type]
   (let [c (count permitted-types)]
