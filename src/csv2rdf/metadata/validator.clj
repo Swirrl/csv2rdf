@@ -228,7 +228,7 @@
   [values]
   (fn [context x]
     (if (contains? values x)
-      (v/pure x)
+      x
       (make-warning context (str "Expected one of " (string/join ", " values)) invalid))))
 
 (defn mapping

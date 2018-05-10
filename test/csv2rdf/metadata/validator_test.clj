@@ -199,3 +199,18 @@
       (let [{:keys [warnings result]} (logging/capture-warnings (v context {"foo" 1 "bar" false "baz" "x" "quux" 4}))]
         (is (some? (seq warnings)))
         (is (= {"foo" 1 "quux" 4} result))))))
+
+(deftest one-of-test
+  (let [values #{"foo" "bar" "baz"}
+        v (one-of values)
+        context (context/make-context (URI. "http://example"))]
+    (testing "Valid value"
+      (doseq [value values]
+        (let [{:keys [warnings result]} (logging/capture-warnings (v context value))]
+          (is (empty? warnings))
+          (is (= value result)))))
+
+    (testing "Invalid value"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context "invalid"))]
+        (is (= 1 (count warnings)))
+        (is (invalid? result))))))
