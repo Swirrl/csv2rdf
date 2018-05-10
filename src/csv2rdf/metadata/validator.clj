@@ -113,24 +113,25 @@
                                            (element-validator (append-path context idx) e))
                                          arr))))))
 
+;;TODO: this is only used in one place - remove?
 (defn tuple [& validators]
   (fn [context x]
-    (->> (array context x)
-         (v/bind (fn [arr]
-                   (cond (invalid? arr)
-                         (v/pure arr)
+    (let [arr (array context x)]
+      (cond
+        (invalid? arr)
+        invalid
 
-                         (not= (count validators) (count arr))
-                         (make-warning context (format "Expected array to contains %d elements" (count validators)) invalid)
+        (not= (count validators) (count arr))
+        (make-warning context (format "Expected array to contains %d elements" (count validators)) invalid)
 
-                         :else
-                         (let [validator-values (map vector validators arr)
-                               tuple-validation (v/collect (map-indexed (fn [idx [validator x]]
-                                                                          (validator (append-path context idx) x))
-                                                                        validator-values))]
-                           (v/bind (fn [t]
-                                     (v/pure (if (every? valid? t) t invalid)))
-                                   tuple-validation))))))))
+        :else
+        (let [validator-values (map vector validators arr)
+              validated (vec (map-indexed (fn [idx [validator x]]
+                                            (validator (append-path context idx) x))
+                                          validator-values))]
+          (if (every? valid? validated)
+            validated
+            invalid))))))
 
 (defn nullable
   "Wraps a validator into one which allows explicit null values."

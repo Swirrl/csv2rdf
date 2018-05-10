@@ -51,3 +51,27 @@
       (let [{:keys [warnings result]} (logging/capture-warnings (v context "not an array"))]
         (is (= 1 (count warnings)))
         (is (= [] result))))))
+
+(deftest tuple-test
+  (let [v (tuple string number)
+        context (context/make-context (URI. "http://example"))]
+    (testing "Valid array"
+      (let [arr ["s" 4]
+            {:keys [warnings result]} (logging/capture-warnings (v context arr))]
+        (is (empty? warnings))
+        (is (= arr result))))
+
+    (testing "Array with invalid length"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context ["s" 4 {} true]))]
+        (is (some? (seq warnings)))
+        (is (invalid? result))))
+
+    (testing "Array with valid length and invalid elements"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context [true "not a number"]))]
+        (is (= 2 (count warnings)))
+        (is (invalid? result))))
+
+    (testing "Non-array"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context 5))]
+        (is (= 1 (count warnings)))
+        (is (invalid? result))))))
