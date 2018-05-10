@@ -9,6 +9,21 @@
 (defmacro validation-error [& body]
   `(is (~'thrown? ExceptionInfo ~@body)))
 
+(deftest default-if-invalid-test
+  (let [default "default"
+        v (default-if-invalid string default)
+        context (context/make-context "http://example")]
+    (testing "Valid value"
+      (let [value "ok"
+            {:keys [warnings result]} (logging/capture-warnings (v context value))]
+        (is (empty? warnings))
+        (is (= value result))))
+
+    (testing "Invalid value"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context 4))]
+        (is (= 1 (count warnings)))
+        (is (= default result))))))
+
 (deftest eq-test
   (let [v (eq "value")]
     (testing "Matches value"

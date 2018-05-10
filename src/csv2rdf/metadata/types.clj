@@ -1,5 +1,5 @@
 (ns csv2rdf.metadata.types
-  (:require [csv2rdf.metadata.validator :refer [make-warning variant invalid array-of kvps optional-key
+  (:require [csv2rdf.metadata.validator :refer [make-warning default-if-invalid variant invalid array-of kvps optional-key
                                                 required-key invalid-key-pair any map-of one-of string invalid?
                                                 chain try-parse-with where strict make-error tuple eq uri ignore-invalid]]
             [csv2rdf.metadata.context :refer [resolve-uri append-path language-code-or-default
@@ -13,7 +13,7 @@
             [csv2rdf.util :as util]
             [clojure.set :as set])
   (:import [java.util Locale$Builder IllformedLocaleException]
-           [java.net URI URISyntaxException]))
+           [java.net URI]))
 
 (def non-negative (variant {:number (where util/non-negative? "non-negative")}))
 
@@ -57,18 +57,8 @@
   [context uri]
   (resolve-uri context uri))
 
-(defn ^{:metadata-spec "5.1.2"} parse-link-property
-  "Converts link properties to URIs, or logs a warning if the URI is invalid. Link properties are resolved
-   at a higher level."
-  [context x]
-  (if (string? x)
-    (try
-      (URI. x)
-      (catch URISyntaxException _ex
-        (make-warning context (format "Link property '%s' cannot be parsed as a URI" x) default-uri)))
-    (make-warning context (format "Invalid link property '%s': expected string containing URI, got %s" x (mjson/get-json-type-name x)) default-uri)))
-
-(def link-property (chain parse-link-property normalise-link-property))
+(def ^{:metadata-spec "5.1.2"} link-property
+  (chain (default-if-invalid (variant {:string uri}) default-uri) normalise-link-property))
 
 (defn id
   "An id is a link property whose value cannot begin with _:"

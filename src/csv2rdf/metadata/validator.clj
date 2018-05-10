@@ -30,6 +30,13 @@
   (logging/log-warning (str "At path " path ": " msg))
   value)
 
+(defn default-if-invalid
+  "Returns a validator which returns the given default if the inner validator returns invalid"
+  [validator default]
+  (fn [context x]
+    (let [result (validator context x)]
+      (if (invalid? result) default result))))
+
 (defn strict [validator]
   "Returns a validator which converts any warnings from the given validator into errors."
   (fn [context x]
