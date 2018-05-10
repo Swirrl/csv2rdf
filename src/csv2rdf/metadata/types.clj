@@ -75,7 +75,7 @@
 (def ^{:metadata-spec "5.1.3"} template-property
   (variant {:string (fn [context s]
                       (if-let [t (template/try-parse-template s)]
-                        (v/pure t)
+                        t
                         (make-warning context (str "Invalid URI template: '" s "'") invalid)))
             :default default-template-property}))
 
