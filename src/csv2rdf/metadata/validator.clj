@@ -168,11 +168,10 @@
 (defn required-key [k value-validator]
   (fn [context m]
     (if (contains? m k)
-      (v/bind (fn [result]
-                (if (invalid? result)
-                  (make-error context (str "Invalid value for required key '" k "'"))
-                  (v/pure [k result])))
-              (value-validator (append-path context k) (get m k)))
+      (let [value (value-validator (append-path context k) (get m k))]
+        (if (invalid? value)
+          (make-error context (str "Invalid value for required key '" k "'"))
+          [k value]))
       (make-error context (str "Missing required key '" k "'")))))
 
 (defn optional-key

@@ -106,3 +106,17 @@
       (let [{:keys [warnings result]} (logging/capture-warnings (v context "not a number"))]
         (is (= 1 (count warnings)))
         (is (invalid? result))))))
+
+(deftest required-key-test
+  (let [v (required-key :k string)
+        context (context/make-context (URI. "http://example"))]
+    (testing "Key exists with valid value"
+      (let [{:keys [warnings result]} (logging/capture-warnings (v context {:k "value" :other "ignored"}))]
+        (is (empty? warnings))
+        (is (= [:k "value"] result))))
+
+    (testing "Key missing"
+      (is (thrown? ExceptionInfo (v context {:other 4}))))
+
+    (testing "Key exists with invalid value"
+      (is (thrown? ExceptionInfo (v context {:k ["not" "a" "string"]}))))))
