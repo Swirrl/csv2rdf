@@ -2,30 +2,17 @@
   (:require [csv2rdf.validation :as v]
             [csv2rdf.metadata.context :refer :all]
             [csv2rdf.metadata.json :as mjson]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [csv2rdf.logging :as logging])
   (:import [java.net URI]))
 
-(def invalid {:type ::invalid})
+(def invalid ::invalid)
 
 (defn invalid? [x]
-  (and (map? x) (= ::invalid (:type x))))
+  (= ::invalid x))
 
 (defn valid? [x]
   (not (invalid? x)))
-
-(defn warn-invalid [validation]
-  (v/bind (fn [value]
-            (if (invalid? value)
-              (v/with-warning (:message value) nil)         ;;TODO: specify default value
-              validation))
-          validation))
-
-(defn error-invalid [validation]
-  (v/bind (fn [value]
-            (if (invalid? value)
-              (v/of-error value)
-              validation))
-          validation))
 
 ;;TODO: remove invalid marker value?
 (defn ignore-invalid
@@ -34,14 +21,18 @@
   (fn [context x]
     (v/fmap (fn [r] (if (invalid? r) nil r)) (validator context x))))
 
+;;TODO: rename
 (defn make-error [{:keys [path] :as context} msg]
-  (v/of-error (str "Error at path " path ": " msg)))
+  (throw (ex-info (str "Error at path " path ": " msg) {:type :bad-metadata
+                                                        :path path})))
 
 (defn make-warning [{:keys [path] :as context} msg value]
-  (v/with-warning (str "At path " path ": " msg) value))
+  (logging/log-warning (str "At path " path ": " msg))
+  value)
 
 (defn strict [validator]
   "Returns a validator which converts any warnings from the given validator into errors."
+  (throw (IllegalStateException. "Replace with explicit validator!"))
   (fn [context x]
     (v/warnings-as-errors (validator context x))))
 
@@ -54,26 +45,26 @@
             list (str (string/join ", " except-last) " or " last)]
         (str "Expected " list " but got " (name actual-type))))))
 
-(defn type-error [context permitted-types actual-type]
-  (make-error context (type-error-message permitted-types actual-type)))
-
 (defn expect-type [expected-type]
   (fn [context x]
     (let [actual-type (mjson/get-json-type x)]
       (if (= expected-type actual-type)
-        (v/pure x)
+        x
         (make-warning context (type-error-message [expected-type] actual-type) invalid)))))
 
 (defn eq [expected]
   (fn [context x]
     (if (= expected x)
-      (v/pure x)
-      (make-warning context (str "Expected '" expected "' received '" x "'") invalid))))
+      x
+      (make-warning context (str "Expected '" expected "' received '" x "'") nil))))
 
 (defn type-eq
   "Validator that an object's @type property is the expected value"
   [expected]
-  (strict (eq expected)))
+  (fn [context x]
+    (if (= expected x)
+      x
+      (make-error context (format "Expected type to be '%s', received '%s'" expected x)))))
 
 (defn any "Matches any value successfully"
   [_context x]

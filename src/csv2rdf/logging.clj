@@ -29,6 +29,13 @@
   `(binding [*logger* ~logger]
      ~@body))
 
+(defmacro capture-warnings [& body]
+  `(let [warnings# (atom [])
+         errors# (atom [])
+         logger# (->MemoryLogger warnings# errors#)
+         result# (with-logger logger# ~@body)]
+     {:warnings @warnings# :result result#}))
+
 (defn log-warning [msg]
   (warn *logger* msg))
 
