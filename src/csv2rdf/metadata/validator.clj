@@ -105,26 +105,13 @@
 
     :else (v/pure arr)))
 
-(defn traverse-array [context arr element-validator]
-  (v/collect (map-indexed (fn [idx v]
-                            (element-validator (append-path context idx) v)) arr)))
-
-;;TODO: remove array validation and into individual properties?
-(defn array-with [{:keys [element-validator] :as opts}]
+;;TODO: rewrite using chain?
+(defn array-of [element-validator]
   (fn [context x]
-    (->> ((variant {:array any :default []}) context x)
-         (v/bind (fn [arr]
-                   (cond
-                     (some? element-validator)
-                     (let [arr-validation (v/fmap #(vec (remove invalid? %)) (traverse-array context arr element-validator))]
-                       (v/bind (fn [arr] (validate-array context arr opts)) arr-validation))
-
-                     :else (validate-array context arr opts)))))))
-
-(defn array-of
-  ([element-validator] (array-of element-validator {}))
-  ([element-validator opts]
-   (array-with (assoc opts :element-validator element-validator))))
+    (let [arr ((variant {:array any :default []}) context x)]
+      (vec (remove invalid? (map-indexed (fn [idx e]
+                                           (element-validator (append-path context idx) e))
+                                         arr))))))
 
 (defn tuple [& validators]
   (fn [context x]
