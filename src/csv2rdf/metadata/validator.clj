@@ -101,16 +101,6 @@
             actual-type (mjson/get-json-type x)]
         (make-warning context (type-error-message valid-types actual-type) (or default invalid))))))
 
-(defn validate-array [context arr {:keys [length min-length] :as opts}]
-  (cond
-    (and (some? length) (not= length (count arr)))
-    (make-error context (format "Expected array to contain %d elements" length))
-
-    (and (some? min-length) (< (count arr) min-length))
-    (make-error context (format "Expected array to contain at least %d elements" min-length))
-
-    :else (v/pure arr)))
-
 ;;TODO: rewrite using chain?
 (defn array-of [element-validator]
   (fn [context x]

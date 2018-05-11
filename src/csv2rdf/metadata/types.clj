@@ -9,7 +9,6 @@
             [csv2rdf.validation :as v]
             [csv2rdf.metadata.json :refer [array? object?] :as mjson]
             [csv2rdf.uri-template :as template]
-            [csv2rdf.xml.datatype :as xml-datatype]
             [clojure.string :as string]
             [csv2rdf.util :as util]
             [clojure.set :as set]
@@ -81,12 +80,6 @@
                         (make-warning context (str "Invalid URI template: '" s "'") invalid)))
             :default default-template-property}))
 
-(defn expand-compact-uri [context s]
-  (try
-    (URI. (expand-uri-string s))
-    (catch Exception ex
-      (make-warning context (str "Invalid compact URI: '" s "'") invalid))))
-
 (defn validate-common-property-value-type [context ^String s]
   (if-let [type-uri (json-ld/expand-description-object-type-uri s)]
     type-uri
@@ -111,7 +104,6 @@
     (if (and (string? x) (.startsWith x "@"))
       (make-error context (str "Only keys " (string/join ", " special-keys) " can start with an @"))
       (v/pure x))))
-
 
 (defn ^{:metadata-spec "5.8"} validate-common-property-value [context v]
   (cond
@@ -143,8 +135,6 @@
 
     :else (v/pure v)))
 
-(def compact-uri (chain string expand-compact-uri))
-
 (defn validate-common-property-key [_context ^String key]
   ;;TODO: better way of validating?
   (if (.contains key ":")
@@ -153,15 +143,14 @@
 
 (def validate-absolute-uri (where (fn [^URI uri] (.isAbsolute uri)) "absolute URI"))
 
+(defn expand-compact-uri [context s]
+  (try
+    (URI. (expand-uri-string s))
+    (catch Exception ex
+      (make-warning context (str "Invalid compact URI: '" s "'") invalid))))
+
 ;;NOTE: common property keys should be either absolute or compact URI, which must expand to an absolute URI
 (def common-property-key (chain string validate-common-property-key expand-compact-uri validate-absolute-uri))
-
-(defn normalise-common-property-id [context id]
-  (v/bind (fn [uri]
-            (if (invalid? uri)
-              (v/pure uri)
-              (v/pure (resolve-uri context uri))))
-          (compact-uri context id)))
 
 (defn ^{:metadata-spec "6.1"} normalise-common-property-value [{:keys [language] :as context} v]
   (cond
