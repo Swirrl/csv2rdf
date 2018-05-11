@@ -4,7 +4,8 @@
             [csv2rdf.metadata.test-common :refer :all]
             [csv2rdf.metadata.validator :refer [invalid?]]
             [csv2rdf.metadata.context :as context]
-            [csv2rdf.logging :as logging])
+            [csv2rdf.logging :as logging]
+            [csv2rdf.vocabulary :refer [csvw:Table csvw:TableGroup]])
   (:import [java.net URI]))
 
 (defn set-context-language [context language]
@@ -161,3 +162,28 @@
       (let [{:keys [warnings result]} (logging/capture-warnings (id context 4))]
         (is (= 1 (count warnings)))
         (is (= base-uri result))))))
+
+(deftest common-property-value-type-test
+  (let [context (context/make-context (URI. "http://example"))]
+    (testing "Description object type"
+      (is (= csvw:Table (common-property-value-type context "Table"))))
+
+    (testing "Compact URI"
+      (is (= (URI. "http://purl.org/dc/terms/description") (common-property-value-type context "dc:description"))))
+
+    (testing "Absolute URI"
+      (let [uri-str "http://example.com/some/path/to.csv"]
+        (is (= (URI. uri-str) (common-property-value-type context uri-str)))))
+
+    (testing "Invalid value"
+      (validation-error (common-property-value-type context "not a type or URI")))
+
+    (testing "Array of valid values"
+      (is (= [csvw:TableGroup (URI. "http://xmlns.com/foaf/0.1/name") (URI. "http://example.com/test.csv")]
+             (common-property-value-type context ["TableGroup" "foaf:name" "http://example.com/test.csv"]))))
+
+    (testing "Array with invalid values"
+      (validation-error (common-property-value-type context ["TableGroup" "foaf:name" "not a type or URI"])))
+
+    (testing "Invalid type"
+      (validation-error (common-property-value-type context 3)))))

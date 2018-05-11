@@ -1,4 +1,6 @@
-(ns csv2rdf.json-ld)
+(ns csv2rdf.json-ld
+  (:require [csv2rdf.vocabulary :refer [csvw]]
+            [csv2rdf.util :as util]))
 
 (def ^{:rdfa-spec ""} prefixes
   {"as" "https://www.w3.org/ns/activitystreams#"
@@ -73,3 +75,9 @@
         (if-let [prefix-uri (get prefixes prefix)]
           (str prefix-uri suffix)
           uri-str)))))
+
+(def description-object-types #{"TableGroup" "Table" "Schema" "Column" "Dialect" "Template" "Datatype"})
+
+(defn expand-description-object-type-uri [type]
+  (if (contains? description-object-types type)
+    (util/set-fragment csvw type)))

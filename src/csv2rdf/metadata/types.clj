@@ -1,7 +1,8 @@
 (ns csv2rdf.metadata.types
   (:require [csv2rdf.metadata.validator :refer [make-warning default-if-invalid variant invalid array-of kvps optional-key
                                                 required-key invalid-key-pair any map-of one-of string invalid?
-                                                chain try-parse-with where strict make-error tuple eq uri ignore-invalid]]
+                                                chain try-parse-with where strict make-error tuple eq uri ignore-invalid
+                                                type-error-message]]
             [csv2rdf.metadata.context :refer [resolve-uri append-path language-code-or-default
                                               base-key language-key id-key update-from-local-context with-document-uri]]
             [csv2rdf.json-ld :refer [expand-uri-string]]
@@ -11,9 +12,10 @@
             [csv2rdf.xml.datatype :as xml-datatype]
             [clojure.string :as string]
             [csv2rdf.util :as util]
-            [clojure.set :as set])
+            [clojure.set :as set]
+            [csv2rdf.json-ld :as json-ld])
   (:import [java.util Locale$Builder IllformedLocaleException]
-           [java.net URI]))
+           [java.net URI URISyntaxException]))
 
 (def non-negative (variant {:number (where util/non-negative? "non-negative")}))
 
@@ -81,16 +83,26 @@
 
 (defn expand-compact-uri [context s]
   (try
-    (v/pure (URI. (expand-uri-string s)))
+    (URI. (expand-uri-string s))
     (catch Exception ex
       (make-warning context (str "Invalid compact URI: '" s "'") invalid))))
 
-(def ^{:metadata-spec "5.8.2"} common-property-value-type
-  (variant {:string (fn [context s]
-                      ;;TODO: normalise into data type record?
-                      (if (xml-datatype/valid-type-name? s)
-                        (v/pure s)
-                        (expand-compact-uri context s)))}))
+(defn validate-common-property-value-type [context ^String s]
+  (if-let [type-uri (json-ld/expand-description-object-type-uri s)]
+    type-uri
+    (try
+      (URI. (expand-uri-string s))
+      (catch URISyntaxException _ex
+        (make-error context (format "Invalid type - expected description object type, compact or absolute URI"))))))
+
+(defn ^{:metadata-spec "5.8.2"} common-property-value-type [context x]
+  (cond
+    (string? x) (validate-common-property-value-type context x)
+    (array? x) (if (every? string? x)
+                 (vec (map-indexed (fn [idx t]
+                                     (validate-common-property-value-type (append-path context idx) t))
+                                   x)))
+    :else (make-error context (type-error-message #{:string :array} (mjson/get-json-type x)))))
 
 ;;common propeties
 ;;TODO: move into separate namespace?
