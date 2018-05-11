@@ -231,11 +231,11 @@
 (defn column-reference-array [context arr]
   (cond (= 0 (count arr)) (make-warning context "Column references should not be empty" invalid)
         (not-every? string? arr) (make-warning context "Column references should all be strings" invalid)
-        :else (v/pure arr)))
+        :else arr))
 
 ;;TODO: validation that each referenced column exists occurs at higher-level
 (def ^{:metadata-spec "5.1.4"} column-reference
-  (variant {:string (fn [_context s] (v/pure [s]))
+  (variant {:string (fn [_context s] [s])
             :array column-reference-array}))
 
 (def special-keys-mapping {:id "@id" :type "@type" :language "@language" base-key "@base"})

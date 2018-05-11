@@ -325,3 +325,32 @@
       (testing "Atomic types"
         (is (= true (validate-common-property-value context true)))
         (is (= 4 (validate-common-property-value context 4)))))))
+
+(deftest column-reference-test
+  (let [context (context/make-context (URI. "http://example"))]
+    (testing "String"
+      (let [ref "col1"
+            {:keys [warnings result]} (logging/capture-warnings (column-reference context ref))]
+        (is (empty? warnings))
+        (is (= [ref] result))))
+
+    (testing "Valid array"
+      (let [refs ["col1" "col3"]
+            {:keys [warnings result]} (logging/capture-warnings (column-reference context refs))]
+        (is (empty? warnings))
+        (is (= refs result))))
+
+    (testing "Invalid type"
+      (let [{:keys [warnings result]} (logging/capture-warnings (column-reference context {"not" "string or array"}))]
+        (is (= 1 (count warnings)))
+        (is (invalid? result))))
+
+    (testing "Empty array"
+      (let [{:keys [warnings result]} (logging/capture-warnings (column-reference context []))]
+        (is (= 1 (count warnings)))
+        (is (invalid? result))))
+
+    (testing "Array containing non-strings"
+      (let [{:keys [warnings result]} (logging/capture-warnings (column-reference context ["col1" false "col2" 4]))]
+        (is (some? (seq warnings)))
+        (is (invalid? result))))))
