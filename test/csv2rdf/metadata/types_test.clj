@@ -5,7 +5,7 @@
             [csv2rdf.metadata.validator :refer [invalid?]]
             [csv2rdf.metadata.context :as context]
             [csv2rdf.logging :as logging]
-            [csv2rdf.vocabulary :refer [csvw:Table csvw:TableGroup]])
+            [csv2rdf.vocabulary :refer [csvw:Table csvw:TableGroup xsd:integer]])
   (:import [java.net URI]))
 
 (defn set-context-language [context language]
@@ -164,7 +164,7 @@
         (is (= base-uri result))))))
 
 (deftest common-property-key-test
-  (let [context (context/make-context "http://example")]
+  (let [context (context/make-context (URI. "http://example"))]
     (testing "Compact URI"
       (let [{:keys [warnings result]} (logging/capture-warnings (common-property-key context "dc:description"))]
         (is (empty? warnings))
@@ -210,3 +210,100 @@
 
     (testing "Invalid type"
       (validation-error (common-property-value-type context 3)))))
+
+(deftest common-property-value-test
+  (let [base-uri (URI. "http://example.com/")
+        context (context/make-context base-uri)]
+    (testing "Invalid values"
+      (testing "Invalid type for @value"
+        (validation-error (common-property-value context {"@value" {"not" "string, number or boolean"}})))
+
+      (testing "Contains @value with both @type and @language keys"
+        (validation-error (common-property-value context {"@value" "something"
+                                                          "@language" "en"
+                                                          "@type" "http://some-type"})))
+
+      (testing "Contains @value with keys other than @type or @language"
+        (validation-error (common-property-value context {"@value" "something"
+                                                          "forbidden" "key name"})))
+
+      (testing "Invalid @type when specified alongside @value"
+        (validation-error (common-property-value context {"@value" "4"
+                                                          "@type" "Not a built-in type, prefixed name or absolute URI"})))
+
+      (testing "Invalid @language"
+        (validation-error (common-property-value context {"@value" "foo"
+                                                          "@language" "invalid language code"})))
+
+      (testing "Invalid @type when no @value specified"
+        (validation-error (common-property-value context {"@type" "Not a description object type, prefixed name or absolute URI"})))
+
+      (testing "Invalid @id"
+        (validation-error (common-property-value context {"@id" "_:someid"})))
+
+      (testing "@language key on object without @value"
+        (validation-error (common-property-value context {"@language" "en"})))
+
+      (testing "Invalid key prefix"
+        (validation-error (common-property-value context {"@forbidden" "keys other than @id @type @langauge @value must not start with @"})))
+
+      (testing "Invalid object within array"
+        (validation-error (common-property-value context [{"@id" "_:invalidid"}
+                                                          {"dc:description" "ok object"}])))
+
+      (testing "Invalid object within object"
+        (validation-error (common-property-value context {"http://something" {"@invalidkey" "starts with @"}}))))
+
+    (testing "Valid values"
+      (testing "Objects"
+        (testing "Containing @value key"
+          (let [obj {"@value" "bonjour"
+                     "@language" "fr"}]
+            (is (= obj (common-property-value context obj)))))
+
+        ;;NOTE: metadata spec requires @type keys to be unchanged and expanded in the CSVW process
+        ;;easier to expand here since valid values for @type depend on the existence of the @value key
+        ;;TODO: change to be in accordance with the spec
+        (testing "@type when specified with @value"
+          (is (= {"@value" "4"
+                  "@type" xsd:integer}
+                 (common-property-value context {"@value" "4" "@type" "integer"}))))
+
+        (testing "@type when specified without @value"
+          (is (= {"@type" csvw:Table} (common-property-value context {"@type" "Table"}))))
+
+        (testing "With @id property"
+          (testing "Absolute"
+            (is (= {"@id" (URI. "http://xmlns.com/foaf/0.1/name")} (common-property-value context {"@id" "foaf:name"}))))
+
+          (testing "Relative"
+            (let [id-str "SomeId"]
+              (is (= {"@id" (.resolve base-uri id-str)} (common-property-value context {"@id" id-str}))))))
+
+        (testing "Common property keys"
+          (is (= {(URI. "http://purl.org/dc/terms/description") {"@value" "some description"}
+                  (URI. "http://something") 4}
+                 (common-property-value context {"dc:description" "some description"
+                                                 "http://something" 4})))))
+
+      (testing "Arrays"
+        (is (= [{(URI. "http://purl.org/dc/terms/description") {"@value" "Description"}}
+                {"@value" "some string"}
+                {"@value" "foux" "@language" "fr"}]
+               (common-property-value context [{"dc:description" "Description"}
+                                               "some string"
+                                               {"@value" "foux" "@language" "fr"}]))))
+
+      (testing "Strings"
+        (testing "No default langauge"
+          (let [s "some string"]
+            (is (= {"@value" s} (common-property-value context s)))))
+
+        (testing "With default language"
+          (let [s "enhorabuena"
+                lang "es"]
+            (is (= {"@value" s "@language" lang} (common-property-value (set-context-language context lang) s))))))
+
+      (testing "Atomic types"
+        (is (= true (validate-common-property-value context true)))
+        (is (= 4 (validate-common-property-value context 4)))))))

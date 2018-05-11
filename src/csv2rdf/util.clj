@@ -77,6 +77,9 @@
 (defn map-keys [f m]
   (into {} (map (fn [[k v]] [(f k) v]) m)))
 
+(defn map-values [f m]
+  (into {} (map (fn [[k v]] [k (f v)]) m)))
+
 (defn equals-ignore-case?
   "Whether two string are equal ignoring case differences. Nil references are considered equal."
   [^String s1 ^String s2]

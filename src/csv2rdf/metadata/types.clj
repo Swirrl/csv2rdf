@@ -12,19 +12,25 @@
             [clojure.string :as string]
             [csv2rdf.util :as util]
             [clojure.set :as set]
-            [csv2rdf.json-ld :as json-ld])
+            [csv2rdf.json-ld :as json-ld]
+            [csv2rdf.xml.datatype :as xml-datatype])
   (:import [java.util Locale$Builder IllformedLocaleException]
            [java.net URI URISyntaxException]))
 
 (def non-negative (variant {:number (where util/non-negative? "non-negative")}))
 
+(defn valid-language-code? [^String s]
+  (try
+    (.setLanguageTag (Locale$Builder.) s)
+    true
+    (catch IllformedLocaleException _ex
+      false)))
+
 (defn language-code [context x]
   (if (string? x)
-    (try
-      (.setLanguageTag (Locale$Builder.) x)
+    (if (valid-language-code? x)
       x
-      (catch IllformedLocaleException _ex
-        (make-warning context (str "Invalid language code: '" x "'") invalid)))
+      (make-warning context (str "Invalid language code: '" x "'") invalid))
     (make-warning context (str "Expected language code, got " (mjson/get-json-type-name x)) invalid)))
 
 (defn ^{:metadata-spec "6.6"} normalise-string-natural-language-property [context code]
@@ -96,18 +102,36 @@
 
 (def common-property-key (chain string expand-common-property-key))
 
-(defn validate-common-property-value-type [context ^String s]
+(defn ^{:metadata-spec "5.8.2"} common-property-value-type [context x]
+  (if (string? x)
+    (if-let [datatype-iri (xml-datatype/get-datatype-iri x)]
+      datatype-iri
+      (let [uri (try
+                  (URI. (expand-uri-string x))
+                  (catch URISyntaxException ex
+                    (make-error context (format "Invalid URI '%s'" x))))]
+        (if (.isAbsolute uri)
+          uri
+          (make-error context "Type URI must be absolute"))))
+    (make-error context (type-error-message #{:string} (mjson/get-json-type x)))))
+
+(defn validate-common-property-type-without-value [context ^String s]
   (if-let [type-uri (json-ld/expand-description-object-type-uri s)]
     type-uri
-    (try
-      (URI. (expand-uri-string s))
-      (catch URISyntaxException _ex
-        (make-error context (format "Invalid type - expected description object type, compact or absolute URI"))))))
+    (let [uri (try
+                (URI. (expand-uri-string s))
+                (catch URISyntaxException _ex
+                  (make-error context (format "Invalid type - expected description object type, compact or absolute URI"))))]
+      (if (.isAbsolute uri)
+        uri
+        (make-error context "Type URI must be absolute")))))
 
-(defn ^{:metadata-spec "5.8.2"} common-property-value-type [context x]
+(defn ^{:metadata-spec "5.8.2"} common-property-type-without-value
+  "Validator for the @type key for objects which do not contain a @value key"
+  [context x]
   (cond
-    (string? x) (validate-common-property-value-type context x)
-    (array? x) ((array-of common-property-value-type) context x)
+    (string? x) (validate-common-property-type-without-value context x)
+    (array? x) ((array-of common-property-type-without-value) context x)
     :else (make-error context (type-error-message #{:string :array} (mjson/get-json-type x)))))
 
 ;;common propeties
@@ -116,7 +140,20 @@
   (fn [context ^String x]
     (if (and (string? x) (.startsWith x "@"))
       (make-error context (str "Only keys " (string/join ", " special-keys) " can start with an @"))
-      (v/pure x))))
+      (common-property-key context x))))
+
+(defn common-property-value-id [context x]
+  (if (string? x)
+    (let [^String s x]
+      (if (.startsWith s "_:")
+        (make-error context "Ids cannot start with _:")
+        (let [expanded (expand-uri-string s)
+              uri (try
+                    (URI. expanded)
+                    (catch URISyntaxException ex
+                      (make-error context (format "Invalid URI '%s'" s))))]
+          (resolve-uri context uri))))
+    (make-error context (type-error-message #{:string} (mjson/get-json-type x)))))
 
 (defn ^{:metadata-spec "5.8"} validate-common-property-value [context v]
   (cond
@@ -124,9 +161,10 @@
     ((array-of validate-common-property-value) context v)
 
     (object? v)
-    (if (contains? v "@value")
-      (let [allowed-keys (util/partition-keys v ["@value" "@type" "@language"])
-            [allowed remaining] allowed-keys]
+    (cond
+      (contains? v "@value")
+      (let [allowed-keys ["@value" "@type" "@language"]
+            [allowed remaining] (util/partition-keys v allowed-keys)]
         (cond
           (seq remaining)
           (make-error context (str "Common property values specifying @value must only contain keys " (string/join ", " allowed-keys)))
@@ -135,40 +173,55 @@
           (make-error context "Common property values specifying @value can only contain one of @type or @language")
 
           :else
-          (let [special-keys (kvps [(optional-key "@language" (strict language-code))
-                                    (optional-key "@value" (variant {:string any :boolean any :number any}))
-                                    (optional-key "@type" common-property-value-type)])]
-            (special-keys context v))))
-      (let [special-keys ["@id" "@type"]           ;;NOTE: @language not allowed unless @value specified
-            [special remaining] (util/partition-keys v special-keys)
-            special-validator (kvps [(optional-key "@id" (strict id)) ;;NOTE: @id will be expanded during normalisation
-                                     (optional-key "@type" common-property-value-type)])
-            remaining-validator (map-of (ordinary-common-property-value-key ["@id" "@type"]) validate-common-property-value)]
-        (v/combine-with merge (special-validator context special) (remaining-validator context remaining))))
+          (let [value (get v "@value")
+                value-type (mjson/get-json-type value)
+                allowed-value-types #{:string :number :boolean}
+                [other-key other-value] (if (contains? v "@type")
+                                          ["@type" (common-property-value-type (append-path context "@type") (get v "@type"))]
+                                          ["@language" (let [lang (get v "@language")
+                                                             context (append-path context "@language")]
+                                                         (if (string? lang)
+                                                           (if (valid-language-code? lang)
+                                                             lang
+                                                             (make-error context (format "Invalid language code '%s'" lang)))
+                                                           (make-error context (type-error-message #{:string} (mjson/get-json-type lang)))))])]
+            (if (contains? allowed-value-types value-type)
+              {"@value" value
+               other-key other-value}
+              (make-error context (type-error-message allowed-value-types value-type))))))
 
-    :else (v/pure v)))
+      (contains? v "@language")
+      (make-error (append-path context "@language") "@language key not permitted on objects without a @value key")
+
+      :else
+      (let [special-keys ["@id" "@type"]
+            [special remaining] (util/partition-keys v special-keys)
+            special-validator (kvps [(optional-key "@id" common-property-value-id)
+                                     (optional-key "@type" common-property-type-without-value)])
+            remaining-validator (map-of (ordinary-common-property-value-key ["@id" "@type"]) validate-common-property-value)]
+        (merge (special-validator context special) (remaining-validator context remaining))))
+
+    :else v))
 
 (defn ^{:metadata-spec "6.1"} normalise-common-property-value [{:keys [language] :as context} v]
   (cond
     (array? v)
-    (v/collect (map #(normalise-common-property-value context %) v))
+    (mapv #(normalise-common-property-value context %) v)
 
     (string? v)
     (if (some? language)
-      (v/pure {"@value" v "@language" language})
-      (v/pure {"@value" v}))
+      {"@value" v "@language" language}
+      {"@value" v})
 
     (and (object? v) (contains? v "@value"))
-    (v/pure v)
+    v
 
     (object? v)
     (let [[special common-properties] (util/partition-keys v ["@id" "@type"])
-          special-validator (kvps [(optional-key "@id" any)
-                                   (optional-key "@type" any)])
-          common-validator (map-of common-property-key normalise-common-property-value)]
-      (v/combine-with merge (special-validator context special) (common-validator context common-properties)))
+          normalised-common (util/map-values (fn [v] (normalise-common-property-value context v)) common-properties)]
+      (merge special normalised-common))
 
-    :else (v/pure v)))
+    :else v))
 
 (def common-property-value (chain validate-common-property-value normalise-common-property-value))
 

@@ -37,10 +37,20 @@
     (let [result (validator context x)]
       (if (invalid? result) default result))))
 
+;;TODO: parameterise required validators with error function and remove this
 (defn strict [validator]
   "Returns a validator which converts any warnings from the given validator into errors."
   (fn [context x]
-    (throw (IllegalStateException. "Replace with explicit validator!"))))
+    (let [{:keys [warnings result]} (logging/capture-warnings (validator context x))]
+      (cond
+        (some? (seq warnings))
+        (make-error context (string/join "\n" warnings))
+
+        (invalid? result)
+        (make-error context "Invalid value")
+
+        :else
+        result))))
 
 (defn type-error-message [permitted-types actual-type]
   (let [c (count permitted-types)]
