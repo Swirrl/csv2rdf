@@ -13,7 +13,8 @@
             [csv2rdf.util :as util]
             [clojure.set :as set]
             [csv2rdf.json-ld :as json-ld]
-            [csv2rdf.xml.datatype :as xml-datatype])
+            [csv2rdf.xml.datatype :as xml-datatype]
+            [csv2rdf.logging :as logging])
   (:import [java.util Locale$Builder IllformedLocaleException]
            [java.net URI URISyntaxException]))
 
@@ -248,6 +249,8 @@
 (defn document-key [key-name]
   (or (special-keys-mapping key-name) (name key-name)))
 
+(def common-property-map (map-of common-property-key common-property-value))
+
 (defn validate-object-of [{:keys [required optional defaults allow-common-properties?]}]
   (let [required-doc-keys (util/map-keys document-key required)
         optional-doc-keys (util/map-keys document-key optional)
@@ -262,25 +265,19 @@
     (fn [context obj]
       (let [[required-obj opt-obj] (util/partition-keys obj (keys required-doc-keys))
             [optional-obj remaining-obj] (util/partition-keys opt-obj (keys optional-doc-keys))
-            required-validations (map (fn [validator] (validator context required-obj)) required-keys)
-            optional-validations (map (fn [validator] (validator context optional-obj)) optional-keys)
-            declared-pairs-validation (v/collect (concat required-validations optional-validations))
-            declared-validation (v/fmap (fn [pairs]
-                                          ;;optional keys not declared in the input are nil so remove them
-                                          (let [obj-map (->> pairs
-                                                             (remove nil?)
-                                                             (into {}))]
-                                            (util/select-keys-as obj-map result-key-mappings)))
-                                        declared-pairs-validation)]
+            required-validator (kvps required-keys)
+            optional-validator (kvps optional-keys)
+            declared-doc (merge (required-validator context required-obj) (optional-validator context optional-obj))
+            declared (util/map-keys result-key-mappings declared-doc)]
         (if allow-common-properties?
-          (let [common-validation ((map-of common-property-key common-property-value) context remaining-obj)]
-            (v/fmap (fn [[declared common]]
-                      (if (empty? common)
-                        declared
-                        (assoc declared ::common-properties common)))
-                    (v/collect [declared-validation common-validation])))
-          (let [invalid-validation (v/collect (map (fn [p] (invalid-key-pair context p)) remaining-obj))]
-            (v/combine invalid-validation declared-validation)))))))
+          (let [common-properties (common-property-map context remaining-obj)]
+            (if (empty? common-properties)
+              declared
+              (assoc declared ::common-properties common-properties)))
+          (do
+            (doseq [invalid-key (keys remaining-obj)]
+              (logging/log-warning (format "Invalid key '%s'" invalid-key)))
+            declared))))))
 
 (defn object-of [opts]
   (variant {:object (validate-object-of opts)}))

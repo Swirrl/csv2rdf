@@ -1,8 +1,8 @@
 (ns csv2rdf.metadata.types-test
   (:require [clojure.test :refer :all]
-            [csv2rdf.metadata.types :refer :all]
+            [csv2rdf.metadata.types :refer :all :as types]
             [csv2rdf.metadata.test-common :refer :all]
-            [csv2rdf.metadata.validator :refer [invalid?]]
+            [csv2rdf.metadata.validator :refer [invalid? string]]
             [csv2rdf.metadata.context :as context]
             [csv2rdf.logging :as logging]
             [csv2rdf.vocabulary :refer [csvw:Table csvw:TableGroup xsd:integer]])
@@ -354,3 +354,83 @@
       (let [{:keys [warnings result]} (logging/capture-warnings (column-reference context ["col1" false "col2" 4]))]
         (is (some? (seq warnings)))
         (is (invalid? result))))))
+
+(deftest object-of-test
+  (let [context (context/make-context (URI. "http://example"))]
+    (testing "Required key"
+      (let [v (object-of {:required {:key string}})]
+        (testing "which is valid"
+          (let [{:keys [warnings result]} (logging/capture-warnings (v context {"key" "foo"}))]
+            (is (empty? warnings))
+            (is (= {:key "foo"} result))))
+
+        (testing "which does not exist"
+          (validation-error (v context {"other" 4})))
+
+        (testing "which is invalid"
+          (validation-error (v context {"key" ["not" "a" "string"]})))))
+
+    (testing "Optional key"
+      (let [v (object-of {:optional {:key string}})]
+        (testing "which exists"
+          (let [{:keys [warnings result]} (logging/capture-warnings (v context {"key" "foo"}))]
+            (is (empty? warnings))
+            (= {:key "foo"} result)))
+
+        (testing "which does not exist"
+          (let [{:keys [warnings result]} (logging/capture-warnings (v context {}))]
+            (is (empty? warnings))
+            (= {} result)))
+
+        (testing "which is invalid"
+          (let [{:keys [warnings result]} (logging/capture-warnings (v context {"key" ["not" "a" "string"]}))]
+            (is (= 1 (count warnings)))
+            (is (= {} result))))))
+
+    (testing "Default value"
+      (let [default "default"
+            v (object-of {:optional {:key string}
+                          :defaults {:key default}})]
+        (testing "when specified"
+          (let [{:keys [warnings result]} (logging/capture-warnings (v context {"key" "value"}))]
+            (is (empty? warnings))
+            (is (= {:key "value"} result))))
+
+        (testing "when not specified"
+          (let [{:keys [warnings result]} (logging/capture-warnings (v context {}))]
+            (is (empty? warnings))
+            (is (= {:key default} result))))
+
+        (testing "when invalid"
+          (let [{:keys [warnings result]} (logging/capture-warnings (v context {"key" ["not" "a" "string"]}))]
+            (is (= 1 (count warnings)))
+            (is (= {:key default} result))))))
+
+    (testing "Common properties allowed"
+      (let [v (object-of {:required {:key string}
+                          :allow-common-properties? true})
+            {:keys [warnings result]} (logging/capture-warnings (v context {"key" "value"
+                                                                            "dc:description" "description"
+                                                                            "http://example.com/concept" 4}))]
+        (is (empty? warnings))
+        (is (= {:key "value"
+                ::types/common-properties {(URI. "http://purl.org/dc/terms/description") {"@value" "description"}
+                                           (URI. "http://example.com/concept") 4}}
+               result))))
+
+    (testing "Common properties not allowed"
+      (let [v (object-of {:required {:key string}
+                          :allow-common-properties? false})
+            {:keys [warnings result]} (logging/capture-warnings (v context {"key" "value"
+                                                                            "dc:description" "description"
+                                                                            "http://example.com/concept" 4}))]
+        (is (= 2 (count warnings)))
+        (is (= {:key "value"} result))))
+
+    (testing "Special key mappings"
+      (let [v (object-of {:required {:id string
+                                     :type string}})
+            {:keys [warnings result]} (logging/capture-warnings (v context {"@id" "id"
+                                                                            "@type" "type"}))]
+        (is (empty? warnings))
+        (is (= {:id "id" :type "type"} result))))))
