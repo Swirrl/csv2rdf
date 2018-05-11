@@ -186,30 +186,48 @@
         (is (= 1 (count warnings)))
         (is (invalid? result))))))
 
-(deftest common-property-value-type-test
+(deftest common-property-type-with-value-test
   (let [context (context/make-context (URI. "http://example"))]
-    (testing "Description object type"
-      (is (= csvw:Table (common-property-value-type context "Table"))))
+    (testing "Datatype name"
+      (is (= xsd:integer (common-property-type-with-value context "integer"))))
 
     (testing "Compact URI"
-      (is (= (URI. "http://purl.org/dc/terms/description") (common-property-value-type context "dc:description"))))
+      (is (= (URI. "http://purl.org/dc/terms/description") (common-property-type-with-value context "dc:description"))))
+
+    (testing "Absolute URI"
+      (let [uri-str "http://example.com"]
+        (is (= (URI. uri-str) (common-property-type-with-value context uri-str)))))
+
+    (testing "Invalid value"
+      (validation-error (common-property-type-with-value context "not a type name or URI")))
+
+    (testing "Invalid type"
+      (validation-error (common-property-type-with-value context 3)))))
+
+(deftest common-property-type-without-value-test
+  (let [context (context/make-context (URI. "http://example"))]
+    (testing "Description object type"
+      (is (= csvw:Table (common-property-type-without-value context "Table"))))
+
+    (testing "Compact URI"
+      (is (= (URI. "http://purl.org/dc/terms/description") (common-property-type-without-value context "dc:description"))))
 
     (testing "Absolute URI"
       (let [uri-str "http://example.com/some/path/to.csv"]
-        (is (= (URI. uri-str) (common-property-value-type context uri-str)))))
+        (is (= (URI. uri-str) (common-property-type-without-value context uri-str)))))
 
     (testing "Invalid value"
-      (validation-error (common-property-value-type context "not a type or URI")))
+      (validation-error (common-property-type-without-value context "not a type or URI")))
 
     (testing "Array of valid values"
       (is (= [csvw:TableGroup (URI. "http://xmlns.com/foaf/0.1/name") (URI. "http://example.com/test.csv")]
-             (common-property-value-type context ["TableGroup" "foaf:name" "http://example.com/test.csv"]))))
+             (common-property-type-without-value context ["TableGroup" "foaf:name" "http://example.com/test.csv"]))))
 
     (testing "Array with invalid values"
-      (validation-error (common-property-value-type context ["TableGroup" "foaf:name" "not a type or URI"])))
+      (validation-error (common-property-type-without-value context ["TableGroup" "foaf:name" "not a type or URI"])))
 
     (testing "Invalid type"
-      (validation-error (common-property-value-type context 3)))))
+      (validation-error (common-property-type-without-value context 3)))))
 
 (deftest common-property-value-test
   (let [base-uri (URI. "http://example.com/")

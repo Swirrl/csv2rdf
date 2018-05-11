@@ -102,7 +102,7 @@
 
 (def common-property-key (chain string expand-common-property-key))
 
-(defn ^{:metadata-spec "5.8.2"} common-property-value-type [context x]
+(defn ^{:metadata-spec "5.8.2"} common-property-type-with-value [context x]
   (if (string? x)
     (if-let [datatype-iri (xml-datatype/get-datatype-iri x)]
       datatype-iri
@@ -177,7 +177,7 @@
                 value-type (mjson/get-json-type value)
                 allowed-value-types #{:string :number :boolean}
                 [other-key other-value] (if (contains? v "@type")
-                                          ["@type" (common-property-value-type (append-path context "@type") (get v "@type"))]
+                                          ["@type" (common-property-type-with-value (append-path context "@type") (get v "@type"))]
                                           ["@language" (let [lang (get v "@language")
                                                              context (append-path context "@language")]
                                                          (if (string? lang)
