@@ -3,13 +3,13 @@
             [csv2rdf.metadata.types :refer :all :as types]
             [csv2rdf.metadata.test-common :refer :all]
             [csv2rdf.metadata.validator :refer [invalid? string]]
-            [csv2rdf.metadata.context :as context]
+            [csv2rdf.metadata.context :refer [base-key language-key] :as context]
             [csv2rdf.logging :as logging]
             [csv2rdf.vocabulary :refer [csvw:Table csvw:TableGroup xsd:integer]])
   (:import [java.net URI]))
 
 (defn set-context-language [context language]
-  (context/update-from-local-context context {context/language-key language}))
+  (context/update-from-local-context context {language-key language}))
 
 (deftest non-negative-test
   (let [context (context/make-context "http://example")]
@@ -434,3 +434,34 @@
                                                                             "@type" "type"}))]
         (is (empty? warnings))
         (is (= {:id "id" :type "type"} result))))))
+
+(deftest object-context-test
+  (let [base-uri (URI. "http://example.com/")
+        context (context/make-context base-uri)]
+    (testing "CSVW namespace"
+      (let [{:keys [warnings result]} (logging/capture-warnings (object-context context csvw-ns))]
+        (is (empty? warnings))
+        (is (= csvw-ns result))))
+
+    (testing "Valid pair"
+      (let [base-str "base"
+            lang "de"
+            {:keys [warnings result]} (logging/capture-warnings (object-context context [csvw-ns {"@base" base-str
+                                                                                                  "@language" lang}]))]
+        (is (empty? warnings))
+        (is (= {base-key (URI. base-str) language-key lang} result))))
+
+    (testing "Pair with invalid CSVW namespace"
+      (validation-error (object-context context ["http://invalid" {"@language" "fr"}])))
+
+    (testing "Pair with invalid @base key"
+      (validation-error (object-context context [csvw-ns {"@base" "not a URI"}])))
+
+    (testing "Pair with empty object"
+      (validation-error (object-context context [csvw-ns {}])))
+
+    (testing "Pair with invalid language code"
+      (let [base-str "base"
+            {:keys [warnings result]} (logging/capture-warnings (object-context context [csvw-ns {"@base" base-str "@language" "invalid language code"}]))]
+        (is (= 1 (count warnings)))
+        (is (= {base-key (URI. base-str) language-key nil} result))))))

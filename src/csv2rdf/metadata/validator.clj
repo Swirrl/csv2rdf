@@ -6,6 +6,7 @@
             [csv2rdf.logging :as logging])
   (:import [java.net URI]))
 
+;;TODO: remove invalid marker value?
 (def invalid ::invalid)
 
 (defn invalid? [x]
@@ -13,13 +14,6 @@
 
 (defn valid? [x]
   (not (invalid? x)))
-
-;;TODO: remove invalid marker value?
-(defn ignore-invalid
-  "Validator which wraps an inner validator and converts invalid values into nil"
-  [validator]
-  (fn [context x]
-    (v/fmap (fn [r] (if (invalid? r) nil r)) (validator context x))))
 
 ;;TODO: rename
 (defn make-error [{:keys [path] :as context} msg]
@@ -36,6 +30,8 @@
   (fn [context x]
     (let [result (validator context x)]
       (if (invalid? result) default result))))
+
+(defn ignore-invalid [validator] (default-if-invalid validator nil))
 
 ;;TODO: parameterise required validators with error function and remove this
 (defn strict [validator]

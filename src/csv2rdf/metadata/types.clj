@@ -286,17 +286,37 @@
 
 (defn validate-object-context-pair [context [_ns m]]
   (if (or (contains? m base-key) (contains? m language-key))
-    (v/pure m)
+    m
     (make-error context "Top-level object must contain @base or @language keys")))
 
+(defn context-uri [context x]
+  (if (string? x)
+    (let [^String s x]
+      (try
+        (URI. s)
+        (catch URISyntaxException ex
+          (make-error context "Invalid URI"))))
+    (make-error context (type-error-message #{:string} (mjson/get-json-type x)))))
+
+(defn strict-eq [expected]
+  (fn [context x]
+    (if (= expected x)
+      x
+      (make-error context (format "Expected '%s'" expected)))))
+
 (def parse-context-pair (tuple
-                          (eq csvw-ns)
-                          (object-of {:optional {base-key     (strict uri)
+                          (strict-eq csvw-ns)
+                          (object-of {:optional {base-key     context-uri
                                                  language-key (ignore-invalid language-code)}})))
 
 (def context-pair (chain parse-context-pair validate-object-context-pair))
 
-(def object-context (variant {:string (eq csvw-ns) :array context-pair}))
+(defn object-context [context x]
+  (cond
+    (= csvw-ns x) x
+    (string? x) (make-error context (format "String object context must equal '%s'" csvw-ns))
+    (array? x) (context-pair context x)
+    :else (make-error context (type-error-message #{:string :array} (mjson/get-json-type x)))))
 
 ;;TODO: move context validators into metadata.context namespace?
 (defn validate-contextual-object
