@@ -91,10 +91,7 @@
 (defn ^{:metadata-spec "5.8.2"} common-property-value-type [context x]
   (cond
     (string? x) (validate-common-property-value-type context x)
-    (array? x) (if (every? string? x)
-                 (vec (map-indexed (fn [idx t]
-                                     (validate-common-property-value-type (append-path context idx) t))
-                                   x)))
+    (array? x) ((array-of common-property-value-type) context x)
     :else (make-error context (type-error-message #{:string :array} (mjson/get-json-type x)))))
 
 ;;common propeties
