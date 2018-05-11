@@ -80,6 +80,22 @@
                         (make-warning context (str "Invalid URI template: '" s "'") invalid)))
             :default default-template-property}))
 
+(defn ^{:metadata-spec "5.8.1"} expand-common-property-key
+  "Expands a common property key into the corresponding absolute URI. Logs a warning and returns invalid if the
+   value is not a valid prefixed name or absolute URI."
+  [context ^String s]
+  (if (.contains s ":")
+    (try
+      (let [uri (URI. (expand-uri-string s))]
+        (if (.isAbsolute uri)
+          uri
+          (make-warning context "Expected prefixed name or absolute URI" invalid)))
+      (catch URISyntaxException _ex
+        (make-warning context (format "Invalid common property key '%s'" s) invalid)))
+    (make-warning context (format "Invalid common property key '%s'" s) invalid)))
+
+(def common-property-key (chain string expand-common-property-key))
+
 (defn validate-common-property-value-type [context ^String s]
   (if-let [type-uri (json-ld/expand-description-object-type-uri s)]
     type-uri
@@ -131,23 +147,6 @@
         (v/combine-with merge (special-validator context special) (remaining-validator context remaining))))
 
     :else (v/pure v)))
-
-(defn validate-common-property-key [_context ^String key]
-  ;;TODO: better way of validating?
-  (if (.contains key ":")
-    (v/pure key)
-    (v/with-warning (str "Invalid common property key: " key) invalid)))
-
-(def validate-absolute-uri (where (fn [^URI uri] (.isAbsolute uri)) "absolute URI"))
-
-(defn expand-compact-uri [context s]
-  (try
-    (URI. (expand-uri-string s))
-    (catch Exception ex
-      (make-warning context (str "Invalid compact URI: '" s "'") invalid))))
-
-;;NOTE: common property keys should be either absolute or compact URI, which must expand to an absolute URI
-(def common-property-key (chain string validate-common-property-key expand-compact-uri validate-absolute-uri))
 
 (defn ^{:metadata-spec "6.1"} normalise-common-property-value [{:keys [language] :as context} v]
   (cond

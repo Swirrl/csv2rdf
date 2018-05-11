@@ -163,6 +163,29 @@
         (is (= 1 (count warnings)))
         (is (= base-uri result))))))
 
+(deftest common-property-key-test
+  (let [context (context/make-context "http://example")]
+    (testing "Compact URI"
+      (let [{:keys [warnings result]} (logging/capture-warnings (common-property-key context "dc:description"))]
+        (is (empty? warnings))
+        (is (= (URI. "http://purl.org/dc/terms/description") result))))
+
+    (testing "Absolute URI"
+      (let [uri-str "http://example.com/some/path#f"
+            {:keys [warnings result]} (logging/capture-warnings (common-property-key context uri-str))]
+        (is (empty? warnings))
+        (is (= (URI. uri-str) result))))
+
+    (testing "Invalid key"
+      (let [{:keys [warnings result]} (logging/capture-warnings (common-property-key context "not a URI"))]
+        (is (= 1 (count warnings)))
+        (is (invalid? result))))
+
+    (testing "Invalid type"
+      (let [{:keys [warnings result]} (logging/capture-warnings (common-property-key context 4))]
+        (is (= 1 (count warnings)))
+        (is (invalid? result))))))
+
 (deftest common-property-value-type-test
   (let [context (context/make-context (URI. "http://example"))]
     (testing "Description object type"
