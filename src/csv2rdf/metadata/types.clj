@@ -137,12 +137,12 @@
           :else
           (let [special-keys (kvps [(optional-key "@language" (strict language-code))
                                     (optional-key "@value" (variant {:string any :boolean any :number any}))
-                                    (optional-key "@type" (strict common-property-value-type))])]
+                                    (optional-key "@type" common-property-value-type)])]
             (special-keys context v))))
       (let [special-keys ["@id" "@type"]           ;;NOTE: @language not allowed unless @value specified
             [special remaining] (util/partition-keys v special-keys)
             special-validator (kvps [(optional-key "@id" (strict id)) ;;NOTE: @id will be expanded during normalisation
-                                     (optional-key "@type" (strict common-property-value-type))])
+                                     (optional-key "@type" common-property-value-type)])
             remaining-validator (map-of (ordinary-common-property-value-key ["@id" "@type"]) validate-common-property-value)]
         (v/combine-with merge (special-validator context special) (remaining-validator context remaining))))
 
@@ -174,11 +174,6 @@
 
 (def ^{:metadata-spec "5.3"} note common-property-value)
 (def ^{:metadata-spec "5.3"} table-direction (one-of #{"rtl" "ltr" "auto"}))
-
-(defn validate-id [context ^String s]
-  (if (.startsWith s "_:")
-    (make-error context "Ids cannot start with _:")
-    ((try-parse-with #(URI. %)) context s)))
 
 (defn column-reference-array [context arr]
   (cond (= 0 (count arr)) (make-warning context "Column references should not be empty" invalid)
