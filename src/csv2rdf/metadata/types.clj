@@ -328,19 +328,17 @@
                             (required-key "@context" object-context)
                             (optional-key "@context" object-context))]
     (fn [context obj]
-      (v/bind (fn [context-pair]
-                (cond
-                  ;;if no context then validate entire object
-                  (nil? context-pair) (object-validator context obj)
+      (let [[_ obj-context] (context-validator context obj)]
+        (cond
+          ;;if no context then validate entire object
+          (nil? obj-context) (object-validator context obj)
 
-                  ;;context is literal containing csvw-ns so remove it and validate rest of object
-                  (string? (second context-pair)) (object-validator context (dissoc obj "@context"))
+          ;;context is literal containing csvw-ns so remove it and validate rest of object
+          (string? obj-context) (object-validator context (dissoc obj "@context"))
 
-                  ;;context is pair containing csvw-ns and local context definition
-                  :else (let [local-context (second context-pair)
-                              updated-context (update-from-local-context context local-context)]
-                          (object-validator updated-context (dissoc obj "@context")))))
-              (context-validator context obj)))))
+          ;;context is map containing local context definition
+          :else (let [updated-context (update-from-local-context context obj-context)]
+                  (object-validator updated-context (dissoc obj "@context"))))))))
 
 (defn contextual-object [context-required? object-validator]
   (variant {:object (validate-contextual-object context-required? object-validator)}))

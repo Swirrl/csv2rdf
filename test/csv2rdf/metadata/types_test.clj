@@ -465,3 +465,40 @@
             {:keys [warnings result]} (logging/capture-warnings (object-context context [csvw-ns {"@base" base-str "@language" "invalid language code"}]))]
         (is (= 1 (count warnings)))
         (is (= {base-key (URI. base-str) language-key nil} result))))))
+
+(deftest contextual-object-test
+  (let [base-uri (URI. "http://example.com")
+        context (context/make-context base-uri)]
+    (testing "Context as string"
+      (let [v (contextual-object true (object-of {:required {:s string}}))
+            {:keys [warnings result]} (logging/capture-warnings (v context {"@context" csvw-ns "s" "foo"}))]
+        (is (empty? warnings))
+        (is (= {:s "foo"} result))))
+
+    (testing "Context as pair"
+      (let [context-lang "fr"
+            v (contextual-object true (object-of {:required {:title natural-language}}))
+            obj-context [csvw-ns {"@language" context-lang}]
+            {:keys [warnings result]} (logging/capture-warnings (v context {"@context" obj-context "title" "le title"}))]
+        (is (empty? warnings))
+        (is (= {:title {context-lang ["le title"]}} result))))
+
+    (testing "Context missing when required"
+      (let [v (contextual-object true (object-of {:optional {:s string}}))]
+        (validation-error (v context {"s" "foo"}))))
+
+    (testing "Context missing when not required"
+      (let [v (contextual-object false (object-of {:optional {:s string}}))
+            {:keys [warnings result]} (logging/capture-warnings (v context {"s" "foo"}))]
+        (is (empty? warnings))
+        (is (= {:s "foo"} result))))
+
+    (testing "Invalid context"
+      (let [v (contextual-object false (object-of {:optional {:s string}}))]
+        (validation-error (v context {"@context" ["http://invalid" {"@langugage" "de"}] "s" "foo"}))))
+
+    (testing "Invalid type"
+      (let [v (contextual-object false {:required {:s string}})
+            {:keys [warnings result]} (logging/capture-warnings (v context ["not" "an" "object"]))]
+        (is (= 1 (count warnings)))
+        (is (invalid? result))))))
