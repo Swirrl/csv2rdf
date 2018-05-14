@@ -345,22 +345,20 @@
 
 (defn resolve-linked-object-property-object [context object-uri]
   (try
-    (v/pure (util/read-json object-uri))
+    (util/read-json object-uri)
     (catch Exception ex
       (make-error context (format "Failed to resolve linked object property at URI %s: %s" object-uri (.getMessage ex))))))
 
 (defn ^{:metadata-spec "6.4"} linked-object-property [object-validator]
   (fn [context object-uri]
-    (->> (resolve-linked-object-property-object context object-uri)
-         (v/bind (fn [obj]
-                   (let [updated-context (with-document-uri context object-uri)]
-                     ((contextual-object false object-validator) updated-context obj))))
-         (v/fmap (fn [obj]
-                   ;;TODO: error if resolved JSON document is not an object? Specification does not mention this
-                   ;;case but requires an empty object in other error cases. Add @id key as required due to normalisation
-                   (cond (invalid? obj) {id-key object-uri}
-                         (contains? obj id-key) obj
-                         :else (assoc obj id-key object-uri)))))))
+    (let [resolved-obj (resolve-linked-object-property-object context object-uri)
+          updated-context (with-document-uri context object-uri)
+          obj ((contextual-object false object-validator) updated-context resolved-obj)]
+      ;;TODO: error if resolved JSON document is not an object? Specification does not mention this
+      ;;case but requires an empty object in other error cases. Add @id key as required due to normalisation
+      (cond (invalid? obj) {id-key object-uri}
+            (contains? obj id-key) obj
+            :else (assoc obj id-key object-uri)))))
 
 (defn ^{:metadata-spec "5.1.5"} object-property
   "Object which may be specified in line in the metadata document or referenced through a URI"
