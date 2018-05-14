@@ -4,7 +4,6 @@
             [csv2rdf.metadata.types :refer [object-of id non-negative] :as types]
             [csv2rdf.metadata.validator :refer [make-warning invalid mapping variant any array-of string character
                                                 bool eq type-eq]]
-            [csv2rdf.validation :as v]
             [csv2rdf.http :as http])
   (:import [java.nio.charset Charset IllegalCharsetNameException]))
 
@@ -146,7 +145,7 @@
   ;;may not be supported by the underlying platform, reject these as invalid
   (try
     (if (Charset/isSupported s)
-      (v/pure s)
+      s
       (make-warning context (str "Invalid encoding: '" s "'") invalid))
     (catch IllegalCharsetNameException _ex
       (make-warning context (str "Invalid encoding: '" s "'") invalid))))
@@ -156,7 +155,7 @@
 (def trim-modes {"true" :all "false" :none "start" :start "end" :end})
 
 (def trim-mode (variant {:string  (mapping trim-modes)
-                         :boolean (fn [_context b] (v/pure (if b :all :none)))}))
+                         :boolean (fn [_context b] (if b :all :none))}))
 
 (def line-terminators
   (variant {:string any
