@@ -47,4 +47,31 @@
                                                  {"name" "col2" "virtual" true}
                                                  {"name" "col3"}])))))
 
+(deftest compatible?-test
+  (testing "without name or title properties"
+    (is (compatible? false {} {:virtual false})))
+
+  (testing "case-sensitive match between names"
+    (is (compatible? false {:name "column"} {:name "column"})))
+
+  (testing "intersection between titles with language"
+    (is (compatible? false
+                     {:title {"en" ["title1" "title2"]
+                                     "fr" ["le title"]}}
+                     {:title {"en" ["title2"]}})))
+
+  (testing "intersection between und and language"
+    (is (compatible? false {:title {"und" ["title"]}} {:title {"de" ["der title" "title"]}})))
+
+  (testing "name without title"
+    (is (compatible? false {:name "column1"} {:title {"en" ["title"]}})))
+
+  (testing "title without name"
+    (is (compatible? false {:title {"en" ["title"]}} {:name "column2"})))
+
+  (testing "incompatible"
+    (is (= false (compatible? false
+                              {:name "column1" :title {"en" ["title"] "fr" ["les title"]}}
+                              {:name "column2" :title {"en" ["other title"] "de" ["das title"]}})))))
+
 
