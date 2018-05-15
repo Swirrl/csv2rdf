@@ -35,7 +35,7 @@
     (let [result (parse-uri-template-variable s)]
       ;;parseFullName returns the prefix of the input that could be parsed
       (if (= result s)
-        (v/pure s)
+        s
         (make-warning context (str "Invalid template variable: '" s "'") invalid)))
     (catch URITemplateParseException _ex
       (make-warning context (str "Invalid template variable: '" s "'") invalid))))
@@ -71,9 +71,8 @@
 (defn ^{:metadata-spec "5.5"} validate-column-names [context columns]
   ;;columns property: The name properties of the column descriptions MUST be unique within a given table description.
   (let [duplicate-names (get-duplicate-names columns)]
-    (if (seq duplicate-names)
-      (make-error context (str "Duplicate names for columns: " (string/join ", " duplicate-names)))
-      (v/pure columns))))
+    (when (seq duplicate-names)
+      (make-error context (str "Duplicate names for columns: " (string/join ", " duplicate-names))))))
 
 (defn is-virtual? [{:keys [virtual] :as column}]
   (boolean virtual))
@@ -84,13 +83,12 @@
   ;;virtual property: If present, a virtual column MUST appear after all other non-virtual column definitions.
   (let [virtual-columns (drop-while non-virtual? columns)
         invalid-columns (filter non-virtual? virtual-columns)]
-    (if (seq invalid-columns)
+    (when (seq invalid-columns)
       (let [first-virtual (first virtual-columns)           ;;NOTE: must exist
             msg (format "Non-virtual columns %s defined after first virtual column %s - All virtual columns must exist after all non-virtual columns"
                         (string/join ", " (map :name invalid-columns))
                         (:name first-virtual))]
-        (make-error context msg))
-      (v/pure columns))))
+        (make-error context msg)))))
 
 (def ^{:table-spec "4.3"} index->column-number inc)
 
@@ -105,13 +103,18 @@
 (defn set-column-name [column column-index context]
   (assoc column :name (get-column-name column column-index (language-code-or-default context))))
 
+;;TODO: find best place to set default column names
+;;set column index property and calculate on demand?
 (defn set-column-names [context columns]
   (->> columns
        (map-indexed (fn [idx col] (set-column-name col idx context)))
-       (vec)
-       (v/pure)))
+       (vec)))
 
-(def columns (chain (array-of column) set-column-names validate-column-names validate-virtual-columns))
+(defn columns [context x]
+  (let [cols ((array-of column) context x)]
+    (validate-column-names context cols)
+    (validate-virtual-columns context cols)
+    cols))
 
 (defn expand-properties
   "Expands all properties for this column by inheriting any unspecified inherited properties from its parent
