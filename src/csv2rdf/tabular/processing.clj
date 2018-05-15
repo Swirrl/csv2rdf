@@ -11,10 +11,9 @@
 
 (defn validate-merge-table [validating? dialect {:keys [url] :as user-table}]
   (let [embedded-metadata (csv/extract-embedded-metadata url dialect)
-        table-metadata (get-in embedded-metadata [:tables 0])
-        compatible-validation (table/validate-compatible validating? user-table table-metadata)
-        merged (table/compatibility-merge user-table table-metadata)]
-    (v/with-value compatible-validation merged)))
+        table-metadata (get-in embedded-metadata [:tables 0])]
+    (table/validate-compatible validating? user-table table-metadata)
+    (table/compatibility-merge user-table table-metadata)))
 
 (defn validate-and-merge-tables [validating? dialect tables]
   (let [validations (mapv (fn [table] (validate-merge-table validating? dialect table)) tables)]

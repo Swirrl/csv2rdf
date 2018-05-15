@@ -1,7 +1,6 @@
 (ns csv2rdf.metadata.column
   (:require [csv2rdf.xml.datatype :as xml-datatype]
             [csv2rdf.util :as util]
-            [csv2rdf.validation :as v]
             [csv2rdf.metadata.validator :refer [make-warning make-error chain string invalid bool eq type-eq array-of]]
             [csv2rdf.metadata.context :refer [language-code-or-default]]
             [csv2rdf.metadata.types :refer [natural-language id]]
@@ -173,9 +172,3 @@
           (not validating?)
           (or (and (has-name-no-title? column1) (has-title-no-name? column2))
               (and (has-name-no-title? column2) (has-title-no-name? column1)))))))
-
-;;TODO: this may need to be done before column definitions have been normalised/expanded/inherited from their parents
-(defn ^{:metadata-spec "5.5.1"} validate-compatible [validating? column-index column1 column2]
-  (if (compatible? validating? column1 column2)
-    (v/pure nil)
-    (v/with-warning (format "Columns at index %d not compatible" column-index) nil)))
