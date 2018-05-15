@@ -9,14 +9,11 @@
             [clojure.java.io :as io]
             [csv2rdf.tabular.csv :as csv]
             [grafter.rdf.io :as gio]
-            [csv2rdf.validation :as v]
             [csv2rdf.logging :as log]))
 
 (defn csv->rdf->destination [tabular-source metadata-source destination {:keys [mode] :as options}]
   (let [mode (or mode :standard)
-        metadata-validation (processing/get-metadata tabular-source metadata-source)
-        ;;TODO: propagate warnings and errors
-        {:keys [tables] :as metadata} (v/get-value metadata-validation "Invalid metadata")
+        {:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source)
         table-group-dialect (:dialect metadata)
         output-tables (filter (fn [t] (= false (:suppressOutput t))) tables)
         {:keys [statements] :as ctx} (table-group-context mode metadata)
@@ -30,11 +27,10 @@
       (let [dialect (or dialect table-group-dialect (dialect/get-default-dialect {}))
             options (dialect/dialect->options dialect)]
         (with-open [r (io/reader url)]
-          (let [annotated-rows (csv/annotated-rows r table options)]
-            (let [table-cell-errors (write-table-statements ctx destination table annotated-rows)]
-              (swap! cell-errors into table-cell-errors))))))
-
-    (v/add-warnings metadata-validation @cell-errors)))
+          (let [annotated-rows (csv/annotated-rows r table options)
+                table-cell-errors (write-table-statements ctx destination table annotated-rows)]
+            ;;TODO: log cell errors directly
+            (swap! cell-errors into table-cell-errors)))))))
 
 (defn csv->rdf
   ([csv-source metadata-source] (csv->rdf csv-source metadata-source {}))
@@ -45,10 +41,8 @@
        logger
        (with-open [destination (repo/->connection repo)]
          (try
-           (let [metadata-validation (csv->rdf->destination tabular-source metadata-source destination options)
-                 logged-warnings @(:warnings logger)
-                 warnings (vec (concat (v/warnings metadata-validation) logged-warnings))]
-             {:errors (v/errors metadata-validation) :warnings warnings :result (into [] (rdf/statements destination))})
+           (csv->rdf->destination tabular-source metadata-source destination options)
+           {:errors [] :warnings (vec @(:warnings logger)) :result (into [] (rdf/statements destination))}
            (catch Exception ex
              {:errors [(.getMessage ex)] :warnings @(:warnings logger) :result nil})))))))
 

@@ -6,7 +6,6 @@
             [csv2rdf.metadata.transformation :as transformation]
             [csv2rdf.metadata.dialect :as dialect]
             [csv2rdf.metadata.table :as table]
-            [csv2rdf.validation :as v]
             [csv2rdf.metadata.inherited :as inherited]))
 
 (def table-group-defaults
@@ -15,7 +14,7 @@
 (defn validate-tables [context tables]
   (if (empty? tables)
     (make-error context "Table group must contain at least one table definition")
-    (v/pure tables)))
+    tables))
 
 (def table-group
   (metadata-of

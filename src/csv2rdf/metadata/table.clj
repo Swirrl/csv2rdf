@@ -4,7 +4,6 @@
             [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
             [csv2rdf.metadata.schema :as schema]
             [csv2rdf.metadata.transformation :as transformation]
-            [csv2rdf.validation :as v]
             [csv2rdf.metadata.dialect :as dialect]
             [csv2rdf.logging :as logging])
   (:import [java.net URI]))
@@ -48,9 +47,8 @@
     (expand-children table)))
 
 (defn parse-table-json [context doc]
-  (v/fmap (fn [t]
-            (into-table-group t))
-          ((contextual-object true table) context doc)))
+  (let [t ((contextual-object true table) context doc)]
+    (into-table-group t)))
 
 (defn from-schema [table-uri schema]
   {:url table-uri

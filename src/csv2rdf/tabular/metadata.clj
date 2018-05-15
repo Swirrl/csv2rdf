@@ -7,7 +7,6 @@
             [csv2rdf.tabular.csv :as csv]
             [csv2rdf.source :as source]
             [csv2rdf.metadata :as meta]
-            [csv2rdf.validation :as v]
             [clojure.java.io :as io]
             [csv2rdf.metadata.table-group :as table-group]
             [csv2rdf.metadata.table :as table]
@@ -158,6 +157,5 @@
                 :status status}))
       (let [metadata-link (get-metadata-link-uri csv-uri response)]
         (if-let [metadata-doc (resolve-associated-metadata csv-uri metadata-link)]
-          (let [metadata-validation (meta/parse-metadata-json csv-uri metadata-doc)]
-            (v/get-value metadata-validation "Invalid metadata document"))
+          (meta/parse-metadata-json csv-uri metadata-doc)
           (csv/extract-embedded-metadata (source/io-source csv-uri body)))))))

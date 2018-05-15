@@ -1,6 +1,5 @@
 (ns csv2rdf.metadata.validator
-  (:require [csv2rdf.validation :as v]
-            [csv2rdf.metadata.context :refer :all]
+  (:require [csv2rdf.metadata.context :refer :all]
             [csv2rdf.metadata.json :as mjson]
             [clojure.string :as string]
             [csv2rdf.logging :as logging])

@@ -6,7 +6,6 @@
             [csv2rdf.metadata.context :refer [resolve-uri append-path language-code-or-default
                                               base-key language-key id-key update-from-local-context with-document-uri]]
             [csv2rdf.json-ld :refer [expand-uri-string]]
-            [csv2rdf.validation :as v]
             [csv2rdf.metadata.json :refer [array? object?] :as mjson]
             [csv2rdf.uri-template :as template]
             [clojure.string :as string]

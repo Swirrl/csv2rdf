@@ -1,7 +1,6 @@
 (ns csv2rdf.tabular.processing
   (:require [csv2rdf.tabular.metadata :as tmeta]
             [csv2rdf.metadata :as meta]
-            [csv2rdf.validation :as v]
             [csv2rdf.metadata.table-group :as table-group]
             [csv2rdf.metadata.table :as table]
             [csv2rdf.tabular.csv :as csv]))
@@ -15,10 +14,6 @@
     (table/validate-compatible validating? user-table table-metadata)
     (table/compatibility-merge user-table table-metadata)))
 
-(defn validate-and-merge-tables [validating? dialect tables]
-  (let [validations (mapv (fn [table] (validate-merge-table validating? dialect table)) tables)]
-    (v/collect validations)))
-
 ;;TODO: check the correct order to expand/inherit metadata and check compatibility with the
 ;;metadata embedded in the tabular file
 ;;current order:
@@ -29,18 +24,13 @@
 (defn ^{:table-spec "6.1"} get-metadata [tabular-source metadata-source]
   (cond
     (some? metadata-source)
-    (let [meta-validation (meta/parse-table-group-from-source metadata-source)]
-      (v/bind (fn [{:keys [dialect tables] :as user-table-group}]
-                (let [validating? false
-                      tables-validation (validate-and-merge-tables validating? dialect tables)]
-                  (v/fmap (fn [merged-tables]
-                            (let [merged-table-group (assoc user-table-group :tables merged-tables)]
-                              (table-group/expand-properties merged-table-group)))
-                          tables-validation)))
-              meta-validation))
+    (let [{:keys [dialect tables] :as user-table-group} (meta/parse-table-group-from-source metadata-source)
+          validating? false
+          merged-tables (mapv (fn [table] (validate-merge-table validating? dialect table)) tables)]
+      (assoc user-table-group :tables merged-tables))
 
     (some? tabular-source)
-    (v/pure (from-tabular-source tabular-source))
+    (from-tabular-source tabular-source)
 
     :else
     (throw (IllegalArgumentException. "Either metadata or tabular data source required"))))
