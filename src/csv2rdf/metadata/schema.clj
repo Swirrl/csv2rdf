@@ -5,7 +5,6 @@
             [csv2rdf.metadata.types :refer [object-of object-property link-property column-reference id]]
             [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
             [csv2rdf.metadata.column :as column]
-            [csv2rdf.validation :as v]
             [clojure.string :as string]
             [clojure.set :as set]
             [csv2rdf.logging :as logging]
@@ -63,39 +62,40 @@
    should return all ancestor column names referenced within the value associated with key-name. If any referenced
    columns do not exist, a warning is added and the value associated with key-name is removed from the schema as
    though it was not specified."
-  ([key-name column-names] (validate-column-references key-name column-names identity))
-  ([key-name column-names child-column-name-fn]
-   (fn [context schema]
-     (if (contains? schema key-name)
-       (let [specified-columns (child-column-name-fn (get schema key-name))
-             invalid-columns (remove (fn [cn] (contains? column-names cn)) specified-columns)]
-         (if (seq invalid-columns)
-           (let [msg (format "Referenced column names: %s do not exist in the list of columns" (string/join ", " invalid-columns))]
-             (make-warning (append-path context (name key-name)) msg (dissoc schema key-name)))
-           (v/pure schema)))
-       (v/pure schema)))))
+  ([schema context key-name column-names] (validate-column-references schema context key-name column-names identity))
+  ([schema context key-name column-names child-column-name-fn]
+   (if (contains? schema key-name)
+     (let [specified-columns (child-column-name-fn (get schema key-name))
+           invalid-columns (remove (fn [cn] (contains? column-names cn)) specified-columns)]
+       (if (seq invalid-columns)
+         (let [msg (format "Referenced column names: %s do not exist in the list of columns" (string/join ", " invalid-columns))]
+           (make-warning (append-path context (name key-name)) msg (dissoc schema key-name)))
+         schema))
+     schema)))
 
 (defn validate-schema-column-references
   "Validator which checks all column name properties within the schema reference columns defined in the columns collection.
    Any components which reference non-existent columns are removed."
   [context {:keys [columns] :as schema}]
-  (let [column-names (into #{} (map :name columns))
-        validator (chain
-                    (validate-column-references :primaryKey column-names)
-                    (validate-column-references :rowTitles column-names)
-                    (validate-column-references :foreignKeys column-names (fn [foreign-keys] (mapcat :columnReference foreign-keys))))]
-    (validator context schema)))
+  (let [column-names (into #{} (map :name columns))]
+    (-> schema
+        (validate-column-references context :primaryKey column-names)
+        (validate-column-references context :rowTitles column-names)
+        (validate-column-references context :foreignKeys column-names (fn [foreign-keys] (mapcat :columnReference foreign-keys))))))
 
-(def schema
-  (chain
-    (metadata-of
-      {:optional {:columns     column/columns
-                  :foreignKeys (array-of foreign-key)      ;;TODO: validate foreign keys
-                  :primaryKey  column-reference            ;;TODO: validators MUST check that each row has a unique combination of values of cells in the indicated columns
-                  :rowTitles   column-reference
-                  :id         id
-                  :type       (type-eq "Schema")}})
-    validate-schema-column-references))
+(def schema-def
+  (metadata-of
+    {:optional {:columns     column/columns
+                :foreignKeys (array-of foreign-key)      ;;TODO: validate foreign keys
+                :primaryKey  column-reference            ;;TODO: validators MUST check that each row has a unique combination of values of cells in the indicated columns
+                :rowTitles   column-reference
+                :id         id
+                :type       (type-eq "Schema")}}))
+
+(defn schema [context x]
+  (let [schema (schema-def context x)]
+    (validate-schema-column-references context schema)
+    schema))
 
 (defn expand-properties
   "Expands all properties for this schema by inheriting any undefined properties from its parent table."

@@ -65,3 +65,39 @@
                                                  "reference" {"columnReference" "col4"
                                                               "resource" "http://table"}
                                                  "invalid" "extra key"}))))
+
+(deftest validate-schema-column-references-test
+  (let [columns [{:name "col1"} {:name "col2"}]]
+    (testing "Valid"
+      (let [schema {:columns     columns
+                    :primaryKey  ["col1"]
+                    :rowTitles   ["col1" "col2"]
+                    :foreignKeys [{:columnReference ["col2"]
+                                   :reference       {:columnReference ["refCol"]
+                                                     :resource        (URI. "http://table")}}]}
+            {:keys [warnings result]} (logging/capture-warnings (validate-schema-column-references test-context schema))]
+        (is (empty? warnings))
+        (is (= schema result))))
+
+    (testing "Invalid primary key"
+      (let [schema {:columns    columns
+                    :primaryKey ["col1" "missing"]}
+            {:keys [warnings result]} (logging/capture-warnings (validate-schema-column-references test-context schema))]
+        (is (= 1 (count warnings)))
+        (is (= {:columns columns} result))))
+
+    (testing "Invalid row titles"
+      (let [schema {:columns columns
+                    :rowTitles ["missing" "bad column"]}
+            {:keys [warnings result]} (logging/capture-warnings (validate-schema-column-references test-context schema))]
+        (is (= 1 (count warnings)))
+        (is (= {:columns columns} result))))
+
+    (testing "Invalid foreign key"
+      (let [schema {:columns columns
+                    :foreignKeys [{:columnReference "missing"
+                                   :reference {:columnReference ["refCol"]
+                                               :resource (URI. "http://table")}}]}
+            {:keys [warnings result]} (logging/capture-warnings (validate-schema-column-references test-context schema))]
+        (is (= 1 (count warnings)))
+        (is (= {:columns columns} result))))))
