@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [csv2rdf.metadata.schema :refer :all]
             [csv2rdf.metadata.test-common :refer [test-context validation-error]]
+            [csv2rdf.metadata.validator :refer [invalid?]]
             [csv2rdf.logging :as logging])
   (:import [java.net URI]))
 
@@ -35,3 +36,32 @@
 
   (testing "Invalid type"
     (validation-error (foreign-key-reference test-context ["not" "an" "object"]))))
+
+(deftest foreign-key-test
+  (testing "Valid"
+    (let [fk {"columnReference" "keyCol"
+              "reference" {"columnReference" "refCol"
+                           "resource" "http://table"}}
+          {:keys [warnings result]} (logging/capture-warnings (foreign-key test-context fk))]
+      (is (empty? warnings))
+      (is (= {:columnReference ["keyCol"]
+              :reference {:columnReference ["refCol"]
+                          :resource (URI. "http://table")}}
+             result))))
+
+  (testing "Invalid no column reference"
+    (validation-error (foreign-key test-context {"reference" {"columnReference" "col1" "resource" "http://table"}})))
+
+  (testing "Invalid reference"
+    (validation-error (foreign-key test-context {"columnReference" "col1" "reference" "not an object"})))
+
+  (testing "Invalid type"
+    (let [{:keys [warnings result]} (logging/capture-warnings (foreign-key test-context "not an object"))]
+      (is (= 1 (count warnings)))
+      (is (invalid? result))))
+
+  (testing "Contains extra keys"
+    (validation-error (foreign-key test-context {"columnReference" "col"
+                                                 "reference" {"columnReference" "col4"
+                                                              "resource" "http://table"}
+                                                 "invalid" "extra key"}))))

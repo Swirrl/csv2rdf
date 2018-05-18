@@ -8,10 +8,12 @@
             [csv2rdf.validation :as v]
             [clojure.string :as string]
             [clojure.set :as set]
-            [csv2rdf.logging :as logging]))
+            [csv2rdf.logging :as logging]
+            [csv2rdf.util :as util]))
 
-;;TODO: parameterise link-property with error function?
+;;TODO: parameterise link-property and column-reference with error function?
 (def strict-link-property (strict link-property))
+(def strict-column-reference (strict column-reference))
 
 (defn foreign-key-reference [context x]
   (if (mjson/object? x)
@@ -27,7 +29,7 @@
         (make-error context "Foreign key reference cannot specify both resource and schemaReference keys")
 
         (or has-resource? has-schema-ref?)
-        (let [column-ref ((strict column-reference) (append-path context "columnReference") (get obj "columnReference"))]
+        (let [column-ref (strict-column-reference (append-path context "columnReference") (get obj "columnReference"))]
           (if has-resource?
             {:columnReference column-ref
              :resource (strict-link-property (append-path context "resource") (get obj "resource"))}
@@ -38,13 +40,22 @@
         (make-error context "Foreign key reference must specify one of resource or schemaReference keys")))
     (make-error context (type-error-message #{:object} (mjson/get-json-type x)))))
 
+(defn foreign-key-object [context obj]
+  (let [[{:strs [columnReference reference] :as required} extra] (util/partition-keys obj ["columnReference" "reference"])]
+    (cond
+      (not= 2 (count required))
+      (make-error context "Foreign key must contain both columnReference and reference keys")
+
+      (seq extra)
+      (make-error context "Foreign key must only contain columnReference and reference keys")
+
+      :else
+      {:columnReference (strict-column-reference (append-path context "columnReference") columnReference)
+       :reference (foreign-key-reference (append-path context "reference") reference)})))
+
 ;;NOTE: should be warning if foreign-key is not an object, but if it is then it should not contain any common property
 ;;keys
-;;TODO: validate using different combinator?
-(def foreign-key
-  (variant {:object (strict (object-of
-                              {:required {:columnReference column-reference
-                                          :reference       (object-property foreign-key-reference)}}))}))
+(def foreign-key (variant {:object foreign-key-object}))
 
 (defn validate-column-references
   "Validates all the referenced column names under the parent key exist in the given set of column names defined
