@@ -224,8 +224,8 @@
            (into {})))))
 
 (defn one-of
-  "Returns a validator which expects its input to be one of the given values. Returns a sucessful
-   validation containing the matching value if found, otherwise invalid."
+  "Returns a validator which expects its input to be one of the given values. Returns
+   the matching value if found, otherwise invalid."
   [values]
   (fn [context x]
     (if (contains? values x)

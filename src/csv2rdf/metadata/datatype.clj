@@ -6,7 +6,6 @@
             [csv2rdf.metadata.types :refer [object-of non-negative id]]
             [csv2rdf.metadata.context :refer [append-path]]
             [csv2rdf.xml.datatype :as xml-datatype]
-            [csv2rdf.validation :as v]
             [csv2rdf.xml.datatype.parsing :as xml-parsing]
             [csv2rdf.xml.datatype.compare :refer [neql? lt? lte?]]
             [csv2rdf.uax35 :as uax35]
@@ -26,7 +25,7 @@
 (defn ^{:table-spec "6.4.2"} validate-numeric-format [context format]
   (if (empty? format)
     (make-warning context "Object must contain at least one of the keys decimalChar, groupChar or pattern" nil)
-    (v/pure format)))
+    format))
 
 ;;NOTE: numeric datatypes are the only ones that permit an object specifying the format, all other types allow only
 ;;a format string. The format of the format string depends on the datatype, so this can only be validated at the datatype
@@ -96,19 +95,19 @@
          (not (or (xml-datatype/is-numeric-type? base) (xml-datatype/is-date-time-type? base) (xml-datatype/is-duration-type? base))))
     (make-error context "minimum, minInclusive, maximum, maxInclusvie, minExclusive, maxExclusive only valid for numeric, date/time or duration types")
 
-    :else (v/pure dt)))
+    :else dt))
 
 (defn ^{:metadata-spec "5.11.2"} validate-datatype-id [context id]
   ;;datatype id MUST NOT be the URL of a built-in datatype.
   (if (xml-datatype/is-built-in-type-iri? id)
-    (v/of-error "Datatype @id property must not be the URL of a built-in datatype")
-    (v/pure id)))
+    (make-error context "Datatype @id property must not be the URL of a built-in datatype")
+    id))
 
 (defn ^{:table-spec "6.4.3"} validate-boolean-format [context format-string]
   (let [values (string/split format-string #"\|")]
     (if (= 2 (count values))
       (let [[true-value false-value] (map string/trim values)]
-        (v/pure {:true-values #{true-value} :false-values #{false-value}}))
+        {:true-values #{true-value} :false-values #{false-value}})
       (make-warning context "Boolean format string should have format 'true-value|false-value'" invalid))))
 
 (defn parse-datetime-format [^String format-string]
@@ -123,39 +122,37 @@
                        (assoc datatype :format value)))]
     (cond
       (nil? format)
-      (v/pure datatype)
+      datatype
 
       ;;NOTE: non-string formats are validated as part of the datatype definition
       (xml-datatype/is-numeric-type? base)
       (if (string? format)
-        (v/fmap (fn [number-format]
-                  (if (invalid? number-format)
-                    (dissoc datatype :format)
-                    (assoc datatype :format {:pattern number-format})))
-                (number-format-pattern (append-path context "format") format))
-        (v/pure datatype))
+        (let [number-format (number-format-pattern (append-path context "format") format)]
+          (if (invalid? number-format)
+            (dissoc datatype :format)
+            (assoc datatype :format {:pattern number-format})))
+        datatype)
 
       ;;only numeric types support object format descriptions
       (object? format)
       (make-warning (append-path context "format") (type-error-message [:string] :object) (dissoc datatype :format))
 
       (xml-datatype/is-boolean-type? base)
-      (v/fmap set-format
-              (validate-boolean-format (append-path context "format") format))
+      (set-format (validate-boolean-format (append-path context "format") format))
 
       ;;TODO: check DateTimeFormatter works as required by the spec
       (xml-datatype/is-date-time-type? base)
-      (v/fmap set-format
-              ((try-parse-with parse-datetime-format) (append-path context "format") format))
+      (let [dtf ((try-parse-with parse-datetime-format) (append-path context "format") format)]
+        (set-format dtf))
 
       :else
-      (v/fmap set-format
-              ((try-parse-with re-pattern) (append-path context "format") format)))))
+      (let [re ((try-parse-with re-pattern) (append-path context "format") format)]
+        (set-format re)))))
 
 (defn parse-datatype-bound [datatype-base]
   (fn [context bound-value]
     (if (number? bound-value)
-      (v/pure bound-value)
+      bound-value
       (let [parser (fn [s] (xml-parsing/parse datatype-base s))
             validator (ignore-invalid (try-parse-with parser))]
         (validator context bound-value)))))
@@ -164,9 +161,8 @@
   (let [bounds-keys [:minimum :maximum :minInclusive :maxInclusive :minExclusive :maxExclusive]
         bound-validator (parse-datatype-bound base)
         bounds (select-keys derived-datatype bounds-keys)
-        validator (map-of any bound-validator)
-        validation (validator context bounds)]
-    (v/fmap (fn [parsed-obj] (merge derived-datatype parsed-obj)) validation)))
+        parsed-obj ((map-of any bound-validator) context bounds)]
+    (merge derived-datatype parsed-obj)))
 
 (def derived-datatype
   (chain
@@ -190,7 +186,7 @@
     validate-derived-datatype-format))
 
 (defn ^{:metadata-spec "5.7"} normalise-datatype-name [_context type-name]
-  (v/pure {:base type-name}))
+  {:base type-name})
 
 (def ^{:metadata-spec "5.7"} datatype
   (variant {:string (chain datatype-name normalise-datatype-name)
