@@ -1,26 +1,11 @@
 (ns csv2rdf.metadata.datatype-test
   (:require [clojure.test :refer :all]
             [csv2rdf.metadata.datatype :refer :all]
-            [csv2rdf.metadata.test-common :refer [test-context validation-error]]
+            [csv2rdf.metadata.test-common :refer [test-context validation-error validates-as warns-with warns-invalid]]
             [csv2rdf.metadata.validator :refer [invalid?]]
             [csv2rdf.logging :as logging])
   (:import [java.time.format DateTimeFormatter]
            [java.util.regex Pattern]))
-
-(defmacro validates-as [expected & body]
-  `(let [{warnings# :warnings result# :result} (logging/capture-warnings ~@body)]
-     (is (empty? warnings#))
-     (is (= ~expected result#))))
-
-(defmacro warns-invalid [& body]
-  `(let [{warnings# :warnings result# :result} (logging/capture-warnings ~@body)]
-     (is (pos? (count warnings#)))
-     (is (invalid? result#))))
-
-(defmacro warns-with [expected & body]
-  `(let [{warnings# :warnings result# :result} (logging/capture-warnings ~@body)]
-     (is (pos? (count warnings#)))
-     (is (= ~expected result#))))
 
 (deftest datatype-test
   (testing "valid datatype name"

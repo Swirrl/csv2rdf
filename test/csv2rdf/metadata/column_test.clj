@@ -3,7 +3,7 @@
             [csv2rdf.metadata.column :refer :all]
             [csv2rdf.metadata.validator :refer [invalid?]]
             [csv2rdf.logging :as logging]
-            [csv2rdf.metadata.test-common :refer [test-context validation-error]]))
+            [csv2rdf.metadata.test-common :refer [test-context validation-error validates-as]]))
 
 (deftest column-name-test
   (testing "valid column name"
@@ -38,9 +38,16 @@
               {:name "col3" :virtual true}]
              result))))
 
-  (testing "duplicate column naes"
+  (testing "missing column names"
+    (validates-as [{:titles {"und" ["title"]}}
+                   {:titles {"und" ["title1" "title2"]}}]
+                  (columns test-context [{"titles" "title"}
+                                         {"titles" ["title1" "title2"]}])))
+
+  (testing "duplicate column names"
     (is (validation-error (columns test-context [{"name" "col" "titles" "title"}
                                                  {"name" "col" "titles" "other"}]))))
+
 
   (testing "non-virtual column following virtual column"
     (is (validation-error (columns test-context [{"name" "col1" "titles" "title"}

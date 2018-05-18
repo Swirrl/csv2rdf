@@ -60,16 +60,27 @@
                 :id            id
                 :type (type-eq "Column")}}))
 
-(defn get-duplicate-names [columns]
-  (->> columns
-       (map :name)
-       (frequencies)
-       (filter (fn [[n count]] (> count 1)))
-       (map first)))
+(def ^{:table-spec "4.3"} index->column-number inc)
+
+(defn index-column-name [column-index]
+  (str "_col." (index->column-number column-index)))
+
+(defn ^{:metadata-spec "5.6"} get-column-name [{:keys [name titles] :as column} column-index default-language]
+  (or name
+      (some-> (first (get titles default-language)) (util/percent-encode))
+      (index-column-name column-index)))
+
+(defn get-duplicate-names [context columns]
+  (let [default-language (language-code-or-default context)]
+    (->> columns
+         (map-indexed (fn [idx column] (get-column-name column idx default-language)))
+         (frequencies)
+         (filter (fn [[n count]] (> count 1)))
+         (map first))))
 
 (defn ^{:metadata-spec "5.5"} validate-column-names [context columns]
   ;;columns property: The name properties of the column descriptions MUST be unique within a given table description.
-  (let [duplicate-names (get-duplicate-names columns)]
+  (let [duplicate-names (get-duplicate-names context columns)]
     (when (seq duplicate-names)
       (make-error context (str "Duplicate names for columns: " (string/join ", " duplicate-names))))))
 
@@ -88,16 +99,6 @@
                         (string/join ", " (map :name invalid-columns))
                         (:name first-virtual))]
         (make-error context msg)))))
-
-(def ^{:table-spec "4.3"} index->column-number inc)
-
-(defn index-column-name [column-index]
-  (str "_col." (index->column-number column-index)))
-
-(defn ^{:metadata-spec "5.6"} get-column-name [{:keys [name titles] :as column} column-index default-language]
-  (or name
-      (some-> (first (get titles default-language)) (util/percent-encode))
-      (index-column-name column-index)))
 
 (defn set-column-name [column column-index context]
   (assoc column :name (get-column-name column column-index (language-code-or-default context))))
