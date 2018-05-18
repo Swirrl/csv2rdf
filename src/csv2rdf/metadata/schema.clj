@@ -1,5 +1,6 @@
 (ns csv2rdf.metadata.schema
-  (:require [csv2rdf.metadata.validator :refer [make-warning make-error invalid chain array-of eq type-eq strict variant]]
+  (:require [csv2rdf.metadata.validator :refer [make-warning make-error invalid chain array-of eq type-eq strict variant type-error-message]]
+            [csv2rdf.metadata.json :as mjson]
             [csv2rdf.metadata.context :refer [append-path]]
             [csv2rdf.metadata.types :refer [object-of object-property link-property column-reference id]]
             [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
@@ -9,26 +10,33 @@
             [clojure.set :as set]
             [csv2rdf.logging :as logging]))
 
-(defn validate-foreign-key-reference [context reference]
-  (let [has-resource? (contains? reference :resource)
-        has-reference? (contains? reference :schemaReference)]
-    (cond
-      (and has-resource? has-reference?)
-      (make-error context "Foreign key reference cannot specify both resource and schemaReference keys")
+;;TODO: parameterise link-property with error function?
+(def strict-link-property (strict link-property))
 
-      (or has-resource? has-reference?)
-      (v/pure reference)
+(defn foreign-key-reference [context x]
+  (if (mjson/object? x)
+    (let [obj x
+          has-column-ref? (contains? obj "columnReference")
+          has-resource? (contains? obj "resource")
+          has-schema-ref? (contains? obj "schemaReference")]
+      (cond
+        (not has-column-ref?)
+        (make-error context "Foreign key references must specify columnReference key")
 
-      :else
-      (make-error context "Foreign key reference must specify one of resource or schemaReference keys"))))
+        (and has-resource? has-schema-ref?)
+        (make-error context "Foreign key reference cannot specify both resource and schemaReference keys")
 
-(def foreign-key-reference
-  (chain
-    (strict (object-of
-              {:required {:columnReference column-reference}
-               :optional {:resource        link-property
-                          :schemaReference link-property}}))
-    validate-foreign-key-reference))
+        (or has-resource? has-schema-ref?)
+        (let [column-ref ((strict column-reference) (append-path context "columnReference") (get obj "columnReference"))]
+          (if has-resource?
+            {:columnReference column-ref
+             :resource (strict-link-property (append-path context "resource") (get obj "resource"))}
+            {:columnReference column-ref
+             :schemaReference (strict-link-property (append-path context "schemaReference") (get obj "schemaReference"))}))
+
+        :else
+        (make-error context "Foreign key reference must specify one of resource or schemaReference keys")))
+    (make-error context (type-error-message #{:object} (mjson/get-json-type x)))))
 
 ;;NOTE: should be warning if foreign-key is not an object, but if it is then it should not contain any common property
 ;;keys
