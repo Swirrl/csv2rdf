@@ -19,6 +19,8 @@
 (defn datatype-base [column]
   (:base (datatype column)))
 
+(def get-name ::name)
+
 (defn ^{:metadata-spec "5.7"} default
   "Gets the effective default value for this column"
   [{:keys [default]}]
@@ -70,17 +72,16 @@
       (some-> (first (get titles default-language)) (util/percent-encode))
       (index-column-name column-index)))
 
-(defn get-duplicate-names [context columns]
-  (let [default-language (language-code-or-default context)]
-    (->> columns
-         (map-indexed (fn [idx column] (get-column-name column idx default-language)))
-         (frequencies)
-         (filter (fn [[n count]] (> count 1)))
-         (map first))))
+(defn get-duplicate-names [columns]
+  (->> columns
+       (map ::name)
+       (frequencies)
+       (filter (fn [[n count]] (> count 1)))
+       (map first)))
 
 (defn ^{:metadata-spec "5.5"} validate-column-names [context columns]
   ;;columns property: The name properties of the column descriptions MUST be unique within a given table description.
-  (let [duplicate-names (get-duplicate-names context columns)]
+  (let [duplicate-names (get-duplicate-names columns)]
     (when (seq duplicate-names)
       (make-error context (str "Duplicate names for columns: " (string/join ", " duplicate-names))))))
 
@@ -94,24 +95,20 @@
   (let [virtual-columns (drop-while non-virtual? columns)
         invalid-columns (filter non-virtual? virtual-columns)]
     (when (seq invalid-columns)
-      (let [first-virtual (first virtual-columns)           ;;NOTE: must exist
-            msg (format "Non-virtual columns %s defined after first virtual column %s - All virtual columns must exist after all non-virtual columns"
-                        (string/join ", " (map :name invalid-columns))
-                        (:name first-virtual))]
-        (make-error context msg)))))
-
-(defn set-column-name [column column-index context]
-  (assoc column :name (get-column-name column column-index (language-code-or-default context))))
+      (make-error context "Non-virtual columns defined after first virtual column - All virtual columns must exist after all non-virtual columns"))))
 
 ;;TODO: find best place to set default column names
 ;;set column index property and calculate on demand?
 (defn set-column-names [context columns]
-  (->> columns
-       (map-indexed (fn [idx col] (set-column-name col idx context)))
-       (vec)))
+  (let [default-language (language-code-or-default context)]
+    (->> columns
+         (map-indexed (fn [idx col]
+                        (assoc col ::name (get-column-name col idx default-language))))
+         (vec))))
 
 (defn columns [context x]
-  (let [cols ((array-of column) context x)]
+  (let [cols ((array-of column) context x)
+        cols (set-column-names context cols)]
     (validate-column-names context cols)
     (validate-virtual-columns context cols)
     cols))
@@ -127,13 +124,13 @@
   [column-index titles]
   (let [normalised-titles {"und" titles}
         column-name (get-column-name {:titles normalised-titles} column-index "und")]
-    {:name column-name
+    {::name column-name
      :titles normalised-titles
      :virtual false
      :suppressOutput false}))
 
 (defn from-index [column-index]
-  {:name (index-column-name column-index)})
+  {::name (index-column-name column-index)})
 
 (defn indexed-non-virtual-columns
   "Returns a map {column-index column} of the non-virtual columns in the given sequence of columns"

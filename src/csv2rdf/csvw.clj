@@ -9,13 +9,14 @@
             [clojure.java.io :as io]
             [csv2rdf.tabular.csv :as csv]
             [grafter.rdf.io :as gio]
-            [csv2rdf.logging :as log]))
+            [csv2rdf.logging :as log]
+            [csv2rdf.metadata.table :as table]))
 
 (defn csv->rdf->destination [tabular-source metadata-source destination {:keys [mode] :as options}]
   (let [mode (or mode :standard)
         {:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source)
         table-group-dialect (:dialect metadata)
-        output-tables (filter (fn [t] (= false (:suppressOutput t))) tables)
+        output-tables (remove table/suppress-output? tables)
         {:keys [statements] :as ctx} (table-group-context mode metadata)
         cell-errors (atom [])]
 
@@ -42,11 +43,13 @@
        (with-open [destination (repo/->connection repo)]
          (try
            (csv->rdf->destination tabular-source metadata-source destination options)
-           {:errors [] :warnings (vec @(:warnings logger)) :result (into [] (rdf/statements destination))}
+           {:errors [] :warnings @(:warnings logger) :result (into [] (rdf/statements destination))}
            (catch Exception ex
              {:errors [(.getMessage ex)] :warnings @(:warnings logger) :result nil})))))))
 
 (defn csv->rdf->file [tabular-source metadata-source dest-file options]
-  (with-open [os (io/output-stream dest-file)]
-    (let [writer (gio/rdf-serializer os :format :ttl :prefixes nil)]
-      (csv->rdf->destination tabular-source metadata-source writer options))))
+  (log/with-logger
+    (log/->ForwardingLogger)
+    (with-open [os (io/output-stream dest-file)]
+      (let [writer (gio/rdf-serializer os :format :ttl :prefixes nil)]
+        (csv->rdf->destination tabular-source metadata-source writer options)))))

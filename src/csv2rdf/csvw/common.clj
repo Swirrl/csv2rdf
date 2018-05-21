@@ -4,7 +4,8 @@
             [csv2rdf.vocabulary :refer :all]
             [grafter.rdf :refer [->Triple] :as rdf]
             [csv2rdf.xml.datatype :as xml-datatype]
-            [csv2rdf.xml.datatype.canonical :as xml-canonical])
+            [csv2rdf.xml.datatype.canonical :as xml-canonical]
+            [csv2rdf.metadata.column :as column])
   (:import [java.net URI]
            [org.openrdf.model.impl URIImpl]))
 
@@ -29,7 +30,7 @@
   (URIImpl. (str (.getScheme uri) ":" (.getRawSchemeSpecificPart uri) "#" encoded-fragment)))
 
 (defn column-about-url [tabular-data-file-url column]
-  (set-encoded-fragment tabular-data-file-url (:name column)))
+  (set-encoded-fragment tabular-data-file-url (column/get-name column)))
 
 (defn ^{:csvw-spec "4.6.8.3"} cell-predicate [tabular-data-file-url {:keys [propertyUrl column] :as cell}]
   (or propertyUrl (column-about-url tabular-data-file-url column)))

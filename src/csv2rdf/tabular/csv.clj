@@ -109,13 +109,13 @@
         column-value-bindings (into {} (map (fn [cell column]
                                               ;;TODO: need 'canonical value' according to XML schema
                                               ;;see metadata spec 5.1.3
-                                              [(util/percent-decode (:name column)) (:stringValue cell)])
+                                              [(util/percent-decode (column/get-name column)) (:stringValue cell)])
                                             parsed-cells columns))
         row-bindings (assoc column-value-bindings :_row row-number :_sourceRow source-row-number)
         cells (map-indexed
                 (fn [col-index [cell column]]
                   (let [column-number (column/index->column-number col-index)
-                        bindings (assoc row-bindings :_name (util/percent-decode (:name column))
+                        bindings (assoc row-bindings :_name (util/percent-decode (column/get-name column))
                                                      :_column column-number
                                                      :_sourceColumn (+ skipColumns column-number))
                         property-urls {:aboutUrl (some-> (:aboutUrl column) (template-property/resolve-uri-template-property bindings table))
