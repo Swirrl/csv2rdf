@@ -117,11 +117,11 @@
 (defn ^{:table-spec "6.4.[6,7,8,9]"} parse-atomic-value
   "Parses an 'atomic' value within a cell i.e. one which should be parsed directly according to the
   column datatype."
-  [string-value {:keys [required datatype] :as column}]
+  [string-value {:keys [required] :as column}]
   (let [value (column-default-if-empty string-value column)]
     (if (is-column-null? value column)
       {:value nil :stringValue string-value :errors (if required [column-required-message] [])}
-      (let [result (parse-datatype string-value datatype)
+      (let [result (parse-datatype string-value (mcolumn/datatype column))
             cell (assoc result :stringValue string-value)]
         (-> cell
             (validate-length)
@@ -142,21 +142,22 @@
 (defn separator->pattern [separator]
   (re-pattern (Pattern/quote separator)))
 
-(defn parse-cell-value [^String value {:keys [separator required datatype] :as column}]
-  (if (nil? separator)
-    (let [result (parse-atomic-value value column)]
-      (assoc result :list false))
-    (if (.isEmpty value)
-      (if required
-        {:value [] :list true :stringValue value :errors [column-required-message]}
-        {:value [] :list true :stringValue value :errors []})
-      (if (is-column-null? value column)
-        {:value nil :list true :stringValue value :errors []}
-        (let [trim-fn (if (contains? #{"string" "anyAtomicType"} (:base datatype)) identity string/trim)
-              components (map trim-fn (string/split value (separator->pattern separator)))
-              component-cells (map #(parse-atomic-value % column) components)
-              cell (combine-cell-values component-cells)]
-          (assoc cell :list true :stringValue value))))))
+(defn parse-cell-value [^String value {:keys [separator required] :as column}]
+  (let [datatype (mcolumn/datatype column)]
+    (if (nil? separator)
+      (let [result (parse-atomic-value value column)]
+        (assoc result :list false))
+      (if (.isEmpty value)
+        (if required
+          {:value [] :list true :stringValue value :errors [column-required-message]}
+          {:value [] :list true :stringValue value :errors []})
+        (if (is-column-null? value column)
+          {:value nil :list true :stringValue value :errors []}
+          (let [trim-fn (if (contains? #{"string" "anyAtomicType"} (:base datatype)) identity string/trim)
+                components (map trim-fn (string/split value (separator->pattern separator)))
+                component-cells (map #(parse-atomic-value % column) components)
+                cell (combine-cell-values component-cells)]
+            (assoc cell :list true :stringValue value)))))))
 
 (defn ^{:table-spec "6.4"} copy-column-annotations
   "Copy required annotations onto a cell from its column"

@@ -19,6 +19,9 @@
 (defn datatype-base [column]
   (:base (datatype column)))
 
+(defn suppress-output? [column]
+  (boolean (:suppressOutput column)))
+
 (def get-name ::name)
 
 (defn ^{:metadata-spec "5.7"} default

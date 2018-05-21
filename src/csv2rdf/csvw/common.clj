@@ -18,8 +18,8 @@
 (defn row-unsuppressed-cells
   "Gets the all the cells within a row whose column output is not suppressed"
   [{:keys [cells] :as row}]
-  (filter (fn [cell]
-            (= false (get-in cell [:column :suppressOutput])))
+  (remove (fn [{:keys [column] :as cell}]
+            (column/suppress-output? column))
           cells))
 
 (defn set-encoded-fragment
