@@ -109,14 +109,12 @@
      :statements (cons t (notes-non-core-annotation-statements tg-subject table-group))}))
 
 (defmethod write-table-statements :standard [{:keys [table-group-subject] :as context} destination {:keys [id url] :as table} annotated-rows]
-  (let [cell-errors (atom [])]
-    (let [table-subject (or id (gen-blank-node "table"))
-          t-4_2 (->Triple table-group-subject csvw:table table-subject)
-          t-4_3 (->Triple table-subject rdf:type csvw:Table)
-          t-4_4 (->Triple table-subject csvw:url url)]
-      (rdf/add destination [t-4_2 t-4_3 t-4_4])
-      (rdf/add destination (seq (notes-non-core-annotation-statements table-subject table)))
-      (doseq [row annotated-rows]
-        (rdf/add destination (row-statements table-subject table row))
-        (swap! cell-errors into (row-cell-errors row)))
-      @cell-errors)))
+  (let [table-subject (or id (gen-blank-node "table"))
+        t-4_2 (->Triple table-group-subject csvw:table table-subject)
+        t-4_3 (->Triple table-subject rdf:type csvw:Table)
+        t-4_4 (->Triple table-subject csvw:url url)]
+    (rdf/add destination [t-4_2 t-4_3 t-4_4])
+    (rdf/add destination (seq (notes-non-core-annotation-statements table-subject table)))
+    (doseq [row annotated-rows]
+      (log-cell-errors row)
+      (rdf/add destination (row-statements table-subject table row)))))

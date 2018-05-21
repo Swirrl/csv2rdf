@@ -5,7 +5,8 @@
             [grafter.rdf :refer [->Triple] :as rdf]
             [csv2rdf.xml.datatype :as xml-datatype]
             [csv2rdf.xml.datatype.canonical :as xml-canonical]
-            [csv2rdf.metadata.column :as column])
+            [csv2rdf.metadata.column :as column]
+            [csv2rdf.logging :as logging])
   (:import [java.net URI]
            [org.openrdf.model.impl URIImpl]))
 
@@ -88,6 +89,10 @@
 ;;TODO: move this into row namespace?
 (defn row-cell-errors [{:keys [cells] :as row}]
   (mapcat cell/errors cells))
+
+(defn log-cell-errors [row]
+  (doseq [err (row-cell-errors row)]
+    (logging/log-warning err)))
 
 (defmulti table-group-context (fn [mode _table-group] mode))
 (defmulti write-table-statements (fn [context destination table rows] (:mode context)))

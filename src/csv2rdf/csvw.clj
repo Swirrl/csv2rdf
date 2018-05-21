@@ -17,8 +17,7 @@
         {:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source)
         table-group-dialect (:dialect metadata)
         output-tables (remove table/suppress-output? tables)
-        {:keys [statements] :as ctx} (table-group-context mode metadata)
-        cell-errors (atom [])]
+        {:keys [statements] :as ctx} (table-group-context mode metadata)]
 
     (rdf/add destination (seq statements))
 
@@ -28,10 +27,8 @@
       (let [dialect (or dialect table-group-dialect (dialect/get-default-dialect {}))
             options (dialect/dialect->options dialect)]
         (with-open [r (io/reader url)]
-          (let [annotated-rows (csv/annotated-rows r table options)
-                table-cell-errors (write-table-statements ctx destination table annotated-rows)]
-            ;;TODO: log cell errors directly
-            (swap! cell-errors into table-cell-errors)))))))
+          (let [annotated-rows (csv/annotated-rows r table options)]
+            (write-table-statements ctx destination table annotated-rows)))))))
 
 (defn csv->rdf
   ([csv-source metadata-source] (csv->rdf csv-source metadata-source {}))

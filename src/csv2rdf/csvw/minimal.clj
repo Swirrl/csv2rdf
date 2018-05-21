@@ -20,8 +20,6 @@
    :statements []})
 
 (defmethod write-table-statements :minimal [_context destination {:keys [url] :as table} annotated-rows]
-  (let [cell-errors (atom [])]
-    (doseq [row annotated-rows]
-      (rdf/add destination (minimal-row-statements url row))
-      (swap! cell-errors into (row-cell-errors row)))
-    @cell-errors))
+  (doseq [row annotated-rows]
+    (log-cell-errors row)
+    (rdf/add destination (minimal-row-statements url row))))
