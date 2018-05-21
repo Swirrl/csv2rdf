@@ -9,6 +9,7 @@
             [csv2rdf.metadata.column :as column]
             [csv2rdf.metadata.uri-template-property :as template-property]
             [csv2rdf.metadata.table-group :as table-group]
+            [csv2rdf.metadata.properties :as properties]
             [csv2rdf.source :as source]))
 
 (defn ^{:table-spec "8.6"} get-skipped-rows-comments [skipped-rows]
@@ -118,9 +119,9 @@
                         bindings (assoc row-bindings :_name (util/percent-decode (column/get-name column))
                                                      :_column column-number
                                                      :_sourceColumn (+ skipColumns column-number))
-                        property-urls {:aboutUrl (some-> (:aboutUrl column) (template-property/resolve-uri-template-property bindings table))
-                                       :propertyUrl (some-> (:propertyUrl column) (template-property/resolve-uri-template-property bindings table))
-                                       :valueUrl (some-> (:valueUrl column) (template-property/resolve-value-uri-template-property cell column bindings table))}]
+                        property-urls {:aboutUrl (some-> (properties/about-url column) (template-property/resolve-uri-template-property bindings table))
+                                       :propertyUrl (some-> (properties/property-url column) (template-property/resolve-uri-template-property bindings table))
+                                       :valueUrl (some-> (properties/value-url column) (template-property/resolve-value-uri-template-property cell column bindings table))}]
                     (-> cell
                         (merge (util/filter-values some? property-urls))
                         (assoc :column column))))

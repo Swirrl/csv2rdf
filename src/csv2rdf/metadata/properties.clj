@@ -2,6 +2,29 @@
   (:require [csv2rdf.metadata.column :as column]
             [csv2rdf.metadata.datatype :as datatype]))
 
+(defn child
+  ([child-key]
+   (child child-key identity))
+  ([child-key child-fn]
+    (fn [parent]
+      (update parent child-key (fn [child]
+                                 (child-fn (assoc child ::parent parent)))))))
+
+(defn children
+  ([children-key]
+   (children children-key identity))
+  ([children-key child-fn]
+    (fn [parent]
+      (update parent children-key (fn [cs]
+                                    (mapv (fn [c] (child-fn (assoc c ::parent parent))) cs))))))
+
+(def table-hierarchy
+  (child :tableSchema
+         (children :columns)))
+
+(def table-group-hierarchy
+  (children :tables table-hierarchy))
+
 (defn- declared
   ([key] (declared key nil))
   ([key default]
