@@ -1,46 +1,35 @@
 (ns csv2rdf.metadata.column-test
   (:require [clojure.test :refer :all]
-            [csv2rdf.metadata.column :refer :all]
+            [csv2rdf.metadata.column :refer :all :as column]
             [csv2rdf.metadata.validator :refer [invalid?]]
-            [csv2rdf.logging :as logging]
-            [csv2rdf.metadata.test-common :refer [test-context validation-error validates-as]]))
+            [csv2rdf.metadata.test-common :refer [test-context validation-error validates-as warns-invalid]]))
 
 (deftest column-name-test
   (testing "valid column name"
-    (let [col-name "description"
-          {:keys [warnings result]} (logging/capture-warnings (column-name test-context col-name))]
-      (is (empty? warnings))
-      (is (= col-name result))))
+    (let [col-name "description"]
+      (validates-as col-name (column-name test-context col-name))))
 
   (testing "starts with underscore"
-    (let [{:keys [warnings result]} (logging/capture-warnings (column-name test-context "_invalid"))]
-      (is (= 1 (count warnings)))
-      (is (invalid? result))))
+    (warns-invalid (column-name test-context "_invalid")))
 
   (testing "invalid template variable"
-    (let [{:keys [warnings result]} (logging/capture-warnings (column-name test-context "not a valid variable name"))]
-      (is (= 1 (count warnings)))
-      (is (invalid? result))))
+    (warns-invalid (column-name test-context "not a valid variable name")))
 
   (testing "invalid type"
-    (let [{:keys [warnings result]} (logging/capture-warnings (column-name test-context ["not" "a" "string"]))]
-      (is (= 1 (count warnings)))
-      (is (invalid? result)))))
+    (warns-invalid (column-name test-context ["not" "a" "string"]))))
 
 (deftest columns-test
   (testing "valid columns"
-    (let [{:keys [warnings result]} (logging/capture-warnings (columns test-context [{"name" "col1"}
-                                                                                     {"name" "col2" "titles" "title" "virtual" false}
-                                                                                     {"name" "col3" "virtual" true}]))]
-      (is (empty? warnings))
-      (is (= [{:name "col1"}
-              {:name "col2" :titles {"und" ["title"]} :virtual false}
-              {:name "col3" :virtual true}]
-             result))))
+    (validates-as [{:name "col1" ::column/name "col1"}
+                   {:name "col2" :titles {"und" ["title"]} :virtual false ::column/name "col2"}
+                   {:name "col3" :virtual true ::column/name "col3"}]
+                  (columns test-context [{"name" "col1"}
+                                         {"name" "col2" "titles" "title" "virtual" false}
+                                         {"name" "col3" "virtual" true}])))
 
   (testing "missing column names"
-    (validates-as [{:titles {"und" ["title"]}}
-                   {:titles {"und" ["title1" "title2"]}}]
+    (validates-as [{:titles {"und" ["title"]} ::column/name "title"}
+                   {:titles {"und" ["title1" "title2"]} ::column/name "title1"}]
                   (columns test-context [{"titles" "title"}
                                          {"titles" ["title1" "title2"]}])))
 
