@@ -8,9 +8,6 @@
             [csv2rdf.logging :as logging])
   (:import [java.net URI]))
 
-(defn suppress-output? [table]
-  (boolean (:suppressOutput table)))
-
 ;;NOTE: link properties have a default value if the property is invalid
 ;;CSVW tests (see test 103) expect an error to be raised if the table URL is invalid
 (def table-url (strict link-property))
