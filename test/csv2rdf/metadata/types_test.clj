@@ -275,6 +275,10 @@
     (testing "Valid values"
       (testing "Objects"
         (testing "Containing @value key"
+          (let [obj {"@value" "value"}]
+            (is (= obj (common-property-value context obj)))))
+
+        (testing "Containing @value and @language keys"
           (let [obj {"@value" "bonjour"
                      "@language" "fr"}]
             (is (= obj (common-property-value context obj)))))

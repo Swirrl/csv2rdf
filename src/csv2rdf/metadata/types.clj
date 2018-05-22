@@ -155,6 +155,15 @@
           (resolve-uri context uri))))
     (make-error context (type-error-message #{:string} (mjson/get-json-type x)))))
 
+(defn type-one-of [allowed-types]
+  (fn [context x]
+    (let [type (mjson/get-json-type x)]
+      (if (contains? allowed-types type)
+        x
+        (make-error context (type-error-message allowed-types type))))))
+
+(def common-property-object-value-type (type-one-of #{:string :number :boolean}))
+
 (defn ^{:metadata-spec "5.8"} validate-common-property-value [context v]
   (cond
     (array? v)
@@ -163,20 +172,22 @@
     (object? v)
     (cond
       (contains? v "@value")
-      (let [allowed-keys ["@value" "@type" "@language"]
+      (let [value (common-property-object-value-type (append-path context "@value") (get v "@value"))
+            allowed-keys ["@value" "@type" "@language"]
             [allowed remaining] (util/partition-keys v allowed-keys)]
         (cond
           (seq remaining)
           (make-error context (str "Common property values specifying @value must only contain keys " (string/join ", " allowed-keys)))
 
+          ;;only contains @value
+          (= 1 (count allowed))
+          {"@value" value}
+
           (= 3 (count allowed))
           (make-error context "Common property values specifying @value can only contain one of @type or @language")
 
           :else
-          (let [value (get v "@value")
-                value-type (mjson/get-json-type value)
-                allowed-value-types #{:string :number :boolean}
-                [other-key other-value] (if (contains? v "@type")
+          (let [[other-key other-value] (if (contains? v "@type")
                                           ["@type" (common-property-type-with-value (append-path context "@type") (get v "@type"))]
                                           ["@language" (let [lang (get v "@language")
                                                              context (append-path context "@language")]
@@ -185,10 +196,8 @@
                                                              lang
                                                              (make-error context (format "Invalid language code '%s'" lang)))
                                                            (make-error context (type-error-message #{:string} (mjson/get-json-type lang)))))])]
-            (if (contains? allowed-value-types value-type)
-              {"@value" value
-               other-key other-value}
-              (make-error context (type-error-message allowed-value-types value-type))))))
+            {"@value" value
+             other-key other-value})))
 
       (contains? v "@language")
       (make-error (append-path context "@language") "@language key not permitted on objects without a @value key")
