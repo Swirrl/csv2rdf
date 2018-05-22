@@ -12,9 +12,12 @@
           url2-str "http://table2"]
       (validates-as [{:url (URI. url1-str)}
                      {:url (URI. url2-str)}]
-                    (tables test-context [{:url url1-str} {:url url2-str}]))))
+                    (tables test-context [{"url" url1-str} {"url" url2-str}]))))
+
+  (testing "Empty tables"
+    (validation-error (tables test-context [])))
 
   (testing "Invalid type"
     (let [{:keys [warnings]} (logging/capture-warnings
-                                      (validation-error (tables test-context "not an array")))]
+                               (validation-error (tables test-context "not an array")))]
       (is (empty? warnings)))))
