@@ -6,6 +6,7 @@
             [csv2rdf.xml.datatype :as xml-datatype]
             [csv2rdf.xml.datatype.parsing :as xml-parsing]
             [csv2rdf.xml.datatype.compare :refer [lt? lte? gt? gte?]]
+            [csv2rdf.metadata.properties :as properties]
             [grafter.rdf.io :refer [language]]
             [csv2rdf.vocabulary :refer :all])
   (:import [java.util.regex Pattern]
@@ -28,8 +29,9 @@
     (mcolumn/default column)
     value))
 
-(defn ^{:table-spec "6.4.7"} is-column-null? [value {:keys [null]}]
-  (some #(= value %) null))
+(defn ^{:table-spec "6.4.7"} is-column-null? [value column]
+  (let [null-values (properties/null column)]
+    (some #(= value %) null-values)))
 
 (defn fail-parse [string-value error-message]
   {:value string-value :datatype {:base "string"} :errors [error-message]})
@@ -117,10 +119,11 @@
 (defn ^{:table-spec "6.4.[6,7,8,9]"} parse-atomic-value
   "Parses an 'atomic' value within a cell i.e. one which should be parsed directly according to the
   column datatype."
-  [string-value {:keys [required] :as column}]
-  (let [value (column-default-if-empty string-value column)]
+  [string-value column]
+  (let [value (column-default-if-empty string-value column)
+        required? (properties/required? column)]
     (if (is-column-null? value column)
-      {:value nil :stringValue string-value :errors (if required [column-required-message] [])}
+      {:value nil :stringValue string-value :errors (if required? [column-required-message] [])}
       (let [result (parse-datatype string-value (mcolumn/datatype column))
             cell (assoc result :stringValue string-value)]
         (-> cell
@@ -142,13 +145,15 @@
 (defn separator->pattern [separator]
   (re-pattern (Pattern/quote separator)))
 
-(defn parse-cell-value [^String value {:keys [separator required] :as column}]
-  (let [datatype (mcolumn/datatype column)]
+(defn parse-cell-value [^String value column]
+  (let [datatype (mcolumn/datatype column)
+        separator (properties/separator column)
+        required? (properties/required? column)]
     (if (nil? separator)
       (let [result (parse-atomic-value value column)]
         (assoc result :list false))
       (if (.isEmpty value)
-        (if required
+        (if required?
           {:value [] :list true :stringValue value :errors [column-required-message]}
           {:value [] :list true :stringValue value :errors []})
         (if (is-column-null? value column)
