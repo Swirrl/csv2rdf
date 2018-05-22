@@ -54,8 +54,8 @@
   (into {} (filter (fn [[_k v]] (pred v)) m)))
 
 (defn partition-keys
-  "Splits a source map into two sub-maps - the first contain the keys in both source-map and ref-map,
-   the second contains the keys in source-map which do not exist in ref-map."
+  "Splits a source map into two sub-maps - the first contain the keys in both source-map and ref-keys,
+   the second contains the keys in source-map which do not exist in ref-keys."
   [source-map ref-keys]
   [(select-keys source-map ref-keys) (apply dissoc source-map ref-keys)])
 

@@ -17,10 +17,13 @@
 (defn foreign-key-reference [context x]
   (if (mjson/object? x)
     (let [obj x
-          has-column-ref? (contains? obj "columnReference")
-          has-resource? (contains? obj "resource")
-          has-schema-ref? (contains? obj "schemaReference")]
+          permitted-keys ["columnReference" "resource" "schemaReference"]
+          [has-column-ref? has-resource? has-schema-ref?] (mapv #(contains? obj %) permitted-keys)
+          extra-keys (apply dissoc obj permitted-keys)]
       (cond
+        (seq extra-keys)
+        (make-error context "Foreign key references can only contain the keys 'columnReference' and 'resource' or 'schemaReference'")
+
         (not has-column-ref?)
         (make-error context "Foreign key references must specify columnReference key")
 

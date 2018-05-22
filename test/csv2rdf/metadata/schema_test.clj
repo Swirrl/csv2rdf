@@ -34,6 +34,11 @@
                                                            "resource" "http://table"
                                                            "schemaReference" "http://schema"})))
 
+  (testing "Invalid contains extra properties"
+    (validation-error (foreign-key-reference test-context {"columnReference" ["col1" "col2"]
+                                                           "resource" "http://table"
+                                                           "dc:title" "not allowed"})))
+
   (testing "Invalid type"
     (validation-error (foreign-key-reference test-context ["not" "an" "object"]))))
 
