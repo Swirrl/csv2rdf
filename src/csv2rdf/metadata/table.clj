@@ -1,16 +1,12 @@
 (ns csv2rdf.metadata.table
   (:require [csv2rdf.metadata.validator :refer [array-of bool type-eq strict]]
             [csv2rdf.metadata.types :refer [link-property note table-direction object-property id contextual-object]]
-            [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
+            [csv2rdf.metadata.inherited :refer [metadata-of]]
             [csv2rdf.metadata.schema :as schema]
             [csv2rdf.metadata.transformation :as transformation]
             [csv2rdf.metadata.dialect :as dialect]
             [csv2rdf.logging :as logging])
   (:import [java.net URI]))
-
-(def table-defaults
-  {:suppressOutput false
-   :tableDirection "auto"})
 
 (defn suppress-output? [table]
   (boolean (:suppressOutput table)))
@@ -39,15 +35,6 @@
 
 (defn looks-like-table-json? [doc]
   (contains? doc "url"))
-
-(defn expand-children [table]
-  (update table :tableSchema (fn [s] (schema/expand-properties table s))))
-
-(defn expand-properties
-  "Expands all properties for this table by inheriting any undefined inherited properties from its parent table group."
-  [parent-table-group table]
-  (let [table (inherited/expand-inherit parent-table-group (merge table-defaults table))]
-    (expand-children table)))
 
 (defn parse-table-json [context doc]
   (let [t ((contextual-object true table) context doc)]

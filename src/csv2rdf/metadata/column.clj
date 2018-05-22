@@ -4,7 +4,7 @@
             [csv2rdf.metadata.validator :refer [make-warning make-error chain string invalid bool eq type-eq array-of]]
             [csv2rdf.metadata.context :refer [language-code-or-default]]
             [csv2rdf.metadata.types :refer [natural-language id]]
-            [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
+            [csv2rdf.metadata.inherited :refer [metadata-of]]
             [clojure.string :as string]
             [clojure.set :as set])
   (:import [java.nio CharBuffer]
@@ -51,10 +51,6 @@
 
 (def ^{:metadata-spec "5.6"} column-name
   (chain string validate-column-name))
-
-(def column-defaults
-  {:suppressOutput false
-   :virtual false})
 
 (def column
   (metadata-of
@@ -115,12 +111,6 @@
     (validate-column-names context cols)
     (validate-virtual-columns context cols)
     cols))
-
-(defn expand-properties
-  "Expands all properties for this column by inheriting any unspecified inherited properties from its parent
-   schema."
-  [parent-schema column]
-  (inherited/expand-inherit parent-schema (merge column-defaults column)))
 
 (defn from-titles
   "Creates a new column given the column index and the sequence of titles"

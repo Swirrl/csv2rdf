@@ -102,13 +102,6 @@
     (validate-schema-column-references context schema)
     schema))
 
-(defn expand-properties
-  "Expands all properties for this schema by inheriting any undefined properties from its parent table."
-  [parent-table schema]
-  (let [schema (inherited/expand-inherit parent-table schema)]
-    (update schema :columns (fn [cols]
-                              (mapv (fn [c] (column/expand-properties schema c)) cols)))))
-
 (defn ^{:tabular-spec "8.10.4.5.1.1"} merge-columns
   "Creates any extra columns which exist in the embedded schema but which are not defined in the user metadata."
   [user-columns embedded-columns]

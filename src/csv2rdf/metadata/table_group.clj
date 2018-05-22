@@ -6,11 +6,7 @@
             [csv2rdf.metadata.schema :as schema]
             [csv2rdf.metadata.transformation :as transformation]
             [csv2rdf.metadata.dialect :as dialect]
-            [csv2rdf.metadata.table :as table]
-            [csv2rdf.metadata.inherited :as inherited]))
-
-(def table-group-defaults
-  {:tableDirection "auto"})
+            [csv2rdf.metadata.table :as table]))
 
 (defn tables [context x]
   (if (mjson/array? x)
@@ -33,14 +29,6 @@
 
 (defn looks-like-table-group-json? [doc]
   (contains? doc "tables"))
-
-(defn expand-properties
-  "Expands all properties for this table group by expanding the properties of its contained tables. There is no
-   parent, so any inherited properties not specified directly will use their default values."
-  [table-group]
-  (let [with-defaults (inherited/inherit-defaults table-group)]
-    (update with-defaults :tables (fn [tables]
-                                  (mapv (fn [t] (table/expand-properties with-defaults t)) tables)))))
 
 (defn parse-table-group-json [context doc]
   ((contextual-object true table-group) context doc))
