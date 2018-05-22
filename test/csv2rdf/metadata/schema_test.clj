@@ -102,7 +102,5 @@
       (let [schema {:columns columns
                     :foreignKeys [{:columnReference "missing"
                                    :reference {:columnReference ["refCol"]
-                                               :resource (URI. "http://table")}}]}
-            {:keys [warnings result]} (logging/capture-warnings (validate-schema-column-references test-context schema))]
-        (is (= 1 (count warnings)))
-        (is (= {:columns columns} result))))))
+                                               :resource (URI. "http://table")}}]}]
+        (validation-error (validate-schema-column-references test-context schema))))))

@@ -65,14 +65,16 @@
    should return all ancestor column names referenced within the value associated with key-name. If any referenced
    columns do not exist, a warning is added and the value associated with key-name is removed from the schema as
    though it was not specified."
-  ([schema context key-name column-names] (validate-column-references schema context key-name column-names identity))
-  ([schema context key-name column-names child-column-name-fn]
+  ([schema context key-name column-names required-property?] (validate-column-references schema context key-name column-names required-property? identity))
+  ([schema context key-name column-names required-property? child-column-name-fn]
    (if (contains? schema key-name)
      (let [specified-columns (child-column-name-fn (get schema key-name))
            invalid-columns (remove (fn [cn] (contains? column-names cn)) specified-columns)]
        (if (seq invalid-columns)
          (let [msg (format "Referenced column names: %s do not exist in the list of columns" (string/join ", " invalid-columns))]
-           (make-warning (append-path context (name key-name)) msg (dissoc schema key-name)))
+           (if required-property?
+             (make-error (append-path context (name key-name)) msg)
+             (make-warning (append-path context (name key-name)) msg (dissoc schema key-name))))
          schema))
      schema)))
 
@@ -80,11 +82,11 @@
   "Validator which checks all column name properties within the schema reference columns defined in the columns collection.
    Any components which reference non-existent columns are removed."
   [context {:keys [columns] :as schema}]
-  (let [column-names (into #{} (map :name columns))]
+  (let [column-names (into #{} (remove nil? (map :name columns)))]
     (-> schema
-        (validate-column-references context :primaryKey column-names)
-        (validate-column-references context :rowTitles column-names)
-        (validate-column-references context :foreignKeys column-names (fn [foreign-keys] (mapcat :columnReference foreign-keys))))))
+        (validate-column-references context :primaryKey column-names false)
+        (validate-column-references context :rowTitles column-names false)
+        (validate-column-references context :foreignKeys column-names true (fn [foreign-keys] (mapcat :columnReference foreign-keys))))))
 
 (def schema-def
   (metadata-of
