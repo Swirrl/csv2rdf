@@ -52,22 +52,27 @@
 
   (testing "intersection between titles with language"
     (is (compatible? false
-                     {:title {"en" ["title1" "title2"]
+                     {:titles {"en" ["title1" "title2"]
                                      "fr" ["le title"]}}
-                     {:title {"en" ["title2"]}})))
+                     {:titles {"en" ["title2"]}})))
 
   (testing "intersection between und and language"
-    (is (compatible? false {:title {"und" ["title"]}} {:title {"de" ["der title" "title"]}})))
+    (is (compatible? false {:titles {"und" ["title"]}} {:titles {"de" ["der title" "title"]}})))
 
   (testing "name without title"
-    (is (compatible? false {:name "column1"} {:title {"en" ["title"]}})))
+    (is (compatible? false {:name "column1"} {:titles {"en" ["title"]}})))
 
   (testing "title without name"
-    (is (compatible? false {:title {"en" ["title"]}} {:name "column2"})))
+    (is (compatible? false {:titles {"en" ["title"]}} {:name "column2"})))
 
   (testing "incompatible"
     (is (= false (compatible? false
-                              {:name "column1" :title {"en" ["title"] "fr" ["les title"]}}
-                              {:name "column2" :title {"en" ["other title"] "de" ["das title"]}})))))
+                              {:name "column1" :titles {"en" ["title"] "fr" ["les title"]}}
+                              {:name "column2" :titles {"en" ["other title"] "de" ["das title"]}}))))
+
+  (testing "incompatible titles"
+    (is (= false (compatible? false
+                              {:titles {"und" ["title1"]}}
+                              {:titles {"und" ["title2"]}})))))
 
 

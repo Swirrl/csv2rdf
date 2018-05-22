@@ -159,6 +159,9 @@
   (let [title-intersection (intersect-titles (:titles column1) (:titles column2))]
     (boolean (some seq (vals title-intersection)))))
 
+(defn- column-names-equal? [{name1 :name :as col1} {name2 :name :as col2}]
+  (and (some? name1) (some? name2) (= name1 name2)))
+
 (defn ^{:metadata-spec "5.5.1"} compatible? [validating? column1 column2]
   (letfn [(has-name? [column] (some? (:name column)))
           (has-title? [column] (boolean (seq (:titles column))))
@@ -167,7 +170,7 @@
           (has-title-no-name? [column] (and (has-title? column) (not (has-name? column))))]
     (or (not (has-name-or-title? column1))
         (not (has-name-or-title? column2))
-        (= (:name column1) (:name column2))
+        (column-names-equal? column1 column2)
         (titles-intersect? column1 column2)
         (and
           (not validating?)
