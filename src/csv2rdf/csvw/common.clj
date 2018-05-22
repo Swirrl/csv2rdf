@@ -1,12 +1,11 @@
 (ns csv2rdf.csvw.common
-  (:require [csv2rdf.util :as util]
-            [csv2rdf.tabular.cell :as cell]
+  (:require [csv2rdf.tabular.cell :as cell]
             [csv2rdf.vocabulary :refer :all]
             [grafter.rdf :refer [->Triple] :as rdf]
             [csv2rdf.xml.datatype :as xml-datatype]
             [csv2rdf.xml.datatype.canonical :as xml-canonical]
-            [csv2rdf.metadata.column :as column]
-            [csv2rdf.logging :as logging])
+            [csv2rdf.logging :as logging]
+            [csv2rdf.metadata.properties :as properties])
   (:import [java.net URI]
            [org.openrdf.model.impl URIImpl]))
 
@@ -19,7 +18,7 @@
   "Gets the all the cells within a row whose column output is not suppressed"
   [{:keys [cells] :as row}]
   (remove (fn [{:keys [column] :as cell}]
-            (column/suppress-output? column))
+            (properties/suppress-output? column))
           cells))
 
 (defn set-encoded-fragment
@@ -31,7 +30,7 @@
   (URIImpl. (str (.getScheme uri) ":" (.getRawSchemeSpecificPart uri) "#" encoded-fragment)))
 
 (defn column-about-url [tabular-data-file-url column]
-  (set-encoded-fragment tabular-data-file-url (column/get-name column)))
+  (set-encoded-fragment tabular-data-file-url (properties/column-name column)))
 
 (defn ^{:csvw-spec "4.6.8.3"} cell-predicate [tabular-data-file-url {:keys [propertyUrl column] :as cell}]
   (or propertyUrl (column-about-url tabular-data-file-url column)))

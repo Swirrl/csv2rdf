@@ -10,13 +10,13 @@
             [csv2rdf.tabular.csv :as csv]
             [grafter.rdf.io :as gio]
             [csv2rdf.logging :as log]
-            [csv2rdf.metadata.table :as table]))
+            [csv2rdf.metadata.properties :as properties]))
 
 (defn csv->rdf->destination [tabular-source metadata-source destination {:keys [mode] :as options}]
   (let [mode (or mode :standard)
         {:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source)
         table-group-dialect (:dialect metadata)
-        output-tables (remove table/suppress-output? tables)
+        output-tables (remove properties/suppress-output? tables)
         {:keys [statements] :as ctx} (table-group-context mode metadata)]
 
     (rdf/add destination (seq statements))

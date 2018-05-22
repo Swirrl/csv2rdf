@@ -19,16 +19,6 @@
 (defn datatype-base [column]
   (:base (datatype column)))
 
-(defn suppress-output? [column]
-  (boolean (:suppressOutput column)))
-
-(def get-name ::name)
-
-(defn ^{:metadata-spec "5.7"} default
-  "Gets the effective default value for this column"
-  [{:keys [default]}]
-  (or default ""))
-
 (def parse-variable-method (util/get-declared-method VariableSpecParser "parseFullName" [CharBuffer]))
 
 (defn parse-uri-template-variable [^String s]

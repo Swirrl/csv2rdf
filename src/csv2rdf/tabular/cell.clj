@@ -26,7 +26,7 @@
 
 (defn ^{:table-spec "6.4.3"} column-default-if-empty [^String value column]
   (if (.isEmpty value)
-    (mcolumn/default column)
+    (properties/default column)
     value))
 
 (defn ^{:table-spec "6.4.7"} is-column-null? [value column]
