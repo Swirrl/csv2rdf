@@ -1,5 +1,6 @@
 (ns csv2rdf.metadata.table-group
-  (:require [csv2rdf.metadata.validator :refer [array-of type-eq chain make-error]]
+  (:require [csv2rdf.metadata.validator :refer [array-of type-eq chain make-error type-error-message]]
+            [csv2rdf.metadata.json :as mjson]
             [csv2rdf.metadata.types :refer [object-property id table-direction note contextual-object]]
             [csv2rdf.metadata.inherited :refer [metadata-of]]
             [csv2rdf.metadata.schema :as schema]
@@ -11,14 +12,17 @@
 (def table-group-defaults
   {:tableDirection "auto"})
 
-(defn validate-tables [context tables]
-  (if (empty? tables)
-    (make-error context "Table group must contain at least one table definition")
-    tables))
+(defn tables [context x]
+  (if (mjson/array? x)
+    (let [tables ((array-of table/table) context x)]
+      (if (empty? tables)
+        (make-error context "Table group must contain at least one table definition")
+        tables))
+    (make-error context (type-error-message #{:array} (mjson/get-json-type x)))))
 
 (def table-group
   (metadata-of
-    {:required {:tables (chain (array-of table/table) validate-tables)}
+    {:required {:tables tables}
      :optional {:dialect         (object-property dialect/dialect)
                 :notes           (array-of note)
                 :tableDirection  table-direction
