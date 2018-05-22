@@ -464,11 +464,15 @@
     (testing "Pair with empty object"
       (validation-error (object-context context [csvw-ns {}])))
 
+    (testing "Pair with extra properties"
+      (validation-error (object-context context [csvw-ns {"@language" "fr"
+                                                          "dc:title" "not allowed"}])))
+
     (testing "Pair with invalid language code"
       (let [base-str "base"
             {:keys [warnings result]} (logging/capture-warnings (object-context context [csvw-ns {"@base" base-str "@language" "invalid language code"}]))]
         (is (= 1 (count warnings)))
-        (is (= {base-key (URI. base-str) language-key nil} result))))))
+        (is (= {base-key (URI. base-str)} result))))))
 
 (deftest contextual-object-test
   (let [base-uri (URI. "http://example.com")

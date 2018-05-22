@@ -292,11 +292,6 @@
 
 (def csvw-ns "http://www.w3.org/ns/csvw")
 
-(defn validate-object-context-pair [context [_ns m]]
-  (if (or (contains? m base-key) (contains? m language-key))
-    m
-    (make-error context "Top-level object must contain @base or @language keys")))
-
 (defn context-uri [context x]
   (if (string? x)
     (let [^String s x]
@@ -306,18 +301,33 @@
           (make-error context "Invalid URI"))))
     (make-error context (type-error-message #{:string} (mjson/get-json-type x)))))
 
-(defn strict-eq [expected]
-  (fn [context x]
-    (if (= expected x)
-      x
-      (make-error context (format "Expected '%s'" expected)))))
+(defn context-pair [context arr]
+  (if (= 2 (count arr))
+    (let [[ns obj] arr]
+      (cond
+        (not= csvw-ns ns)
+        (make-error (append-path context 0) (format "First item of object context pair must be %s" csvw-ns))
 
-(def parse-context-pair (tuple
-                          (strict-eq csvw-ns)
-                          (object-of {:optional {base-key     context-uri
-                                                 language-key (ignore-invalid language-code)}})))
+        (not (object? obj))
+        (make-error (append-path context 1) "Second item of object context pair must be an object")
 
-(def context-pair (chain parse-context-pair validate-object-context-pair))
+        :else
+        (let [[valid-keys invalid-keys] (util/partition-keys obj ["@base" "@language"])]
+          (cond
+            (empty? valid-keys)
+            (make-error context "Local context definition must contain one of @base or @language keys")
+
+            (seq invalid-keys)
+            (make-error context "Local context definition can only contain @base and @language keys")
+
+            :else
+            (let [base (some->> (get valid-keys "@base") (context-uri (append-path context "@base")))
+                  lang (some->> (get valid-keys "@language") ((ignore-invalid language-code) (append-path context "@language")))
+                  local-context (-> {}
+                                    (util/assoc-if (some? base) base-key base)
+                                    (util/assoc-if (some? lang) language-key lang))]
+              local-context)))))
+    (make-error context "object context array must contain two elements")))
 
 (defn object-context [context x]
   (cond
