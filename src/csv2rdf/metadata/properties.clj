@@ -81,7 +81,9 @@
 (def ^{:metadata-spec "5.7"} about-url (inherited :aboutUrl))
 (def ^{:metadata-spec "5.7"} datatype (inherited :datatype datatype/datatype-defaults))
 (def ^{:metadata-spec "5.7"} default (inherited :default ""))
-(def ^{:metadata-spec "5.7"} lang (inherited :lang "und"))
+
+;;NOTE: specification defines default as und but using nil as default results in strings without a language as required
+(def ^{:metadata-spec "5.7"} lang (inherited :lang))
 (def ^{:metadata-spec "5.7"} null (inherited :null [""]))
 (def ^{:metadata-spec "5.7"} ordered? (inherited :ordered false))
 (def ^{:metadata-spec "5.7"} property-url (inherited :propertyUrl))
