@@ -169,7 +169,10 @@
   [cell column]
   ;;NOTE: lang not required by specification but will be needed to set the string language?
   ;;TODO: associate lang with each cell element?
-  (merge cell (select-keys column [:ordered :textDirection :lang])))
+  (-> cell
+      (assoc :ordered (properties/ordered? column))
+      (assoc :textDirection (properties/text-direction column))
+      (assoc :lang (properties/lang column))))
 
 (defn ^{:table-spec "6.4"} parse-cell
   "Parses a cell value in the input CSV to obtain the semantic value."
