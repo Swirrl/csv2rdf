@@ -1,5 +1,5 @@
 (ns csv2rdf.metadata.datatype
-  (:require [csv2rdf.metadata.validator :refer [variant one-of make-error make-warning any chain eq type-eq
+  (:require [csv2rdf.metadata.validator :refer [variant one-of make-error make-warning any chain type-eq
                                                 character try-parse-with invalid? invalid type-error-message
                                                 string map-of ignore-invalid]]
             [csv2rdf.metadata.json :refer [object?]]

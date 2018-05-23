@@ -51,9 +51,6 @@
 (def ^{:doc "All known type names"} type-names
   (into #{} (concat primitive-type-names (keys aliases))))
 
-(defn valid-type-name? [s]
-  (contains? type-names s))
-
 (defn resolve-type-name [type-name]
   (get aliases type-name type-name))
 
@@ -114,9 +111,6 @@
 
 (defn is-numeric-type? [type-name]
   (some #(is-subtype? % type-name) ["decimal" "double" "float"]))
-
-(defn is-integral-type? [type-name]
-  (is-subtype? "integer" type-name))
 
 (defn is-date-time-type? [type-name]
   (or (is-subtype? "date" type-name)
@@ -192,8 +186,6 @@
 
 (def iri->datatype-name (into (set/map-invert indirect-mapping-iris)
                               (map (fn [type-name] [(type-name->xmls-url type-name) type-name]) primitive-type-names)))
-
-(def get-iri-type-name iri->datatype-name)
 
 (defn is-built-in-type-iri? [type-iri]
   (contains? iri->datatype-name type-iri))

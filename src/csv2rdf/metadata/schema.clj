@@ -1,9 +1,9 @@
 (ns csv2rdf.metadata.schema
-  (:require [csv2rdf.metadata.validator :refer [make-warning make-error invalid chain array-of eq type-eq strict variant type-error-message]]
+  (:require [csv2rdf.metadata.validator :refer [make-warning make-error invalid chain array-of type-eq strict variant type-error-message]]
             [csv2rdf.metadata.json :as mjson]
             [csv2rdf.metadata.context :refer [append-path]]
             [csv2rdf.metadata.types :refer [object-of object-property link-property column-reference id]]
-            [csv2rdf.metadata.inherited :refer [metadata-of] :as inherited]
+            [csv2rdf.metadata.inherited :refer [metadata-of]]
             [csv2rdf.metadata.column :as column]
             [clojure.string :as string]
             [clojure.set :as set]

@@ -1,9 +1,9 @@
 (ns csv2rdf.metadata.dialect
   (:require [clojure.spec.alpha :as s]
             [csv2rdf.util :as util]
-            [csv2rdf.metadata.types :refer [object-of id non-negative] :as types]
+            [csv2rdf.metadata.types :refer [object-of id non-negative]]
             [csv2rdf.metadata.validator :refer [make-warning invalid mapping variant any array-of string character
-                                                bool eq type-eq]]
+                                                bool type-eq]]
             [csv2rdf.http :as http])
   (:import [java.nio.charset Charset IllegalCharsetNameException]))
 

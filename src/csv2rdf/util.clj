@@ -1,12 +1,10 @@
 (ns csv2rdf.util
   (:require [clojure.java.io :as io]
             [clojure.data.json :as json]
-            [grafter.rdf.protocols :as gproto]
             [clojure.string :as string])
   (:import [java.net URI]
            [java.lang.reflect InvocationTargetException Method]
            [java.nio.charset Charset]
-           [grafter.rdf.protocols LangString RDFLiteral]
            [java.io ByteArrayOutputStream]))
 
 (defmacro ignore-exceptions [& body]
