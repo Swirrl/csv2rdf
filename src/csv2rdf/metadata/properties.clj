@@ -1,37 +1,61 @@
 (ns csv2rdf.metadata.properties
   (:require [csv2rdf.metadata.column :as column]
-            [csv2rdf.metadata.datatype :as datatype]))
+            [csv2rdf.metadata.datatype :as datatype])
+  (:import [clojure.lang IDeref]
+           [java.io Writer]))
 
-(defn child
+;;read-only container for metadata parent references. Overrides toString and print-method
+;;to reduce the printed output in the REPL.
+(defrecord ParentRef [parent]
+  IDeref
+  (deref [_this] parent)
+
+  Object
+  (toString [_this] "Parent reference"))
+
+(defmethod print-method ParentRef [x ^Writer writer]
+  (.write writer "Parent reference"))
+
+(defn- child
+  "Returns a function which takes a parent metadata record and associates in the child item at the given
+   key a reference to its parent. If child-fn is provided it is used to recursively set parent references
+   under the child record."
   ([child-key]
    (child child-key identity))
   ([child-key child-fn]
     (fn [parent]
       (update parent child-key (fn [child]
-                                 (child-fn (assoc child ::parent parent)))))))
+                                 (child-fn (assoc child ::parent (->ParentRef parent))))))))
 
-(defn children
+(defn- children
+  "Returns a function which takes a parent metadata record and associates a reference to the parent in each child
+  item contained in the collection at the given key. If child-fn is provided it is used to recursively set parent
+  references under the child record"
   ([children-key]
    (children children-key identity))
   ([children-key child-fn]
     (fn [parent]
       (update parent children-key (fn [cs]
-                                    (mapv (fn [c] (child-fn (assoc c ::parent parent))) cs))))))
+                                    (mapv (fn [c] (child-fn (assoc c ::parent (->ParentRef parent)))) cs))))))
 
-(def table-hierarchy
+(def set-table-parent-references
   (child :tableSchema
          (children :columns)))
 
-(def table-group-hierarchy
-  (children :tables table-hierarchy))
+(def set-table-group-parent-references
+  (children :tables set-table-parent-references))
 
 (defn- declared
+  "Defines a property accessor which returns the value at the given key from the given metadata, or the
+   default value if no value exists."
   ([key] (declared key nil))
   ([key default]
     (fn [obj]
       (get obj key default))))
 
-(defn- required [key]
+(defn- required
+  "Defines a property accessor which requires the key to exist on the given metadata"
+  [key]
   (fn [obj]
     (if-let [value (get obj key)]
       value
@@ -41,11 +65,14 @@
 (defn- find-inherited-property [obj key default]
   (if-let [value (get obj key)]
     value
-    (if-let [parent (::parent obj)]
-      (recur parent key default)
+    (if-let [parent-ref (::parent obj)]
+      (recur @parent-ref key default)
       default)))
 
 (defn- inherited
+  "Defines a property accessor which look for key on the given metadata item before recursively searching its
+   ancestors if not found. Returns nil or the specified default if the key is not defined on the metadata or any
+   of its ancestors."
   ([key] (inherited key nil))
   ([key default]
    (fn [obj] (find-inherited-property obj key default))))

@@ -6,7 +6,7 @@
             [csv2rdf.metadata.properties :as properties]))
 
 (defn set-table-group-parents [table-group]
-  (properties/table-group-hierarchy table-group))
+  (properties/set-table-group-parent-references table-group))
 
 (defn ^{:table-spec "6.1"} from-tabular-source [file-source]
   (set-table-group-parents (tmeta/get-metadata file-source)))
