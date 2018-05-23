@@ -9,7 +9,7 @@
                           (let [var-name (if (keyword? k) (name k) k)]
                             ;;TODO: create protocol for converting cell values to template values?
                             (cond
-                              (util/string-like? v) (.addScalarValue b var-name (util/->string v))
+                              (string? v) (.addScalarValue b var-name v)
                               (map? v) (.addMapValue b var-name v)
                               (coll? v) (.addListValue b var-name v)
                               (nil? v) b                    ;;TODO: throw exception?

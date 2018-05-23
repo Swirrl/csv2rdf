@@ -176,22 +176,3 @@
         (aset chars offset c1)
         (aset chars (inc offset) c2)))
     (String. chars)))
-
-;;TODO: move into own namespace?
-(defprotocol StringLike
-  (->string [this]))
-
-(extend-protocol StringLike
-  String
-  (->string [s] s)
-
-  LangString
-  (->string [ls] (:string ls))
-
-  ;;TODO: remove this implementation
-  RDFLiteral
-  (->string [lit]
-    (->string (gproto/raw-value lit))))
-
-(defn string-like? [x]
-  (satisfies? StringLike x))
