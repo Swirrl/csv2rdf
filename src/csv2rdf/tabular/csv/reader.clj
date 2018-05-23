@@ -1,7 +1,10 @@
 (ns csv2rdf.tabular.csv.reader
   (:require [clojure.spec.alpha :as s]
-            [clojure.string :as string])
-  (:import [java.io Reader PushbackReader]
+            [clojure.string :as string]
+            [csv2rdf.util :as util]
+            [clojure.java.io :as io]
+            [csv2rdf.metadata.dialect :as dialect])
+  (:import [java.io Reader PushbackReader InputStream InputStreamReader]
            [java.util Iterator]))
 
 (defn line-terminators->trie [terminator-strings]
@@ -113,7 +116,7 @@
         (throw (UnsupportedOperationException. "Cannot .remove from row content iterator"))))))
 
 (defn row-contents-seq [^PushbackReader reader options]
-  (iterator-seq (row-content-iterator reader options)))
+  (iterator-seq (util/owning-iterator reader #(row-content-iterator % options))))
 
 (defn maybe-char-at [^String s index]
   (if (and (>= index 0) (< index (.length s)))
@@ -196,14 +199,32 @@
 
 ;;TODO: require reader to be PushbackReader?
 
+;;TODO: make protocol
+(defn request-csv-source [csv-source]
+  {:headers {}
+   :stream  (io/input-stream csv-source)})
+
+(defn read-tabular-source [csv-source dialect]
+  (let [{:keys [headers ^InputStream stream]} (request-csv-source csv-source)]
+    (try
+      ;;TODO: move this into dialect namespace
+      (let [{:keys [^String encoding] :as options} (if (some? dialect)
+                                             (dialect/dialect->options dialect)
+                                             (dialect/get-default-options headers))
+            r (PushbackReader. (InputStreamReader. stream encoding))]
+        {:rows (row-contents-seq r options)
+         :options options})
+      (catch Exception ex
+        (.close stream)
+        (throw ex)))))
+
 (defn read-rows
   "Returns a lazy sequence of CSV rows from the underlying reader. The row records contain
    the source row number (reader is initially assumed to be positioned on row 1), the parsed
    content and cells along with any comment. Rows are classified as comments or data rows containing
    cell data. Cell data values are trimmed according to the trim-mode specified by the options."
-  [^Reader reader options]
-  (let [pbr (->pushback-reader reader)
-        records (row-contents-seq pbr options)]
+  [csv-source dialect]
+  (let [{:keys [rows options]} (read-tabular-source csv-source dialect)]
     (map-indexed (fn [idx row-content]
                    (make-row row-content (inc idx) options))
-                 records)))
+                 rows)))

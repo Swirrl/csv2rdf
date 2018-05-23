@@ -63,26 +63,25 @@
 ;;TODO: section 8.10.4.5.1 - add any extra columns for rows not defined in the input table
 (defn ^{:table-spec "8"} extract-embedded-metadata
   ([csv-source] (extract-embedded-metadata csv-source dialect/default-dialect))
-  ([csv-source {:keys [encoding] :as dialect}]
-   (with-open [r (io/reader csv-source :encoding encoding)]
-     (let [{:keys [skipRows] :as options} (dialect/dialect->options dialect)
-           rows (reader/read-rows r options)
-           [skipped-rows remaining-rows] (split-at skipRows rows)
-           skipped-row-comments (get-skipped-rows-comments skipped-rows)
-           [data-rows {:keys [columns] :as header}] (get-header remaining-rows options)
-           {:keys [invalid-row-numbers] :as data-validation} (validate-data-rows data-rows)]
-       (if (empty? invalid-row-numbers)
-         (let [embedded-comments (vec (concat skipped-row-comments (:comments header) (:comments data-validation)))
-               schema {:columns columns}
-               table (table/from-schema (source/->uri csv-source) schema)
-               table (if (empty? embedded-comments)
-                       table
-                       (assoc table :comments embedded-comments))]
-           (table-group/from-table table))
-         (let [msg (format "Rows %s contain an unexpected number of cell values (expected: %d)"
-                           (string/join ", " invalid-row-numbers)
-                           (:cell-count data-validation))]
-           (throw (ex-info msg {:invalid-rows invalid-row-numbers}))))))))
+  ([csv-source dialect]
+   (let [{:keys [skipRows] :as options} (dialect/dialect->options dialect)
+         rows (reader/read-rows csv-source dialect)
+         [skipped-rows remaining-rows] (split-at skipRows rows)
+         skipped-row-comments (get-skipped-rows-comments skipped-rows)
+         [data-rows {:keys [columns] :as header}] (get-header remaining-rows options)
+         {:keys [invalid-row-numbers] :as data-validation} (validate-data-rows data-rows)]
+     (if (empty? invalid-row-numbers)
+       (let [embedded-comments (vec (concat skipped-row-comments (:comments header) (:comments data-validation)))
+             schema {:columns columns}
+             table (table/from-schema (source/->uri csv-source) schema)
+             table (if (empty? embedded-comments)
+                     table
+                     (assoc table :comments embedded-comments))]
+         (table-group/from-table table))
+       (let [msg (format "Rows %s contain an unexpected number of cell values (expected: %d)"
+                         (string/join ", " invalid-row-numbers)
+                         (:cell-count data-validation))]
+         (throw (ex-info msg {:invalid-rows invalid-row-numbers})))))))
 
 ;;TODO: move this
 (def index->row-number inc)
@@ -131,11 +130,17 @@
      :cells         (vec cells)
      :titles row-titles}))
 
-(defn ^{:table-spec "8"} annotated-rows [reader table {:keys [skipRows num-header-rows skipBlankRows] :as csv-options}]
+;;TODO: use any headers from opening tabular file to create dialect
+;;TODO: pass IO stream instead of reader since dialect defines encoding
+(defn source->reader [source]
+  (reader/->pushback-reader (io/reader source)))
+
+(defn ^{:table-spec "8"} annotated-rows [source table dialect]
   (let [title-column-indexes (title-row-column-indexes table)
+        {:keys [skipRows num-header-rows skipBlankRows] :as csv-options} (dialect/dialect->options dialect)
         should-skip-row? (fn [{:keys [cells] :as row}] (and skipBlankRows (every? string/blank? cells)))
-        rows (reader/read-rows reader csv-options)
         row-offset (+ skipRows num-header-rows)
+        rows (reader/read-rows source dialect)
         data-rows (remove should-skip-row? (drop row-offset rows))]
     (map-indexed (fn [row-index row]
                    (annotate-row row-index row table title-column-indexes csv-options))

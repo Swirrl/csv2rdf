@@ -22,13 +22,10 @@
     (rdf/add destination (seq statements))
 
     (doseq [{:keys [url dialect] :as table} output-tables]
-      ;;TODO: use any headers from opening tabular file to create dialect
-      ;;TODO: pass IO stream instead of reader since dialect defines encoding
-      (let [dialect (or dialect table-group-dialect (dialect/get-default-dialect {}))
-            options (dialect/dialect->options dialect)]
-        (with-open [r (io/reader url)]
-          (let [annotated-rows (csv/annotated-rows r table options)]
-            (write-table-statements ctx destination table annotated-rows)))))))
+
+      (let [dialect (or dialect table-group-dialect (dialect/get-default-dialect {}))]
+        (let [annotated-rows (csv/annotated-rows url table dialect)]
+          (write-table-statements ctx destination table annotated-rows))))))
 
 (defn csv->rdf
   ([csv-source metadata-source] (csv->rdf csv-source metadata-source {}))

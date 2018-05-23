@@ -5,7 +5,9 @@
   (:import [java.net URI]
            [java.lang.reflect InvocationTargetException Method]
            [java.nio.charset Charset]
-           [java.io ByteArrayOutputStream]))
+           [java.io ByteArrayOutputStream]
+           [java.lang AutoCloseable]
+           [java.util Iterator]))
 
 (defmacro ignore-exceptions [& body]
   `(try
@@ -174,3 +176,62 @@
         (aset chars offset c1)
         (aset chars (inc offset) c2)))
     (String. chars)))
+
+(defn owning-iterator [^AutoCloseable source factory-fn]
+  (let [ita (atom nil)
+        state (atom 0)
+        move-done (fn []
+                    (.close source)
+                    (reset! ita nil)
+                    (reset! state 2))
+        move-open (fn []
+                    (try
+                      (reset! ita (factory-fn source))
+                      (reset! state 1)
+                      (catch Exception ex
+                        (move-done)
+                        (throw ex))))
+        get-next (fn []
+                   (try
+                     (.next @ita)
+                     (catch Exception ex
+                       (move-done)
+                       (throw ex))))]
+    (reify
+      Iterator
+      (hasNext [this]
+        (case @state
+          0 (do
+              (move-open)
+              (.hasNext this))
+
+          1 (let [^Iterator it @ita]
+              (try
+                (if (.hasNext it)
+                  true
+                  (do
+                    (move-done)
+                    false))
+                (catch Exception ex
+                  (move-done)
+                  (throw ex))))
+
+          2 false
+
+          (throw (IllegalStateException. (str "Unexpected state " @state)))))
+
+      (next [this]
+        (case @state
+          0 (do
+              (move-open)
+              (get-next))
+          1 (get-next)
+          2 (throw (IllegalStateException. "No next element"))
+          (throw (IllegalStateException. (str "Unexpected state " @state)))))
+
+      (remove [this]
+        (throw (UnsupportedOperationException. "remove not supported")))
+
+      AutoCloseable
+      (close [this]
+        (move-done)))))
