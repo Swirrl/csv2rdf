@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [csv2rdf.metadata.types :refer :all :as types]
             [csv2rdf.metadata.test-common :refer :all]
+            [csv2rdf.test-common :refer [suppress-test-logging]]
             [csv2rdf.metadata.validator :refer [invalid? string]]
             [csv2rdf.metadata.context :refer [base-key language-key] :as context]
             [csv2rdf.logging :as logging]
@@ -510,3 +511,5 @@
             {:keys [warnings result]} (logging/capture-warnings (v context ["not" "an" "object"]))]
         (is (= 1 (count warnings)))
         (is (invalid? result))))))
+
+(use-fixtures :each suppress-test-logging)

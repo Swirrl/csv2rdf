@@ -23,7 +23,7 @@
 (defn memory-logger []
   (->MemoryLogger (atom []) (atom [])))
 
-(def ^:dynamic *logger* (->NullLogger))
+(def ^:dynamic *logger* (->ForwardingLogger))
 
 (defmacro with-logger [logger & body]
   `(binding [*logger* ~logger]
@@ -35,6 +35,9 @@
          logger# (->MemoryLogger warnings# errors#)
          result# (with-logger logger# ~@body)]
      {:warnings @warnings# :result result#}))
+
+(defmacro suppress-logging [& body]
+  `(with-logger (->NullLogger) ~@body))
 
 (defn log-warning [msg]
   (warn *logger* msg))

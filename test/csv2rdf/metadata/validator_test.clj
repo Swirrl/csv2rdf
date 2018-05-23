@@ -1,6 +1,7 @@
 (ns csv2rdf.metadata.validator-test
   (:require [clojure.test :refer :all]
             [csv2rdf.metadata.test-common :refer :all]
+            [csv2rdf.test-common :refer [suppress-test-logging]]
             [csv2rdf.metadata.validator :refer :all]
             [csv2rdf.logging :as logging]
             [csv2rdf.metadata.context :as context])
@@ -254,3 +255,5 @@
       (let [{:keys [warnings result]} (logging/capture-warnings (v context 3))]
         (is (= 1 (count warnings)))
         (is (invalid? result))))))
+
+(use-fixtures :each suppress-test-logging)

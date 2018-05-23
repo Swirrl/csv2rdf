@@ -251,7 +251,7 @@
        (~'let [~'http-client (~'->TestHttpClient ~(escape-read request-map))
                ~'csv-uri ~(escape-read csv-uri)
                ~'metadata-uri ~(escape-read metadata-uri)
-               ~'{:keys [warnings errors result]} (~'http/with-http-client ~'http-client (~'csvw/csv->rdf ~'csv-uri ~'metadata-uri {:mode ~mode}))]
+               ~'{:keys [warnings errors result]} (~'http/with-http-client ~'http-client (~'test-csv->rdf ~'csv-uri ~'metadata-uri {:mode ~mode}))]
          ~(if (some? result-file)
             `(~'let [~'expected-statements (~'rdf/statements ~(escape-read result-file) :base-uri ~(escape-read action-uri))]
               (~'is (~'= true (~'is-isomorphic? ~'expected-statements ~'result)))))

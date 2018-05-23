@@ -1,6 +1,7 @@
 (ns csv2rdf.tabular.metadata-test
   (:require [csv2rdf.tabular.metadata :refer :all]
             [clojure.test :refer :all]
+            [csv2rdf.test-common :refer [suppress-test-logging]]
             [csv2rdf.http :as http]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
@@ -247,3 +248,4 @@
     (let [actual (run-associated-metadata-test state)]
       (= result actual))))
 
+(use-fixtures :each suppress-test-logging)
