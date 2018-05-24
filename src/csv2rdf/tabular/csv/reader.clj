@@ -194,11 +194,6 @@
               (parse-row-cells row-content options))
      :type (if is-comment? :comment :data)}))
 
-(defn ->pushback-reader [^Reader r]
-  (if (instance? PushbackReader r) r (PushbackReader. r)))
-
-;;TODO: require reader to be PushbackReader?
-
 ;;TODO: make protocol
 (defn request-csv-source [csv-source]
   {:headers {}

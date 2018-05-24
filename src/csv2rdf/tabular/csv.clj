@@ -10,7 +10,8 @@
             [csv2rdf.metadata.uri-template-property :as template-property]
             [csv2rdf.metadata.table-group :as table-group]
             [csv2rdf.metadata.properties :as properties]
-            [csv2rdf.source :as source]))
+            [csv2rdf.source :as source]
+            [csv2rdf.logging :as logging]))
 
 (defn ^{:table-spec "8.6"} get-skipped-rows-comments [skipped-rows]
   (remove nil? (map (fn [{:keys [type comment content] :as row}]
@@ -125,15 +126,15 @@
                         (merge (util/filter-values some? property-urls))
                         (assoc :column column))))
                 (map vector parsed-cells columns))]
+
+    ;;log cell errors
+    (doseq [err (mapcat cell/errors cells)]
+      (logging/log-warning err))
+
     {:number        row-number
      :source-number source-row-number
      :cells         (vec cells)
      :titles row-titles}))
-
-;;TODO: use any headers from opening tabular file to create dialect
-;;TODO: pass IO stream instead of reader since dialect defines encoding
-(defn source->reader [source]
-  (reader/->pushback-reader (io/reader source)))
 
 (defn ^{:table-spec "8"} annotated-rows [source table dialect]
   (let [title-column-indexes (title-row-column-indexes table)

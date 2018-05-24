@@ -4,8 +4,7 @@
             [csv2rdf.json-ld :as json-ld]
             [grafter.rdf :refer [->Triple]]
             [grafter.rdf.io :refer [language literal]]
-            [csv2rdf.util :as util]
-            [grafter.rdf :as rdf])
+            [csv2rdf.util :as util])
   (:import [java.net URI]))
 
 ;;TODO: move csv2rdf.metadata.json namespace and use definitions in there
@@ -108,13 +107,13 @@
      :table-group-subject tg-subject
      :statements (cons t (notes-non-core-annotation-statements tg-subject table-group))}))
 
-(defmethod write-table-statements :standard [{:keys [table-group-subject] :as context} destination {:keys [id url] :as table} annotated-rows]
+(defmethod table-statements :standard [{:keys [table-group-subject] :as context} {:keys [id url] :as table} annotated-rows]
   (let [table-subject (or id (gen-blank-node "table"))
         t-4_2 (->Triple table-group-subject csvw:table table-subject)
         t-4_3 (->Triple table-subject rdf:type csvw:Table)
         t-4_4 (->Triple table-subject csvw:url url)]
-    (rdf/add destination [t-4_2 t-4_3 t-4_4])
-    (rdf/add destination (seq (notes-non-core-annotation-statements table-subject table)))
-    (doseq [row annotated-rows]
-      (log-cell-errors row)
-      (rdf/add destination (row-statements table-subject table row)))))
+    (concat [t-4_2 t-4_3 t-4_4]
+            (notes-non-core-annotation-statements table-subject table)
+            (mapcat (fn [row]
+                      (row-statements table-subject table row))
+                    annotated-rows))))
