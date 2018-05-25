@@ -1,4 +1,4 @@
-(defproject csv2rdf "0.2.0"
+(defproject csv2rdf "0.2.1-SNAPSHOT"
   :description "Library for converting CSV to RDF"
   :url "https://github.com/Swirrl/csv2rdf"
   :license {:name "Eclipse Public License"
@@ -10,7 +10,6 @@
                  [org.apache.httpcomponents/httpcore "4.4.9"]
                  [clj-http "3.7.0"]
                  [org.clojure/tools.cli "0.3.7"]
-
                  [org.clojure/tools.logging "0.4.1"]
                  [org.slf4j/slf4j-api "1.7.25"]
                  [org.apache.logging.log4j/log4j-api "2.11.0"]

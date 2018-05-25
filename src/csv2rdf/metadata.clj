@@ -3,8 +3,8 @@
             [csv2rdf.metadata.table :as table]
             [csv2rdf.metadata.table-group :as table-group]
             [csv2rdf.metadata.validator :refer [make-error]]
-            [csv2rdf.util :as util]
-            [csv2rdf.source :as source]))
+            [csv2rdf.source :as source]
+            [clojure.spec.alpha :as s]))
 
 (defn parse-metadata-json [base-uri json]
   (let [context (make-context base-uri)]
@@ -18,5 +18,8 @@
       :else (make-error context "Expected top-level of metadata document to describe a table or table group"))))
 
 (defn parse-table-group-from-source [source]
-  (let [json (util/read-json source)]
+  (let [json (source/get-json source)]
     (parse-metadata-json (source/->uri source) json)))
+
+(s/fdef parse-table-group-from-source
+  :args (s/cat :source (s/and ::source/uriable ::source/json-source)))
