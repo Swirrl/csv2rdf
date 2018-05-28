@@ -147,6 +147,7 @@
 
 (defmethod get-metadata :http [csv-source]
   ;;TODO: handle exceptions
+  ;;TODO: replace with request-input-stream. Change InputStreamRequestable implementation to throw exceptions on not-found
   (let [csv-uri (source/->uri csv-source)
         {:keys [status body] :as response} (http/get-uri csv-uri)]
     (if (is-not-found-response? response)

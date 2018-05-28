@@ -3,7 +3,8 @@
             [clojure.string :as string]
             [csv2rdf.util :as util]
             [clojure.java.io :as io]
-            [csv2rdf.metadata.dialect :as dialect])
+            [csv2rdf.metadata.dialect :as dialect]
+            [csv2rdf.source :as source])
   (:import [java.io Reader PushbackReader InputStream InputStreamReader]
            [java.util Iterator]))
 
@@ -194,13 +195,8 @@
               (parse-row-cells row-content options))
      :type (if is-comment? :comment :data)}))
 
-;;TODO: make protocol
-(defn request-csv-source [csv-source]
-  {:headers {}
-   :stream  (io/input-stream csv-source)})
-
 (defn read-tabular-source [csv-source dialect]
-  (let [{:keys [headers ^InputStream stream]} (request-csv-source csv-source)]
+  (let [{:keys [headers ^InputStream stream]} (source/request-input-stream csv-source)]
     (try
       ;;TODO: move this into dialect namespace
       (let [{:keys [^String encoding] :as options} (if (some? dialect)

@@ -2,9 +2,10 @@
   "A source is an instance of clojure.java.io/IOFactory which has an associated URI"
   (:require [clojure.java.io :as io]
             [csv2rdf.util :as util]
-            [clojure.spec.alpha :as s])
+            [clojure.spec.alpha :as s]
+            [csv2rdf.http :as http])
   (:import [java.net URI]
-           [java.io File]))
+           [java.io File InputStream ByteArrayInputStream]))
 
 (defprotocol URIable
   (->uri ^URI [this]))
@@ -47,6 +48,44 @@
 
   JSONSource
   (get-json [_this] json))
+
+(defprotocol IntoInputStream
+  (into-input-stream [this]))
+
+(extend-protocol IntoInputStream
+  InputStream
+  (into-input-stream [is] is)
+
+  String
+  (into-input-stream [^String s] (ByteArrayInputStream. (.getBytes s)))
+
+  File
+  (into-input-stream [f] (io/input-stream f)))
+
+(defprotocol InputStreamRequestable
+  (request-input-stream [this]))
+
+(defmulti request-uri-input-stream (fn [uri] (keyword (.getScheme uri))))
+
+(defmethod request-uri-input-stream :http [uri]
+  (let [{:keys [headers body]} (http/get-uri uri)]
+    {:headers headers
+     :stream (into-input-stream body)}))
+
+(defmethod request-uri-input-stream :file [uri]
+  {:headers {} :stream (io/input-stream uri)})
+
+(extend-protocol InputStreamRequestable
+  File
+  (request-input-stream [f] {:headers {}
+                             :stream (io/input-stream f)})
+
+  URI
+  (request-input-stream [uri] (request-uri-input-stream uri))
+
+  IOSource
+  (request-input-stream [{:keys [io]}]
+    {:headers {} :stream (io/input-stream io)}))
 
 (s/def ::uriable #(satisfies? URIable %))
 (s/def ::json-source #(satisfies? JSONSource %))
