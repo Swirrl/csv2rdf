@@ -17,21 +17,6 @@
   URI
   (->uri [uri] uri))
 
-(defrecord IOSource [uri io]
-  URIable
-  (->uri [_this] uri)
-
-  io/IOFactory
-  (make-reader [_this opts] (io/make-reader io opts))
-  (make-writer [_this opts] (io/make-writer io opts))
-  (make-input-stream [_this opts] (io/make-input-stream io opts))
-  (make-output-stream [_this opts] (io/make-output-stream io opts)))
-
-(defn io-source [uri io]
-  "Creates a source from a URI and an instance of IOFactory."
-  {:pre [(satisfies? io/IOFactory io)]}
-  (->IOSource uri io))
-
 (defprotocol JSONSource
   "Protocol for loading a JSON map from a given source"
   (get-json [this]))
@@ -68,7 +53,13 @@
 (defmulti request-uri-input-stream (fn [uri] (keyword (.getScheme uri))))
 
 (defmethod request-uri-input-stream :http [uri]
-  (let [{:keys [headers body]} (http/get-uri uri)]
+  (let [{:keys [status headers body] :as response} (http/get-uri uri)]
+    (if (http/is-not-found-response? response)
+      (throw (ex-info
+               (format "Error resolving URI %s: not found" uri)
+               {:type ::resolve-uri-error
+                :uri uri
+                :status status})))
     {:headers headers
      :stream (into-input-stream body)}))
 
@@ -81,11 +72,7 @@
                              :stream (io/input-stream f)})
 
   URI
-  (request-input-stream [uri] (request-uri-input-stream uri))
-
-  IOSource
-  (request-input-stream [{:keys [io]}]
-    {:headers {} :stream (io/input-stream io)}))
+  (request-input-stream [uri] (request-uri-input-stream uri)))
 
 (s/def ::uriable #(satisfies? URIable %))
 (s/def ::json-source #(satisfies? JSONSource %))

@@ -2,10 +2,9 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as string]
             [csv2rdf.util :as util]
-            [clojure.java.io :as io]
             [csv2rdf.metadata.dialect :as dialect]
             [csv2rdf.source :as source])
-  (:import [java.io Reader PushbackReader InputStream InputStreamReader]
+  (:import [java.io PushbackReader InputStream InputStreamReader]
            [java.util Iterator]))
 
 (defn line-terminators->trie [terminator-strings]
@@ -195,19 +194,34 @@
               (parse-row-cells row-content options))
      :type (if is-comment? :comment :data)}))
 
+(defn make-tabular-reader [^InputStream stream {:keys [^String encoding] :as options}]
+  (PushbackReader. (InputStreamReader. stream encoding)))
+
+(defn make-row-contents-seq [input-stream options]
+  (row-contents-seq (make-tabular-reader input-stream options) options))
+
 (defn read-tabular-source [csv-source dialect]
   (let [{:keys [headers ^InputStream stream]} (source/request-input-stream csv-source)]
     (try
       ;;TODO: move this into dialect namespace
-      (let [{:keys [^String encoding] :as options} (if (some? dialect)
-                                             (dialect/dialect->options dialect)
-                                             (dialect/get-default-options headers))
-            r (PushbackReader. (InputStreamReader. stream encoding))]
-        {:rows (row-contents-seq r options)
+      (let [options (if (some? dialect)
+                      (dialect/dialect->options dialect)
+                      (dialect/get-default-options headers))]
+        {:rows (make-row-contents-seq stream options)
          :options options})
       (catch Exception ex
         (.close stream)
         (throw ex)))))
+
+(defn row-contents->rows
+  "Converts a sequence of row contents into a sequence of rows"
+  [row-contents options]
+  (map-indexed (fn [idx row-content]
+                 (make-row row-content (inc idx) options))
+               row-contents))
+
+(defn make-row-seq [input-stream options]
+  (row-contents->rows (make-row-contents-seq input-stream options) options))
 
 (defn read-rows
   "Returns a lazy sequence of CSV rows from the underlying reader. The row records contain
@@ -216,6 +230,4 @@
    cell data. Cell data values are trimmed according to the trim-mode specified by the options."
   [csv-source dialect]
   (let [{:keys [rows options]} (read-tabular-source csv-source dialect)]
-    (map-indexed (fn [idx row-content]
-                   (make-row row-content (inc idx) options))
-                 rows)))
+    (row-contents->rows rows options)))

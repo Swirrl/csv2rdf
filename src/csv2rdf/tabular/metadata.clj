@@ -10,14 +10,10 @@
             [clojure.java.io :as io]
             [csv2rdf.metadata.table-group :as table-group]
             [csv2rdf.metadata.table :as table]
-            [csv2rdf.logging :as log])
+            [csv2rdf.logging :as log]
+            [csv2rdf.metadata.dialect :as dialect]
+            [csv2rdf.tabular.csv.reader :as reader])
   (:import [java.net URI]))
-
-;;TODO: move into http namespace?
-(defn ^{:table-spec "5.3"} is-not-found-response?
-  "Indicates whether the response map represents a 'not found' response."
-  [{:keys [status]}]
-  (and (>= status 400) (<= status 600)))
 
 (def ^{:table-spec "5.2"} metadata-link-header-content-types
   #{"application/csvm+json" "application/ld+json" "application/json"})
@@ -29,12 +25,12 @@
   (and (http/relation-type= "describedby" rel)
        (contains? metadata-link-header-content-types type)))
 
-(defn ^{:table-spec "5.2"} get-metadata-link [csv-response]
-  (let [links (http/find-links csv-response)]
+(defn ^{:table-spec "5.2"} get-metadata-link [csv-headers]
+  (let [links (http/find-links csv-headers)]
     (last (filter is-metadata-link? links))))
 
-(defn ^{:table-spec "5.2"} get-metadata-link-uri [^URI csv-uri csv-response]
-  (if-let [link-header (get-metadata-link csv-response)]
+(defn ^{:table-spec "5.2"} get-metadata-link-uri [^URI csv-uri csv-headers]
+  (if-let [link-header (get-metadata-link csv-headers)]
     ;;TODO: URIs must be normalised (section 6.3)
     (let [^URI link-uri (::http/link-uri link-header)]
       (.resolve csv-uri link-uri))))
@@ -98,7 +94,7 @@
 
 (defn ^{:table-spec "5.3"} try-get-location-templates [uri]
   (let [{:keys [body] :as response} (http/get-uri uri)]
-    (if-not (is-not-found-response? response)
+    (if-not (http/is-not-found-response? response)
       (parse-response-location-templates body))))
 
 (defn try-get-site-wide-configuration-templates [^URI csv-uri]
@@ -145,18 +141,15 @@
 (defmethod get-metadata :file [csv-source]
   (csv/extract-embedded-metadata csv-source))
 
+;;TODO: make this into a normal method? Create protocol for metadata resolution?
 (defmethod get-metadata :http [csv-source]
   ;;TODO: handle exceptions
-  ;;TODO: replace with request-input-stream. Change InputStreamRequestable implementation to throw exceptions on not-found
   (let [csv-uri (source/->uri csv-source)
-        {:keys [status body] :as response} (http/get-uri csv-uri)]
-    (if (is-not-found-response? response)
-      (throw (ex-info
-               (format "Error resolving CSV at URI %s: not found" csv-uri)
-               {:type ::resolve-csv-error
-                :csv-uri csv-uri
-                :status status}))
-      (let [metadata-link (get-metadata-link-uri csv-uri response)]
-        (if-let [metadata-doc (resolve-associated-metadata csv-uri metadata-link)]
-          (meta/parse-metadata-json csv-uri metadata-doc)
-          (csv/extract-embedded-metadata (source/io-source csv-uri body)))))))
+        {:keys [headers stream]} (source/request-input-stream csv-source)
+        metadata-link (get-metadata-link-uri csv-uri headers)]
+    (if-let [metadata-doc (resolve-associated-metadata csv-uri metadata-link)]
+      (meta/parse-metadata-json csv-uri metadata-doc)
+      (let [dialect (dialect/get-default-dialect headers)
+            options (dialect/dialect->options dialect)
+            rows (reader/make-row-seq stream options)]
+        (csv/rows->embedded-metadata csv-uri options rows)))))

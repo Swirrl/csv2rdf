@@ -100,17 +100,17 @@
     (let [headers {"Content-Type" "text/csv"
                    "Content-Length" "1024"
                    http/link-header-name (make-link-headers link other-links)}
-          found (get-metadata-link {:headers headers})]
+          found (get-metadata-link headers)]
       (= link found))))
 
 (defspec get-metadata-link-missing-test 100
   (prop/for-all
     [headers non-metadata-headers-gen]
-    (nil? (get-metadata-link {:headers headers}))))
+    (nil? (get-metadata-link headers))))
 
 (deftest get-metadata-link-malformed-test
   (let [headers {http/link-header-name "<invalid uri> ; rel=\"describedby\" type=\"application/json\""}]
-    (is (nil? (get-metadata-link {:headers headers})))))
+    (is (nil? (get-metadata-link headers)))))
 
 ;;associated metadata
 

@@ -16,6 +16,11 @@
 (defn is-ok-response? [{:keys [status] :as response}]
   (and (>= status 200) (<= status 300)))
 
+(defn ^{:table-spec "5.3"} is-not-found-response?
+  "Indicates whether the response map represents a 'not found' response."
+  [{:keys [status]}]
+  (and (>= status 400) (<= status 600)))
+
 (defn parse-parameters [^HeaderElement element]
   (into {} (map (fn [^NameValuePair p] [(keyword (.getName p)) (.getValue p)]) (.getParameters element))))
 
@@ -55,9 +60,9 @@
 relation-type= util/equals-ignore-case?)
 
 (defn find-links
-  "Finds and parses all the Link headers in the given response. Links are returned in the same order as the
-   corresponding headers in the response. Any malformed Link headers are ignored and remove from the output."
-  [{:keys [headers] :as response}]
+  "Finds and parses all the Link headers in the given header map. Links are returned in the same order as the
+   corresponding headers in the response. Any malformed Link headers are ignored and removed from the output."
+  [headers]
   (->> (get headers link-header-name)
        (util/->coll)
        (map (fn [header-str] (util/ignore-exceptions (parse-link-header header-str))))
