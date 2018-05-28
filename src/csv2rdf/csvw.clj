@@ -7,7 +7,8 @@
             [clojure.java.io :as io]
             [csv2rdf.tabular.csv :as csv]
             [grafter.rdf.io :as gio]
-            [csv2rdf.metadata.properties :as properties]))
+            [csv2rdf.metadata.properties :as properties]
+            [csv2rdf.util :as util]))
 
 (defn get-table-statements [context {:keys [url dialect] :as table} table-group-dialect]
   (let [dialect (or dialect table-group-dialect)]
@@ -22,9 +23,9 @@
          table-group-dialect (:dialect metadata)
          output-tables (remove properties/suppress-output? tables)
          {:keys [statements] :as ctx} (table-group-context mode metadata)
-         table-statements (mapcat (fn [table]
-                                    (get-table-statements ctx table table-group-dialect))
-                                  output-tables)]
+         table-statements (util/lazy-mapcat (fn [table]
+                                              (get-table-statements ctx table table-group-dialect))
+                                            output-tables)]
      (concat statements table-statements))))
 
 (defn csv->rdf->destination [tabular-source metadata-source destination options]

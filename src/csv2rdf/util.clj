@@ -235,3 +235,12 @@
       AutoCloseable
       (close [this]
         (move-done)))))
+
+(defn lazy-mapcat
+  "Version of mapcat which applies the function f to each input element on demand and avoids holding onto the
+  head of any of the generated sub-sequences."
+  [f coll]
+  (lazy-seq
+    (when (seq coll)
+      (let [s (first coll)]
+        (concat (f s) (lazy-mapcat f (rest coll)))))))
