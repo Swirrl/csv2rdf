@@ -13,7 +13,8 @@
             [csv2rdf.logging :as log]
             [csv2rdf.metadata.dialect :as dialect]
             [csv2rdf.tabular.csv.reader :as reader])
-  (:import [java.net URI]))
+  (:import [java.net URI]
+           (java.io File InputStream)))
 
 (def ^{:table-spec "5.2"} metadata-link-header-content-types
   #{"application/csvm+json" "application/ld+json" "application/json"})
@@ -136,20 +137,34 @@
     (try-resolve-linked-metadata csv-uri csv-link)
     (try-locate-site-wide-configurations-metadata csv-uri)))
 
-(defmulti get-metadata (fn [csv-source] (keyword (.getScheme (source/->uri csv-source)))))
+(defn io-source->embedded-metadata [io-source]
+  (let [options (dialect/get-default-options)
+        rows (reader/make-row-seq (io/input-stream io-source) options)]
+    (csv/rows->embedded-metadata (source/->uri io-source) options rows)))
 
-(defmethod get-metadata :file [csv-source]
-  (csv/extract-embedded-metadata csv-source))
+(defmulti get-uri-metadata (fn [uri] (keyword (.getScheme uri))))
 
-;;TODO: make this into a normal method? Create protocol for metadata resolution?
-(defmethod get-metadata :http [csv-source]
-  ;;TODO: handle exceptions
-  (let [csv-uri (source/->uri csv-source)
-        {:keys [headers stream]} (source/request-input-stream csv-source)
-        metadata-link (get-metadata-link-uri csv-uri headers)]
-    (if-let [metadata-doc (resolve-associated-metadata csv-uri metadata-link)]
-      (meta/parse-metadata-json csv-uri metadata-doc)
+(defmethod get-uri-metadata :file [uri]
+  (io-source->embedded-metadata uri))
+
+(defmethod get-uri-metadata :http [uri]
+  (let [{:keys [headers ^InputStream stream]} (source/request-input-stream uri)
+        metadata-link (get-metadata-link-uri uri headers)]
+    (if-let [metadata-doc (resolve-associated-metadata uri metadata-link)]
+      (do
+        (.close stream)
+        (meta/parse-metadata-json uri metadata-doc))
       (let [dialect (dialect/get-default-dialect headers)
             options (dialect/dialect->options dialect)
             rows (reader/make-row-seq stream options)]
-        (csv/rows->embedded-metadata csv-uri options rows)))))
+        (csv/rows->embedded-metadata uri options rows)))))
+
+(defprotocol MetadataLocator
+  (get-metadata [tabular-source]))
+
+(extend-protocol MetadataLocator
+  File
+  (get-metadata [f] (io-source->embedded-metadata f))
+
+  URI
+  (get-metadata [uri] (get-uri-metadata uri)))
