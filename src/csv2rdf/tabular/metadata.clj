@@ -138,8 +138,7 @@
     (try-locate-site-wide-configurations-metadata csv-uri)))
 
 (defn io-source->embedded-metadata [io-source]
-  (let [options (dialect/get-default-options)
-        rows (reader/make-row-seq (io/input-stream io-source) options)]
+  (let [{:keys [options rows]} (reader/open-rows io-source dialect/default-dialect)]
     (csv/rows->embedded-metadata (source/->uri io-source) options rows)))
 
 (defmulti get-uri-metadata (fn [uri] (keyword (.getScheme uri))))
@@ -155,8 +154,7 @@
         (.close stream)
         (meta/parse-metadata-json uri metadata-doc))
       (let [dialect (dialect/get-default-dialect headers)
-            options (dialect/dialect->options dialect)
-            rows (reader/make-row-seq stream options)]
+            {:keys [options rows]} (reader/open-rows stream dialect)]
         (csv/rows->embedded-metadata uri options rows)))))
 
 (defprotocol MetadataLocator

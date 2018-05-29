@@ -4,8 +4,9 @@
             [csv2rdf.util :as util]
             [csv2rdf.metadata.dialect :as dialect]
             [csv2rdf.source :as source])
-  (:import [java.io PushbackReader InputStream InputStreamReader]
-           [java.util Iterator]))
+  (:import [java.io PushbackReader InputStream InputStreamReader File]
+           [java.util Iterator]
+           (java.net URI)))
 
 (defn line-terminators->trie [terminator-strings]
   (reduce (fn [acc terminator-string]
@@ -180,6 +181,14 @@
 (s/def ::comment string?)
 (s/def ::type #{:comment :data})
 
+(defprotocol RowSource
+  "Represents a source of tabular row records. The open-rows method should return a map containing
+   :rows and :options keys. The :options key should contain the resolved CSV options derived from the
+   given dialect and any other parameters associated with the source. The :rows key should contain
+   a sequence of row records in the same format as those returned by reader/read-rows. The rows sequence
+   should only be iterated over once."
+  (open-rows [this dialect]))
+
 (defn is-comment-row? [{:keys [type]}]
   (= :comment type))
 
@@ -214,20 +223,28 @@
         (throw ex)))))
 
 (defn row-contents->rows
-  "Converts a sequence of row contents into a sequence of rows"
+  "Converts a sequence of row contents into a sequence of rows. The row records contain
+  the source row number (reader is initially assumed to be positioned on row 1), the parsed
+  content and cells along with any comment. Rows are classified as comments or data rows containing
+  cell data. Cell data values are trimmed according to the trim-mode specified by the options."
   [row-contents options]
   (map-indexed (fn [idx row-content]
                  (make-row row-content (inc idx) options))
                row-contents))
 
-(defn make-row-seq [input-stream options]
-  (row-contents->rows (make-row-contents-seq input-stream options) options))
+(extend-protocol RowSource
+  File
+  (open-rows [f dialect] (let [{:keys [rows options]} (read-tabular-source f dialect)]
+                           {:rows (row-contents->rows rows options)
+                            :options options}))
 
-(defn read-rows
-  "Returns a lazy sequence of CSV rows from the underlying reader. The row records contain
-   the source row number (reader is initially assumed to be positioned on row 1), the parsed
-   content and cells along with any comment. Rows are classified as comments or data rows containing
-   cell data. Cell data values are trimmed according to the trim-mode specified by the options."
-  [csv-source dialect]
-  (let [{:keys [rows options]} (read-tabular-source csv-source dialect)]
-    (row-contents->rows rows options)))
+  URI
+  (open-rows [uri dialect] (let [{:keys [rows options]} (read-tabular-source uri dialect)]
+                             {:rows (row-contents->rows rows options)
+                              :options options}))
+
+  InputStream
+  (open-rows [is dialect] (let [options (dialect/dialect->options dialect)
+                                row-contents (make-row-contents-seq is options)]
+                            {:rows (row-contents->rows row-contents options)
+                             :options options})))

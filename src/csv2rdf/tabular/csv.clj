@@ -83,8 +83,7 @@
 (defn ^{:table-spec "8"} extract-embedded-metadata
   ([csv-source] (extract-embedded-metadata csv-source dialect/default-dialect))
   ([csv-source dialect]
-   (let [options (dialect/dialect->options dialect)
-         rows (reader/read-rows csv-source dialect)]
+   (let [{:keys [options rows]} (reader/open-rows csv-source dialect)]
      (rows->embedded-metadata (source/->uri csv-source) options rows))))
 
 ;;TODO: move this
@@ -187,6 +186,5 @@
          data-rows)))
 
 (defn ^{:table-spec "8"} annotated-rows [source table dialect]
-  (let [options (dialect/dialect->options dialect)
-        rows (reader/read-rows source dialect)]
+  (let [{:keys [options rows]} (reader/open-rows source dialect)]
     (annotate-rows rows table options)))

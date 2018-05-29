@@ -10,21 +10,23 @@
             [csv2rdf.metadata.properties :as properties]
             [csv2rdf.util :as util]))
 
-(defn get-table-statements [context {:keys [url dialect] :as table} table-group-dialect]
-  (let [dialect (or dialect table-group-dialect)]
-    (let [annotated-rows (csv/annotated-rows url table dialect)]
+(defn get-table-statements [context table-resolver {:keys [url dialect] :as table} table-group-dialect]
+  (let [dialect (or dialect table-group-dialect)
+        table-source (table-resolver url)]
+    (let [annotated-rows (csv/annotated-rows table-source table dialect)]
       (table-statements context table annotated-rows))))
 
 (defn csv->rdf
   ([csv-source metadata-source] (csv->rdf csv-source metadata-source {}))
-  ([tabular-source metadata-source {:keys [mode] :as options}]
+  ([tabular-source metadata-source {:keys [mode table-resolver] :as options}]
    (let [mode (or mode :standard)
-         {:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source)
+         table-resolver (or table-resolver identity)
+         {:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source table-resolver)
          table-group-dialect (:dialect metadata)
          output-tables (remove properties/suppress-output? tables)
          {:keys [statements] :as ctx} (table-group-context mode metadata)
          table-statements (util/lazy-mapcat (fn [table]
-                                              (get-table-statements ctx table table-group-dialect))
+                                              (get-table-statements ctx table-resolver table table-group-dialect))
                                             output-tables)]
      (concat statements table-statements))))
 
