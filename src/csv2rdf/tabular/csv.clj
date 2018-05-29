@@ -97,55 +97,96 @@
                                             idx))
                                         columns)))))
 
-(defn annotate-row [row-index {:keys [source-row-number cells] :as data-row} table title-column-indexes {:keys [skipColumns] :as csv-options}]
-  (let [columns (table/columns table)
-        row-number (index->row-number row-index)
-        cell-values (drop skipColumns cells)
+(defn get-row-titles [title-column-indexes parsed-cells]
+  (remove nil? (map-indexed (fn [col-index cell]
+                              (if (contains? title-column-indexes col-index)
+                                cell))
+                            parsed-cells)))
 
-        ;;extend cells to cover any virtual columns
-        ;;TODO: handle virtual and non-virtual columns separately?
-        padded-cell-values (concat cell-values (repeat ""))
-        parsed-cells (map cell/parse-cell padded-cell-values columns)
-        row-titles (remove nil? (map-indexed (fn [col-index cell]
-                                              (if (contains? title-column-indexes col-index)
-                                                cell))
-                                            parsed-cells))
-        column-value-bindings (into {} (map (fn [cell column]
+(defn parse-row-cells [{:keys [cells] :as row} table {:keys [skipColumns] :as options}]
+  ;;TODO: handle virtual and non-virtual columns separately?
+  (let [columns (table/columns table)
+        cell-values (concat (drop skipColumns cells) (repeat "")) ;;extend cells to cover any virtual columns
+        cell-column-pairs (map vector cell-values columns)
+        parsed-cells (map-indexed (fn [col-idx [cell column]]
+                                    (let [result (cell/parse-cell cell column)
+                                          column-number (column/index->column-number col-idx)]
+                                      (assoc result
+                                        :column-number column-number
+                                        :source-column-number (+ skipColumns column-number)
+                                        :column column)))
+                                  cell-column-pairs)]
+    ;;log cell errors
+    (doseq [err (mapcat cell/errors parsed-cells)]
+      (logging/log-warning err))
+
+    (assoc row :parsed-cells parsed-cells)))
+
+(defn parse-rows [rows table options]
+  (map #(parse-row-cells % table options) rows))
+
+(defn get-row-template-bindings [{:keys [number source-row-number parsed-cells]}]
+  (let [column-value-bindings (into {} (map (fn [{:keys [column] :as cell}]
                                               ;;TODO: need 'canonical value' according to XML schema
                                               ;;see metadata spec 5.1.3
                                               [(util/percent-decode (properties/column-name column)) (:stringValue cell)])
-                                            parsed-cells columns))
-        row-bindings (assoc column-value-bindings :_row row-number :_sourceRow source-row-number)
-        cells (map-indexed
-                (fn [col-index [cell column]]
-                  (let [column-number (column/index->column-number col-index)
-                        bindings (assoc row-bindings :_name (util/percent-decode (properties/column-name column))
-                                                     :_column column-number
-                                                     :_sourceColumn (+ skipColumns column-number))
-                        property-urls {:aboutUrl (some-> (properties/about-url column) (template-property/resolve-uri-template-property bindings table))
-                                       :propertyUrl (some-> (properties/property-url column) (template-property/resolve-uri-template-property bindings table))
-                                       :valueUrl (some-> (properties/value-url column) (template-property/resolve-value-uri-template-property cell column bindings table))}]
-                    (-> cell
-                        (merge (util/filter-values some? property-urls))
-                        (assoc :column column))))
-                (map vector parsed-cells columns))]
+                                            parsed-cells))]
+    (assoc column-value-bindings :_row number :_sourceRow source-row-number)))
 
-    ;;log cell errors
-    (doseq [err (mapcat cell/errors cells)]
-      (logging/log-warning err))
+(defn get-cell-template-bindings [{:keys [column-number source-column-number column] :as cell}]
+  {:_name (util/percent-decode (properties/column-name column))
+   :_column column-number
+   :_sourceColumn source-column-number})
 
-    {:number        row-number
+(defn get-cell-urls [bindings table {:keys [column] :as cell}]
+  (let [property-urls {:aboutUrl (some-> (properties/about-url column) (template-property/resolve-uri-template-property bindings table))
+                       :propertyUrl (some-> (properties/property-url column) (template-property/resolve-uri-template-property bindings table))
+                       :valueUrl (some-> (properties/value-url column) (template-property/resolve-value-uri-template-property cell column bindings table))}]
+    (util/filter-values some? property-urls)))
+
+(defn annotate-row [{:keys [number source-row-number parsed-cells] :as data-row} table title-column-indexes]
+  (let [row-bindings (get-row-template-bindings data-row)
+        cells (map
+                (fn [cell]
+                  (let [cell-bindings (get-cell-template-bindings cell)
+                        bindings (merge row-bindings cell-bindings)
+                        property-urls (get-cell-urls bindings table cell)]
+                    (merge cell property-urls)))
+                parsed-cells)]
+    {:number number
      :source-number source-row-number
      :cells         (vec cells)
-     :titles row-titles}))
+     :titles (get-row-titles title-column-indexes parsed-cells)}))
+
+(defn skip-to-data-rows [rows {:keys [skipRows num-header-rows] :as options}]
+  (let [row-offset (+ skipRows num-header-rows)]
+    (drop row-offset rows)))
+
+(defn is-row-blank? [{:keys [cells] :as row}]
+  (every? string/blank? cells))
+
+(defn skip-blank-rows [rows {:keys [skipBlankRows] :as options}]
+  (if skipBlankRows
+    (remove is-row-blank? rows)
+    rows))
+
+(defn set-row-numbers [rows]
+  (map-indexed (fn [idx row]
+                 (assoc row :number (index->row-number idx)))
+               rows))
+
+(defn annotate-rows [rows table options]
+  (let [title-column-indexes (title-row-column-indexes table)
+        data-rows (-> rows
+                      (skip-to-data-rows options)
+                      (skip-blank-rows options)
+                      (set-row-numbers)
+                      (parse-rows table options))]
+    (map (fn [row]
+           (annotate-row row table title-column-indexes))
+         data-rows)))
 
 (defn ^{:table-spec "8"} annotated-rows [source table dialect]
-  (let [title-column-indexes (title-row-column-indexes table)
-        {:keys [skipRows num-header-rows skipBlankRows] :as csv-options} (dialect/dialect->options dialect)
-        should-skip-row? (fn [{:keys [cells] :as row}] (and skipBlankRows (every? string/blank? cells)))
-        row-offset (+ skipRows num-header-rows)
-        rows (reader/read-rows source dialect)
-        data-rows (remove should-skip-row? (drop row-offset rows))]
-    (map-indexed (fn [row-index row]
-                   (annotate-row row-index row table title-column-indexes csv-options))
-         data-rows)))
+  (let [options (dialect/dialect->options dialect)
+        rows (reader/read-rows source dialect)]
+    (annotate-rows rows table options)))
