@@ -5,7 +5,6 @@
             [csv2rdf.logging :as logging])
   (:import [java.net URI]))
 
-;;TODO: remove invalid marker value?
 (def invalid ::invalid)
 
 (defn invalid? [x]
@@ -87,15 +86,26 @@
 (def array (expect-type :array))
 (def object (expect-type :object))
 
-;;TODO: rewrite to use chain?
-(defn character [context x]
-  (let [s (string context x)]
-    (if (invalid? s)
-      invalid
-      (let [^String s s]
-        (if (= 1 (.length s))
-          (.charAt s 0)
-          (make-warning context "Expected single character" invalid))))))
+(defn chain
+  "Composes a sequence of validators into a validator which applies each validator in turn.
+   The resulting validator returns invalid on any intermediate invalid result and does not
+   call any subsequent validators in the chain."
+  [& validators]
+  (reduce (fn [acc validator]
+            (fn [context x]
+              (let [r (acc context x)]
+                (if (invalid? r)
+                  invalid
+                  (validator context r))))) any validators))
+
+(defn- validate-character
+  "Validates a string contains a single character and returns that character if valid"
+  [context ^String s]
+  (if (= 1 (.length s))
+    (.charAt s 0)
+    (make-warning context "Expected single character" invalid)))
+
+(def character (chain string validate-character))
 
 (defn variant [{:keys [default] :as tag-validators}]
   {:pre [(pos? (count tag-validators))]}
@@ -106,7 +116,6 @@
             actual-type (mjson/get-json-type x)]
         (make-warning context (type-error-message valid-types actual-type) (or default invalid))))))
 
-;;TODO: rewrite using chain?
 (defn array-of [element-validator]
   (fn [context x]
     (let [arr ((variant {:array any :default []}) context x)]
@@ -141,18 +150,6 @@
     (if (nil? x)
       nil
       (validator context x))))
-
-(defn chain
-  "Composes a sequence of validators into a validator which applies each validator in turn.
-   The resulting validator returns invalid on any intermediate invalid result and does not
-   call any subsequent validators in the chain."
-  [& validators]
-  (reduce (fn [acc validator]
-            (fn [context x]
-              (let [r (acc context x)]
-                (if (invalid? r)
-                  invalid
-                  (validator context r))))) any validators))
 
 (defn try-parse-with
   "Returns a validator which tries to parse the incoming value with the function f. Returns invalid if f
@@ -190,12 +187,6 @@
        (let [value (value-validator (append-path context k) (get m k))]
          [k (if (invalid? value) default value)])
        [k default]))))
-
-;;TODO: remove this and explicitly log a warning
-(defn ^{:metadata-spec "4"} invalid-key-pair
-  "Generates a warning for any invalid keys found in an object."
-  [context [k _]]
-  (make-warning context (str "Invalid key '" k "'") nil))
 
 (defn kvps
   "Takes a collection of kvp specs which validate a map and return a key-value pair (or invalid).
