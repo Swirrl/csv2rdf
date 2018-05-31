@@ -203,10 +203,7 @@
 (defn read-tabular-source [csv-source dialect]
   (let [{:keys [headers ^InputStream stream]} (source/request-input-stream csv-source)]
     (try
-      ;;TODO: move this into dialect namespace
-      (let [options (if (some? dialect)
-                      (dialect/dialect->options dialect)
-                      (dialect/get-default-options headers))]
+      (let [options (dialect/resolve-options dialect headers)]
         {:rows (make-row-contents-seq stream options)
          :options options})
       (catch Exception ex

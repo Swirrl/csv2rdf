@@ -75,7 +75,6 @@
 (defn calculate-dialect-options
   "Calculates the options used to configure reading for the source CSV data from the given dialect definition"
   [dialect]
-  ;;TODO: line terminators cannot currently be configured
   (merge (select-keys dialect [:encoding :skipRows :commentPrefix :delimiter :skipColumns :skipBlankRows :line-terminators])
          (calculate-quote-escape-chars dialect)
          {:trim-mode (calculate-trim-mode dialect)
@@ -96,7 +95,6 @@
 (s/def ::trim #{nil "true" "false" "start" "end"})
 (s/def ::trim-mode #{:none :all :start :end})
 
-;;TODO: can quote, escape or delimiters be nil?
 (s/def ::dialect (s/keys :req-un [::commentPrefix ::delimiter ::doubleQuote ::encoding ::header ::headerRowCount
                                   ::lineTerminators ::quoteChar ::skipBlankRows ::skipColumns ::skipInitialSpace
                                   ::skipRows ::trim]))
@@ -137,6 +135,19 @@
   ([] (get-default-options {}))
   ([tabular-file-http-headers]
     (dialect->options (get-default-dialect tabular-file-http-headers))))
+
+(defn ^{:table-spec "6.3.2"} resolve-dialect
+  "Calculates the dialect for a tabular file - uses dialect if it is non-nil, otherwise
+   calculates the default dialect based on the headers associated with accessing the
+   tabular data source."
+  [dialect tabular-file-headers]
+  (or dialect (get-default-dialect tabular-file-headers)))
+
+(defn ^{:table-spec "6.3.2"} resolve-options
+  "Calculates the options for a tabular file based on the provided dialect and any headers
+  associated with the tabular data source."
+  [dialect tabular-file-headers]
+  (dialect->options (resolve-dialect dialect tabular-file-headers)))
 
 ;;metadata parsing
 
