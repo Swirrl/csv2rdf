@@ -1,7 +1,8 @@
 (ns csv2rdf.xml.datatype.parsing
   (:require [csv2rdf.xml.datatype :as xml-datatype]
             [clojure.string :as string]
-            [csv2rdf.uax35 :as uax35])
+            [csv2rdf.uax35 :as uax35]
+            [csv2rdf.util :as util])
   (:import [java.net URI URISyntaxException]
            [java.util Base64]
            [javax.xml.datatype DatatypeFactory]
@@ -35,23 +36,8 @@
 (defmethod parse :base64Binary [_type-name ^String string-value]
   (.decode (Base64/getDecoder) string-value))
 
-(defn parse-hex-digit [^Character c]
-  (let [i (Character/digit c 16)]
-    (if (= -1 i)
-      (throw (IllegalArgumentException. (str "Invalid hex digit " c)))
-      i)))
-
 (defmethod parse :hexBinary [_type-name ^String string-value]
-  (if (even? (.length string-value))
-    (let [byte-count (/ (.length string-value) 2)
-          bytes (byte-array byte-count)]
-      (doseq [idx (range byte-count)]
-        (let [offset (* 2 idx)
-              b1 (parse-hex-digit (.charAt string-value offset))
-              b2 (parse-hex-digit (.charAt string-value (inc offset)))]
-          (aset bytes idx (.byteValue (bit-or (bit-shift-left b1 4) b2)))))
-      bytes)
-    (throw (IllegalArgumentException. "Hex string must contain even number of characters"))))
+  (util/parse-hex-string string-value))
 
 (def ^{:xml-schema-spec "3.3.2.2"} default-boolean-mapping
   {:true-values #{"1" "true"}

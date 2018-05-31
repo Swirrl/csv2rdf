@@ -14,13 +14,20 @@
      ~@body
      (catch Exception ex# nil)))
 
-(defn set-fragment [^URI uri fragment]
+(defn set-fragment
+  "Sets the fragment on a URI to the given value."
+  [^URI uri fragment]
   (URI. (.getScheme uri) (.getUserInfo uri) (.getHost uri) (.getPort uri) (.getPath uri) (.getQuery uri) fragment))
 
-(defn remove-fragment [uri]
+(defn remove-fragment
+  "Sets the fragment on a URI to nil."
+  [uri]
   (set-fragment uri nil))
 
-(defn ->coll [x]
+(defn ->coll
+  "Coerces x into a collection - if x is already a collection it is returned, otherwise a singleton
+  collection containing x."
+  [x]
   (if (coll? x) x [x]))
 
 ;;TODO: make into spec?
@@ -31,7 +38,9 @@
        (or (zero? x)
            (pos? x))))
 
-(defn read-json [source]
+(defn read-json
+  "Reads a JSON map from an underlying source."
+  [source]
   (with-open [r (io/reader source)]
     (json/read r)))
 
@@ -74,10 +83,14 @@
      (catch InvocationTargetException ex
        (throw (.getCause ex))))))
 
-(defn map-keys [f m]
+(defn map-keys
+  "Transforms the keys in a map according to the given function."
+  [f m]
   (into {} (map (fn [[k v]] [(f k) v]) m)))
 
-(defn map-values [f m]
+(defn map-values
+  "Transforms the values in a map according to the given function."
+  [f m]
   (into {} (map (fn [[k v]] [k (f v)]) m)))
 
 (defn equals-ignore-case?
@@ -177,7 +190,31 @@
         (aset chars (inc offset) c2)))
     (String. chars)))
 
-(defn owning-iterator [^AutoCloseable source factory-fn]
+(defn- parse-hex-digit [^Character c]
+  (let [i (Character/digit c 16)]
+    (if (= -1 i)
+      (throw (IllegalArgumentException. (str "Invalid hex digit " c)))
+      i)))
+
+(defn parse-hex-string
+  "Parses a hex string into a byte array"
+  [^String string-value]
+  (if (even? (.length string-value))
+    (let [byte-count (/ (.length string-value) 2)
+          bytes (byte-array byte-count)]
+      (doseq [idx (range byte-count)]
+        (let [offset (* 2 idx)
+              b1 (parse-hex-digit (.charAt string-value offset))
+              b2 (parse-hex-digit (.charAt string-value (inc offset)))]
+          (aset bytes idx (.byteValue (bit-or (bit-shift-left b1 4) b2)))))
+      bytes)
+    (throw (IllegalArgumentException. "Hex string must contain even number of characters"))))
+
+(defn owning-iterator
+  "Returns an iterator which takes ownership of source and uses it to construct an inner iterator via
+   factory-fn. Automatically closes source when the inner iterator is exhausted, or if an exception is thrown
+   during the iteration."
+  [^AutoCloseable source factory-fn]
   (let [ita (atom nil)
         state (atom 0)
         move-done (fn []
