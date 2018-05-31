@@ -10,7 +10,8 @@
             [grafter.rdf.io :refer [language]]
             [csv2rdf.vocabulary :refer :all])
   (:import [java.util.regex Pattern]
-           [grafter.rdf.protocols IRDFString]))
+           [java.time.temporal Temporal]
+           [javax.xml.datatype Duration]))
 
 (def column-required-message "Column value required")
 
@@ -103,16 +104,14 @@
     (validate-value-bounds cell-element)
     cell-element))
 
+;;TODO: move cell datatypes to own namespace?
 (s/def ::stringValue string?)
 (s/def ::list boolean?)
-
-;;TODO: move cell datatypes to own namespace?
-(s/def ::datetime (constantly true))                        ;;TODO: fix
-(defn duration? [x] true)
-(defn lang-string? [x] (satisfies? IRDFString x))           ;;TODO: test for record? Extend protocol to other string types?
-(s/def ::value (s/or :string string? :langstring lang-string? :number number? :datetime ::datetime :duration duration? :boolean boolean? :list (s/coll-of ::element :kind vector?)))
+(s/def ::datetime #(instance? Temporal %))
+(def duration? #(instance? Duration %))
+(s/def ::value (s/or :string string? :number number? :datetime ::datetime :duration duration? :boolean boolean? :list (s/coll-of ::element :kind vector?)))
 (s/def ::element (s/keys :req-un [::value ::stringValue ::datatype/datatype]))
-(s/def ::errors (s/coll-of string? :kind vector?))          ;;TODO: fix error type and move spec
+(s/def ::errors (s/coll-of string? :kind vector?))
 (s/def ::parsed-cell (s/keys :req-un [::value ::stringValue ::list ::errors]
                              :opt-un [::datatype/datatype]))
 
