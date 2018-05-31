@@ -22,6 +22,12 @@
   (logging/log-warning (str "At path " path ": " msg))
   value)
 
+(defn warn-with [value]
+  (fn [context message]
+    (make-warning context message value)))
+
+(def warn-invalid (warn-with invalid))
+
 (defn default-if-invalid
   "Returns a validator which returns the given default if the inner validator returns invalid"
   [validator default]
@@ -31,20 +37,15 @@
 
 (defn ignore-invalid [validator] (default-if-invalid validator nil))
 
-;;TODO: parameterise required validators with error function and remove this
+(defn with-error-handler
+  "Returns a validator which invokes the inner validator with the given error function."
+  [validator error-fn]
+  (fn [context x] (validator context x error-fn)))
+
 (defn strict [validator]
-  "Returns a validator which converts any warnings from the given validator into errors."
-  (fn [context x]
-    (let [{:keys [warnings result]} (logging/capture-warnings (validator context x))]
-      (cond
-        (some? (seq warnings))
-        (make-error context (string/join "\n" warnings))
-
-        (invalid? result)
-        (make-error context "Invalid value")
-
-        :else
-        result))))
+  "Returns a validator which causes the given validator to raise errors when validation fails.
+   The given validator must support a third argument for the error function."
+  (with-error-handler validator make-error))
 
 (defn type-error-message [permitted-types actual-type]
   (let [c (count permitted-types)]
@@ -107,14 +108,21 @@
 
 (def character (chain string validate-character))
 
-(defn variant [{:keys [default] :as tag-validators}]
+(defn variant [tag-validators]
   {:pre [(pos? (count tag-validators))]}
-  (fn [context x]
-    (if-let [validator (get tag-validators (mjson/get-json-type x))]
-      (validator context x)
-      (let [valid-types (keys (dissoc tag-validators :default))
-            actual-type (mjson/get-json-type x)]
-        (make-warning context (type-error-message valid-types actual-type) (or default invalid))))))
+  (fn v
+    ([context x]
+      (let [on-invalid (if (contains? tag-validators :default)
+                         (:default tag-validators)
+                         invalid)]
+        (v context x (warn-with on-invalid))))
+    ([context x error-fn]
+     (if-let [validator (get tag-validators (mjson/get-json-type x))]
+       (validator context x)
+       (let [valid-types (keys (dissoc tag-validators :default))
+             actual-type (mjson/get-json-type x)
+             error-message (type-error-message valid-types actual-type)]
+         (error-fn context error-message))))))
 
 (defn array-of [element-validator]
   (fn [context x]

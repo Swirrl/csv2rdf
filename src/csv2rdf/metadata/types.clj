@@ -1,8 +1,8 @@
 (ns csv2rdf.metadata.types
   (:require [csv2rdf.metadata.validator :refer [make-warning default-if-invalid variant invalid array-of kvps optional-key
-                                                required-key any map-of one-of string invalid?
-                                                chain try-parse-with where strict make-error uri ignore-invalid
-                                                type-error-message]]
+                                                required-key any map-of one-of string invalid? warn-invalid
+                                                chain try-parse-with where make-error uri ignore-invalid
+                                                type-error-message with-error-handler]]
             [csv2rdf.metadata.context :refer [resolve-uri append-path language-code-or-default
                                               base-key language-key id-key update-from-local-context with-document-uri]]
             [csv2rdf.json-ld :refer [expand-uri-string]]
@@ -64,8 +64,11 @@
   [context uri]
   (resolve-uri context uri))
 
-(def ^{:metadata-spec "5.1.2"} link-property
-  (chain (default-if-invalid (variant {:string uri}) default-uri) normalise-link-property))
+(defn ^{:metadata-spec "5.1.2"} link-property
+  ([context x] (link-property context x warn-invalid))
+  ([context x error-fn]
+    (let [v (chain (default-if-invalid (with-error-handler (variant {:string uri}) error-fn) default-uri) normalise-link-property)]
+      (v context x))))
 
 (defn id
   "An id is a link property whose value cannot begin with _:"
@@ -243,9 +246,12 @@
         :else arr))
 
 ;;TODO: validation that each referenced column exists occurs at higher-level
-(def ^{:metadata-spec "5.1.4"} column-reference
-  (variant {:string (fn [_context s] [s])
-            :array column-reference-array}))
+(defn ^{:metadata-spec "5.1.4"} column-reference
+  ([context x] (column-reference context x warn-invalid))
+  ([context x error-fn]
+    (let [v (variant {:string (fn [_context s] [s])
+                      :array column-reference-array})]
+      (v context x error-fn))))
 
 (def special-keys-mapping {:id "@id" :type "@type" :language "@language" base-key "@base"})
 (def special-keys (into #{} (keys special-keys-mapping)))

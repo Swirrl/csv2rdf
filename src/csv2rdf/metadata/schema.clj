@@ -12,7 +12,9 @@
 
 ;;TODO: parameterise link-property and column-reference with error function?
 (def strict-link-property (strict link-property))
-(def strict-column-reference (strict column-reference))
+
+(defn strict-column-reference [context x]
+  (column-reference context x make-error))
 
 (defn foreign-key-reference [context x]
   (if (mjson/object? x)
