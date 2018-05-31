@@ -1,5 +1,6 @@
 (ns csv2rdf.metadata.schema
-  (:require [csv2rdf.metadata.validator :refer [make-warning make-error invalid chain array-of type-eq strict variant type-error-message]]
+  (:require [csv2rdf.metadata.validator :refer [make-warning make-error invalid chain array-of type-eq strict variant
+                                                type-error-message]]
             [csv2rdf.json :as mjson]
             [csv2rdf.metadata.context :refer [append-path]]
             [csv2rdf.metadata.types :refer [object-of object-property link-property column-reference id]]
@@ -9,12 +10,6 @@
             [clojure.set :as set]
             [csv2rdf.logging :as logging]
             [csv2rdf.util :as util]))
-
-;;TODO: parameterise link-property and column-reference with error function?
-(def strict-link-property (strict link-property))
-
-(defn strict-column-reference [context x]
-  (column-reference context x make-error))
 
 (defn foreign-key-reference [context x]
   (if (mjson/object? x)
@@ -33,12 +28,12 @@
         (make-error context "Foreign key reference cannot specify both resource and schemaReference keys")
 
         (or has-resource? has-schema-ref?)
-        (let [column-ref (strict-column-reference (append-path context "columnReference") (get obj "columnReference"))]
+        (let [column-ref ((strict column-reference) (append-path context "columnReference") (get obj "columnReference"))]
           (if has-resource?
             {:columnReference column-ref
-             :resource (strict-link-property (append-path context "resource") (get obj "resource"))}
+             :resource ((strict link-property) (append-path context "resource") (get obj "resource"))}
             {:columnReference column-ref
-             :schemaReference (strict-link-property (append-path context "schemaReference") (get obj "schemaReference"))}))
+             :schemaReference ((strict link-property) (append-path context "schemaReference") (get obj "schemaReference"))}))
 
         :else
         (make-error context "Foreign key reference must specify one of resource or schemaReference keys")))
@@ -54,7 +49,7 @@
       (make-error context "Foreign key must only contain columnReference and reference keys")
 
       :else
-      {:columnReference (strict-column-reference (append-path context "columnReference") columnReference)
+      {:columnReference ((strict column-reference) (append-path context "columnReference") columnReference)
        :reference (foreign-key-reference (append-path context "reference") reference)})))
 
 ;;NOTE: should be warning if foreign-key is not an object, but if it is then it should not contain any common property
