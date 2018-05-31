@@ -36,21 +36,12 @@
     (let [^URI link-uri (::http/link-uri link-header)]
       (.resolve csv-uri link-uri))))
 
-(defn read-json-response [{:keys [body] :as response}]
-  ;;TODO: create protocol for reading from HTTP responses?
-  (cond
-    (string? body)
-    (json/read-str body)
-
-    (satisfies? io/IOFactory body)
-    (util/read-json body)))
-
 (defn try-get-linked-metadata
   "Tries to fetch the linked metadata from the given URI. Returns nil on any errors or if the request fails."
   [metadata-uri]
-  (let [response (http/get-uri metadata-uri)]
+  (let [{:keys [body] :as response} (http/get-uri metadata-uri)]
     (if (http/is-ok-response? response)
-      (read-json-response response))))
+      (source/get-json body))))
 
 
 (defn ^{:table-spec "5.2"} linked-metadata-references-data-file? [csv-uri ^URI metadata-uri metadata-doc]

@@ -3,7 +3,8 @@
   (:require [clojure.java.io :as io]
             [csv2rdf.util :as util]
             [clojure.spec.alpha :as s]
-            [csv2rdf.http :as http])
+            [csv2rdf.http :as http]
+            [clojure.data.json :as json])
   (:import [java.net URI]
            [java.io File InputStream ByteArrayInputStream]))
 
@@ -26,6 +27,7 @@
 
 (extend URI JSONSource io-json-source)
 (extend File JSONSource io-json-source)
+(extend String JSONSource {:get-json json/read-str})
 
 (defrecord MapMetadataSource [uri json]
   URIable
