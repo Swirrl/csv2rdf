@@ -8,6 +8,7 @@
             [csv2rdf.metadata.column :as column]
             [csv2rdf.metadata.uri-template-property :as template-property]
             [csv2rdf.metadata.table-group :as table-group]
+            [csv2rdf.metadata.row :as row]
             [csv2rdf.metadata.properties :as properties]
             [csv2rdf.source :as source]
             [csv2rdf.logging :as logging]))
@@ -85,9 +86,6 @@
    (let [options (dialect/dialect->options dialect)
          rows (reader/read-rows csv-source dialect)]
      (rows->embedded-metadata (source/->uri csv-source) options rows))))
-
-;;TODO: move this
-(def index->row-number inc)
 
 (defn title-row-column-indexes [{{:keys [rowTitles columns] :as schema} :tableSchema :as table}]
   (let [title-columns (into #{} rowTitles)]
@@ -170,7 +168,7 @@
 
 (defn set-row-numbers [rows]
   (map-indexed (fn [idx row]
-                 (assoc row :number (index->row-number idx)))
+                 (assoc row :number (row/index->row-number idx)))
                rows))
 
 (defn annotate-rows [rows table options]
