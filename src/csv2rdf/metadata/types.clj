@@ -138,7 +138,6 @@
     :else (make-error context (type-error-message #{:string :array} (mjson/get-json-type x)))))
 
 ;;common propeties
-;;TODO: move into separate namespace?
 (defn ordinary-common-property-value-key [special-keys]
   (fn [context ^String x]
     (if (and (string? x) (.startsWith x "@"))
@@ -342,7 +341,6 @@
     (array? x) (context-pair context x)
     :else (make-error context (type-error-message #{:string :array} (mjson/get-json-type x)))))
 
-;;TODO: move context validators into metadata.context namespace?
 (defn validate-contextual-object
   "Returns a validator for an object which may contain a @context key mapped to a context definition.
    If the key exists, and contain a local context definition for the object, this is used to update the

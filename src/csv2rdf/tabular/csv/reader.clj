@@ -70,7 +70,6 @@
             (= escape-char c)
             (let [ni (.read reader)]
               (if (= -1 ni)
-                ;;TODO: append escape char to row content?
                 (throw (IllegalArgumentException. "Dangling escape character at end of stream"))
                 (let [n (char ni)]
                   ;;if escape char is same as quote char then:
