@@ -93,8 +93,13 @@
 (def ^{:metadata-spec ["5.4.2" "5.6"]} suppress-output? (declared :suppressOutput false))
 (def ^{:metadata-spec "5.5"} columns (declared :columns))
 
-;;TODO: add properties for foreign keys
 (def ^{:metadata-spec "5.5"} foreign-keys (declared :foreignKeys))
+
+;;NOTE: exists on both foreign key and foreign key reference and is required on both
+(def ^{:metadata-spec "5.5"} column-reference (required :columnReference))
+(def ^{:metadata-spec "5.5"} reference (required :reference))
+(def ^{:metadata-spec "5.5"} resource (declared :resource))
+(def ^{:metadata-spec "5.5"} schema-reference (declared :schemaReference))
 
 (def ^{:metadata-spec "5.5"} primary-keys (declared :primaryKeys))
 (def ^{:metadata-spec "5.5"} row-titles (declared :rowTitles))
