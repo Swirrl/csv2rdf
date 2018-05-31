@@ -1,7 +1,9 @@
-(ns csv2rdf.metadata.json)
+(ns csv2rdf.json
+  (:require [clojure.spec.alpha :as s]))
 
-(defn array? [x]
-  (vector? x))
+(s/def ::json-type #{:null :array :object :number :string :boolean})
+
+(def array? vector?)
 
 (def object? map?)
 

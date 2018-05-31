@@ -2,14 +2,11 @@
   (:require [csv2rdf.csvw.common :refer :all]
             [csv2rdf.vocabulary :refer :all]
             [csv2rdf.json-ld :as json-ld]
+            [csv2rdf.json :refer [array? object?]]
             [grafter.rdf :refer [->Triple]]
             [grafter.rdf.io :refer [language literal]]
             [csv2rdf.util :as util])
   (:import [java.net URI]))
-
-;;TODO: move csv2rdf.metadata.json namespace and use definitions in there
-(def array? vector?)
-(def object? map?)
 
 (defn ^{:csvw-spec "6.1"} try-expand-property [property]
   (cond

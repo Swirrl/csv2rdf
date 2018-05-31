@@ -1,6 +1,6 @@
 (ns csv2rdf.metadata.table-group
   (:require [csv2rdf.metadata.validator :refer [array-of type-eq chain make-error type-error-message]]
-            [csv2rdf.metadata.json :as mjson]
+            [csv2rdf.json :as mjson]
             [csv2rdf.metadata.types :refer [object-property id table-direction note contextual-object]]
             [csv2rdf.metadata.inherited :refer [metadata-of]]
             [csv2rdf.metadata.schema :as schema]

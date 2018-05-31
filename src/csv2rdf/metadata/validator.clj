@@ -1,6 +1,6 @@
 (ns csv2rdf.metadata.validator
   (:require [csv2rdf.metadata.context :refer :all]
-            [csv2rdf.metadata.json :as mjson]
+            [csv2rdf.json :as mjson]
             [clojure.string :as string]
             [csv2rdf.logging :as logging])
   (:import [java.net URI]))

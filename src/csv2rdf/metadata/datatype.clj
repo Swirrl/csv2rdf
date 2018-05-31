@@ -2,7 +2,7 @@
   (:require [csv2rdf.metadata.validator :refer [variant one-of make-error make-warning any chain type-eq
                                                 character try-parse-with invalid? invalid type-error-message
                                                 string map-of ignore-invalid]]
-            [csv2rdf.metadata.json :refer [object?]]
+            [csv2rdf.json :refer [object?]]
             [csv2rdf.metadata.types :refer [object-of non-negative id]]
             [csv2rdf.metadata.context :refer [append-path]]
             [csv2rdf.xml.datatype :as xml-datatype]
