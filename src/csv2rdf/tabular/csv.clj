@@ -1,6 +1,5 @@
 (ns csv2rdf.tabular.csv
-  (:require [clojure.java.io :as io]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
             [csv2rdf.metadata.dialect :as dialect]
             [csv2rdf.tabular.csv.reader :as reader]
             [csv2rdf.metadata.table :as table]
@@ -104,7 +103,6 @@
                             parsed-cells)))
 
 (defn parse-row-cells [{:keys [cells] :as row} table {:keys [skipColumns] :as options}]
-  ;;TODO: handle virtual and non-virtual columns separately?
   (let [columns (table/columns table)
         cell-values (concat (drop skipColumns cells) (repeat "")) ;;extend cells to cover any virtual columns
         cell-column-pairs (map vector cell-values columns)

@@ -17,14 +17,10 @@
     (table/validate-compatible validating? user-table table-metadata)
     (table/compatibility-merge user-table table-metadata)))
 
-;;TODO: check the correct order to expand/inherit metadata and check compatibility with the
-;;metadata embedded in the tabular file
-;;current order:
-;;1. parse from source
-;;2. check compatible with embedded metadata
-;;3. merge with embedded metadata
-;;4. set parents
-(defn ^{:table-spec "6.1"} get-metadata [tabular-source metadata-source]
+(defn ^{:table-spec "6.1"} get-metadata
+  "Retrieves and resolves the metadata given either a tabular data source or metadata source. If user metadata
+  is provided, each referenced table definition is validated against the corresponding tabular data file."
+  [tabular-source metadata-source]
   (cond
     (some? metadata-source)
     (let [{:keys [dialect tables] :as user-table-group} (meta/parse-table-group-from-source metadata-source)

@@ -82,7 +82,6 @@
 
 (def ^{:metadata-spec "5.3.1"} tables (required :tables))
 
-;;TODO: should this be inherited?
 (def ^{:metadata-spec ["5.3.2" "5.4.2"]} dialect (inherited :dialect))
 (def ^{:metadata-spec ["5.3.2" "5.4.2"]} notes (declared :notes))
 (def ^{:metadata-spec ["5.3.2" "5.4.2"]} table-direction (inherited :tableDirection "auto"))

@@ -93,7 +93,7 @@
 (def schema-def
   (metadata-of
     {:optional {:columns     column/columns
-                :foreignKeys (array-of foreign-key)      ;;TODO: validate foreign keys
+                :foreignKeys (array-of foreign-key)
                 :primaryKey  column-reference            ;;TODO: validators MUST check that each row has a unique combination of values of cells in the indicated columns
                 :rowTitles   column-reference
                 :id         id
@@ -112,7 +112,6 @@
         extra-column-indexes (range user-column-count actual-column-count)]
     (vec (concat user-columns (map column/from-index extra-column-indexes)))))
 
-;;TODO: this should be done before metadata is normalised/expanded/inherited
 (defn ^{:metadata-spec "5.5.1"} validate-compatible [validating? {columns1 :columns :as schema1} {columns2 :columns :as schema2}]
   ;;NOTE: it is legal for the metadata table to only include the URL of the tabular file and not include a schema
   ;;in this case, consider the schemas trivially compatible

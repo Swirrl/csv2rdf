@@ -34,7 +34,7 @@
 (defn ^{:csvw-spec "4.6.8.3"} cell-predicate [tabular-data-file-url {:keys [propertyUrl column] :as cell}]
   (or propertyUrl (column-about-url tabular-data-file-url column)))
 
-;;TODO: associated lang with cell element?
+;;TODO: associate lang with cell element?
 (defn cell-element->rdf [{:keys [value stringValue datatype] :as cell-element} lang]
   (let [{:keys [id base]} datatype]
     (cond
@@ -63,8 +63,6 @@
           [rdf:nil []]
           (reverse ordered-value-elements)))
 
-;;TODO: ensure all cell values have RDF representations in grafter
-;;TODO: use datatype annotation on cell
 (defn cell-value-statements [subject predicate {:keys [value valueUrl ordered lang] :as cell}]
   (let [is-list? (= true (:list cell))
         semantic-value (cell/semantic-value cell)]

@@ -13,7 +13,6 @@
 (defn valid? [x]
   (not (invalid? x)))
 
-;;TODO: rename
 (defn make-error [{:keys [path] :as context} msg]
   (throw (ex-info (str "Error at path " path ": " msg) {:type :bad-metadata
                                                         :path path})))

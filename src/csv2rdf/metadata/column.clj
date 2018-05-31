@@ -44,7 +44,7 @@
 
 (def column
   (metadata-of
-    {:optional {:name           column-name                             ;;TODO: use first title as name if not provided, see spec
+    {:optional {:name           column-name
                 :suppressOutput bool
                 :titles         natural-language
                 :virtual        bool
@@ -86,8 +86,6 @@
     (when (seq invalid-columns)
       (make-error context "Non-virtual columns defined after first virtual column - All virtual columns must exist after all non-virtual columns"))))
 
-;;TODO: find best place to set default column names
-;;set column index property and calculate on demand?
 (defn set-column-names [context columns]
   (let [default-language (language-code-or-default context)]
     (->> columns
