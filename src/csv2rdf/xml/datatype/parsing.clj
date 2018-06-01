@@ -20,7 +20,6 @@
 
 (defmulti parse-format "Parses a datatype according to the given format"
           (fn [type-name string-value format]
-            ;;TODO: include format type in dispatch value?
             (xml-datatype/dispatch-key type-name))
           :hierarchy #'xml-datatype/dispatch-hierarchy)
 
@@ -54,8 +53,17 @@
 (defmethod parse :boolean [_type-name string-value]
   (parse-boolean-with-mapping string-value default-boolean-mapping))
 
-;;TODO: validate returned values match expected XML type
-(def xml-datatype-factory (DatatypeFactory/newInstance))
+(def ^DatatypeFactory xml-datatype-factory (DatatypeFactory/newInstance))
+
+(defn- parse-xml-gregorian-calendar
+  "Parses a string as an XMLGregorianCalendar then checks the parsed type matches the expected type."
+  [type ^String string-value]
+  (let [type-name (name type)
+        gc (.newXMLGregorianCalendar xml-datatype-factory string-value)
+        local-name (.. gc getXMLSchemaType getLocalPart)]
+    (if (= local-name type-name)
+      gc
+      (throw (IllegalArgumentException. (format "Invalid %s: %s" type-name string-value))))))
 
 (defmethod parse :date [type-name string-value]
   (parse-format type-name string-value DateTimeFormatter/ISO_DATE))
@@ -69,29 +77,29 @@
 (defmethod parse :dateTimeStamp [type-name string-value]
   (parse-format type-name string-value DateTimeFormatter/ISO_ZONED_DATE_TIME))
 
-(defmethod parse :duration [_type-name string-value]
+(defmethod parse :duration [_type-name ^String string-value]
   (.newDuration xml-datatype-factory string-value))
 
-(defmethod parse :dayTimeDuration [_type-name string-value]
+(defmethod parse :dayTimeDuration [_type-name ^String string-value]
   (.newDurationDayTime xml-datatype-factory string-value))
 
-(defmethod parse :yearMonthDuration [_type-name string-value]
+(defmethod parse :yearMonthDuration [_type-name ^String string-value]
   (.newDurationYearMonth xml-datatype-factory string-value))
 
-(defmethod parse :gDay [_type-name string-value]
-  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+(defmethod parse :gDay [type-name string-value]
+  (parse-xml-gregorian-calendar type-name string-value))
 
-(defmethod parse :gMonth [_type-name string-value]
-  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+(defmethod parse :gMonth [type-name string-value]
+  (parse-xml-gregorian-calendar type-name string-value))
 
-(defmethod parse :gMonthDay [_type-name string-value]
-  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+(defmethod parse :gMonthDay [type-name string-value]
+  (parse-xml-gregorian-calendar type-name string-value))
 
-(defmethod parse :gYear [_type-name string-value]
-  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+(defmethod parse :gYear [type-name string-value]
+  (parse-xml-gregorian-calendar type-name string-value))
 
-(defmethod parse :gYearMonth [_type-name string-value]
-  (.newXMLGregorianCalendar xml-datatype-factory string-value))
+(defmethod parse :gYearMonth [type-name string-value]
+  (parse-xml-gregorian-calendar type-name string-value))
 
 ;;numeric parsers
 
