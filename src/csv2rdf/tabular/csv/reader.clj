@@ -98,8 +98,8 @@
             :else
             (recur (.append sb c))))))))
 
-(defn row-content-iterator [^PushbackReader reader {:keys [quoteChar escapeChar line-terminators]}]
-  (let [line-terminators-trie (line-terminators->trie line-terminators)]
+(defn row-content-iterator [^PushbackReader reader {:keys [quoteChar escapeChar lineTerminators]}]
+  (let [line-terminators-trie (line-terminators->trie lineTerminators)]
     (reify Iterator
       (hasNext [_this]
         (let [ci (.read reader)]

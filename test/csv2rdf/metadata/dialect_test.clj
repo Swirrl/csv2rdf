@@ -10,7 +10,7 @@
             [csv2rdf.metadata.validator :refer [invalid?]]
             [csv2rdf.logging :as logging])
   (:import [clojure.lang ExceptionInfo]
-           (java.net URI)))
+           [java.net URI]))
 
 (deftest dialect->options-trim-test
   (testing "None"
@@ -22,8 +22,8 @@
       false :none))
 
   (testing "Explicit trim"
-    (let [p (prop/for-all [[trim skip] (gen/tuple (s/gen ::dialect/trim) (s/gen ::dialect/skipInitialSpace))]
-                          (= trim (:trim-mode (dialect->options {:trim trim :skipInitialSpace skip}))))
+    (let [p (prop/for-all [[trim skip] (gen/tuple (s/gen ::dialect/trim-mode) (s/gen ::dialect/skipInitialSpace))]
+                          (= (or trim :all) (:trim-mode (dialect->options {:trim trim :skipInitialSpace skip}))))
           {:keys [result]} (tc/quick-check 100 p)]
       (is result))))
 
@@ -125,7 +125,7 @@
 
 (defn with-instrumentation [f]
   ;;TODO: fix dialect specs
-  (let [to-instrument [] #_[`calculate-dialect-options `expand-dialect]]
+  (let [to-instrument [`calculate-dialect-options `expand-dialect]]
     (doseq [sym to-instrument]
       (stest/instrument sym))
     (try
@@ -135,5 +135,3 @@
           (stest/unstrument sym))))))
 
 (use-fixtures :once with-instrumentation)
-
-

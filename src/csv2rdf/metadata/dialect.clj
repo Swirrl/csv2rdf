@@ -9,7 +9,7 @@
 
 (def ^{:metadata-spec "5.9"} default-dialect
   {:encoding "utf-8"
-   :line-terminators ["\r\n", "\n"]
+   :lineTerminators ["\r\n", "\n"]
    :quoteChar \"
    :doubleQuote nil                                         ;;NOTE: differs from spec - see calculate-quote-escape-chars
    :skipRows 0
@@ -22,6 +22,31 @@
    :skipInitialSpace nil                                    ;;NOTE: differs from spec - see calculate-trim-mode
    :trim nil                                                ;;NOTE: differs from spec - see calculate-trim-mode
    })
+
+(def trim-mode-mapping {"true" :all "false" :none "start" :start "end" :end})
+(def trim-modes (into #{} (vals trim-mode-mapping)))
+
+(s/def ::encoding string?)
+(s/def ::lineTerminators (s/coll-of string? :kind vector? :into []))
+(s/def ::quoteChar (s/nilable char?))                       ;;NOTE: differs from specs which allows strings
+(s/def ::doubleQuote (s/nilable boolean?))
+(s/def ::skipRows util/non-negative?)
+(s/def ::commentPrefix (s/nilable char?))
+(s/def ::header (s/nilable boolean?))
+(s/def ::headerRowCount (s/nilable util/non-negative?))
+(s/def ::delimiter char?)                                   ;;NOTE: differs from spec which allows strings
+(s/def ::skipColumns util/non-negative?)
+(s/def ::skipBlankRows boolean?)
+(s/def ::skipInitialSpace (s/nilable boolean?))
+(s/def ::trim (s/nilable trim-modes))
+
+(s/def ::dialect (s/keys :req-un [::commentPrefix ::delimiter ::doubleQuote ::encoding ::header ::headerRowCount
+                                  ::lineTerminators ::quoteChar ::skipBlankRows ::skipColumns ::skipInitialSpace
+                                  ::skipRows ::trim]))
+
+(s/def ::trim-mode trim-modes)
+(s/def ::options (s/keys :req-un [::encoding ::skipRows ::commentPrefix ::delimiter ::escapeChar ::quoteChar
+                                  ::skipColumns ::skipBlankRows ::trim-mode ::num-header-rows ::lineTerminators]))
 
 (defn ^{:metadata-spec "5.9"} calculate-trim-mode
   "Calculates how whitespace should be trimmed around cell values based on the 'trim' and 'skipInitialSpace'
@@ -75,31 +100,10 @@
 (defn calculate-dialect-options
   "Calculates the options used to configure reading for the source CSV data from the given dialect definition"
   [dialect]
-  (merge (select-keys dialect [:encoding :skipRows :commentPrefix :delimiter :skipColumns :skipBlankRows :line-terminators])
+  (merge (select-keys dialect [:encoding :skipRows :commentPrefix :delimiter :skipColumns :skipBlankRows :lineTerminators])
          (calculate-quote-escape-chars dialect)
          {:trim-mode (calculate-trim-mode dialect)
           :num-header-rows (calculate-header-row-count dialect)}))
-
-(s/def ::commentPrefix char?)
-(s/def ::delimiter char?)                                   ;;NOTE: differs from spec which allows strings
-(s/def ::doubleQuote boolean?)
-(s/def ::encoding string?)
-(s/def ::header boolean?)
-(s/def ::headerRowCount (s/nilable util/non-negative?))
-(s/def ::lineTerminators (s/coll-of string? :kind vector? :into []))
-(s/def ::quoteChar (s/nilable char?))                       ;;NOTE: differs from specs which allows strings
-(s/def ::skipBlankRows boolean?)
-(s/def ::skipRows util/non-negative?)
-(s/def ::skipColumns util/non-negative?)
-(s/def ::skipInitialSpace (s/nilable boolean?))
-(s/def ::trim #{nil "true" "false" "start" "end"})
-(s/def ::trim-mode #{:none :all :start :end})
-
-(s/def ::dialect (s/keys :req-un [::commentPrefix ::delimiter ::doubleQuote ::encoding ::header ::headerRowCount
-                                  ::lineTerminators ::quoteChar ::skipBlankRows ::skipColumns ::skipInitialSpace
-                                  ::skipRows ::trim]))
-(s/def ::options (s/keys :req-un [::encoding ::skipRows ::commentPrefix ::delimiter ::escapeChar ::quoteChar
-                                  ::skipColumns ::skipBlankRows ::trim-mode ::num-header-rows]))
 
 (defn expand-dialect
   "Expands a possibly partial dialect definition into a complete definition where all configuration
@@ -163,9 +167,7 @@
 
 (def encoding (variant {:string validate-encoding}))
 
-(def trim-modes {"true" :all "false" :none "start" :start "end" :end})
-
-(def trim-mode (variant {:string  (mapping trim-modes)
+(def trim-mode (variant {:string  (mapping trim-mode-mapping)
                          :boolean (fn [_context b] (if b :all :none))}))
 
 (def line-terminators
