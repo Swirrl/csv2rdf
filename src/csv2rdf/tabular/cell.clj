@@ -166,8 +166,7 @@
 (defn ^{:table-spec "6.4"} copy-column-annotations
   "Copy required annotations onto a cell from its column"
   [cell column]
-  ;;NOTE: lang not required by specification but will be needed to set the string language?
-  ;;TODO: associate lang with each cell element?
+  ;;NOTE: lang not required by specification but is needed to set the string language
   (-> cell
       (assoc :ordered (properties/ordered? column))
       (assoc :textDirection (properties/text-direction column))

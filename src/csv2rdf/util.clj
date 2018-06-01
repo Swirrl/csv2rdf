@@ -109,7 +109,6 @@
 
 ;;NOTE: Ruby RDF::URI('http://example.com/some/path/file.csv').join("") returns 'http://example.com/some/path/file.csv'
 ;;instead of 'http://example.com/some/path/' returned by URI/resolve.
-;;TODO: check the correct behaviour
 (defn resolve-uri
   "Resolves the given string against a base URI. This differs from java.net.URI/resolve in that
   empty strings are ignored and return the base URI is returned unaltered."

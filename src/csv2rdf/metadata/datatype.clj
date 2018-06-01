@@ -159,7 +159,6 @@
       (xml-datatype/is-boolean-type? base)
       (set-format (validate-boolean-format (append-path context "format") format))
 
-      ;;TODO: check DateTimeFormatter works as required by the spec
       (xml-datatype/is-date-time-type? base)
       (let [dtf ((try-parse-with parse-datetime-format) (append-path context "format") format)]
         (set-format dtf))
