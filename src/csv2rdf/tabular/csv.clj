@@ -123,9 +123,7 @@
 
 (defn get-row-template-bindings [{:keys [number source-row-number parsed-cells]}]
   (let [column-value-bindings (into {} (map (fn [{:keys [column] :as cell}]
-                                              ;;TODO: need 'canonical value' according to XML schema
-                                              ;;see metadata spec 5.1.3
-                                              [(util/percent-decode (properties/column-name column)) (:stringValue cell)])
+                                              [(util/percent-decode (properties/column-name column)) (cell/canonical-value cell)])
                                             parsed-cells))]
     (assoc column-value-bindings :_row number :_sourceRow source-row-number)))
 

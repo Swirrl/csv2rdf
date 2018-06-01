@@ -6,6 +6,7 @@
             [csv2rdf.xml.datatype :as xml-datatype]
             [csv2rdf.xml.datatype.parsing :as xml-parsing]
             [csv2rdf.xml.datatype.compare :refer [lt? lte? gt? gte?]]
+            [csv2rdf.xml.datatype.canonical :as canonical]
             [csv2rdf.metadata.properties :as properties]
             [grafter.rdf.io :refer [language]]
             [csv2rdf.vocabulary :refer :all])
@@ -192,3 +193,12 @@
 (def errors :errors)
 
 (def lang :lang)
+
+(defn- cell-element-canonical-value [{:keys [value datatype] :as cell-element}]
+  (canonical/canonical-value value (:base datatype)))
+
+(defn ^{:metadata-spec "5.1.3"} canonical-value [{:keys [list value] :as cell}]
+  (cond
+    (nil? value) nil
+    list (mapv cell-element-canonical-value value)
+    :else (cell-element-canonical-value cell)))

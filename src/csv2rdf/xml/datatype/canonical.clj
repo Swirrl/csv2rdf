@@ -2,7 +2,7 @@
   (:require [csv2rdf.xml.datatype :as xml-datatype]
             [csv2rdf.util :as util])
   (:import [java.util Base64]
-           [javax.xml.datatype XMLGregorianCalendar]
+           [javax.xml.datatype XMLGregorianCalendar Duration]
            [java.time LocalDate LocalDateTime ZonedDateTime LocalTime OffsetTime OffsetDateTime]
            [java.time.format DateTimeFormatter]
            [java.net URI]))
@@ -47,6 +47,10 @@
   OffsetTime
   (canonical-value [time _type-name]
     (.format DateTimeFormatter/ISO_OFFSET_TIME time))
+
+  Duration
+  (canonical-value [duration type-name]
+    (.toString duration))
 
   Number
   (canonical-value [num _type-name]
