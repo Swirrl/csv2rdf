@@ -281,3 +281,23 @@
     (when (seq coll)
       (let [s (first coll)]
         (concat (f s) (lazy-mapcat f (rest coll)))))))
+
+(defmulti normalise-uri
+          "Does path and scheme-based normalisation for HTTP and HTTPS URIs, path-based normalisation for other URIs."
+          ^{:tabular-spec "6.3"}
+          (fn [^URI uri] (keyword (.getScheme uri))))
+
+(defn- normalise-http-uri [default-port ^URI uri]
+  (let [port (if (= default-port (.getPort uri)) -1 (.getPort uri))
+        path (if (= "" (.getPath uri)) "/" (.getPath uri))]
+    (.normalize (URI. (.getScheme uri) (.getUserInfo uri) (.getHost uri) port path (.getQuery uri) (.getFragment uri)))))
+
+(defmethod normalise-uri :http [^URI uri]
+  (normalise-http-uri 80 uri))
+
+(defmethod normalise-uri :https [^URI uri]
+  (normalise-http-uri 443 uri))
+
+(defmethod normalise-uri :default [^URI uri]
+  (.normalize uri))
+

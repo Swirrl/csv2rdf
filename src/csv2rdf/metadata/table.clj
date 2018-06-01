@@ -42,7 +42,6 @@
    :tableSchema schema})
 
 (defn ^{:metadata-spec "5.4.3"} validate-compatible [validating? {^URI uri1 :url schema1 :tableSchema :as table1} {^URI uri2 :url schema2 :tableSchema :as table2}]
-  ;;TODO: normalise URIs during parsing?
   (when-not (= (.normalize uri1) (.normalize uri2))
     (logging/log-warning (format "Table URIs %s and %s not equal after normalisation" uri1 uri2)))
   (schema/validate-compatible validating? schema1 schema2))

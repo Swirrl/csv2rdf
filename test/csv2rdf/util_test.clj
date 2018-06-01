@@ -3,7 +3,8 @@
             [clojure.test :refer :all]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
-            [clojure.test.check.clojure-test :refer [defspec]]))
+            [clojure.test.check.clojure-test :refer [defspec]])
+  (:import [java.net URI]))
 
 (defspec filter-values-test 100
   (prop/for-all
@@ -27,5 +28,20 @@
   (prop/for-all
     [bs gen/bytes]
     (= (seq bs) (seq (parse-hex-string (to-hex-string bs))))))
+
+(deftest normalise-uri-test
+  (testing "HTTP"
+    (are [expected-str un-normalised-str] (= (URI. expected-str) (normalise-uri (URI. un-normalised-str)))
+      "http://example.com/" "http://example.com:80"
+      "http://example.com/" "http://example.com:"
+      "http://example.com:8080/" "http://example.com:8080"
+      "http://example.com/some/path" "http://example.com/some/path"))
+
+  (testing "HTTPS"
+    (are [expected-str un-normalised-str] (= (URI. expected-str) (normalise-uri (URI. un-normalised-str)))
+      "https://example.com/" "https://example.com:443"
+      "https://example.com/" "https://example.com:"
+      "https://example.com:4433/" "https://example.com:4433"
+      "https://example.com/some/path" "https://example.com/some/path")))
 
 

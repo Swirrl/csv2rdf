@@ -32,7 +32,6 @@
 
 (defn ^{:table-spec "5.2"} get-metadata-link-uri [^URI csv-uri csv-headers]
   (if-let [link-header (get-metadata-link csv-headers)]
-    ;;TODO: URIs must be normalised (section 6.3)
     (let [^URI link-uri (::http/link-uri link-header)]
       (.resolve csv-uri link-uri))))
 
@@ -47,7 +46,6 @@
 (defn ^{:table-spec "5.2"} linked-metadata-references-data-file? [csv-uri ^URI metadata-uri metadata-doc]
   ;;from the spec: If the metadata file found at this location does not explicitly include a reference
   ;; to the requested tabular data file then it MUST be ignored
-  ;;TODO: possible shared logic with csv2rdf.metadata/parse-metadata-json
   (let [tables (cond
                  (table-group/looks-like-table-group-json? metadata-doc)
                  (get metadata-doc "tables")
@@ -59,7 +57,7 @@
         table-uris (->> tables
                         (map (fn [{:strs [url]}]
                                (if-let [^URI tabular-uri (util/ignore-exceptions (URI. url))]
-                                 (.resolve metadata-uri tabular-uri))))
+                                 (util/normalise-uri (.resolve metadata-uri tabular-uri)))))
                         (remove nil?)
                         (into #{}))
         has-reference? (contains? table-uris csv-uri)]
@@ -75,8 +73,7 @@
 
 (def ^{:table-spec "5.3"} ^URI well-known-site-wide-configuration-uri (URI. "/.well-known/csvm"))
 
-(defn ^{:template-spec "5.3"} parse-response-location-templates [body]
-  ;;TODO: handle non-string body types?
+(defn ^{:template-spec "5.3"} parse-response-location-templates [^String body]
   ;;NOTE: specification states "This file MUST contain a URI template, as defined by [URI-TEMPLATE], on each line"
   ;;this is trivially true if there are no lines (i.e. body is empty) but split-lines returns a singleton sequence
   ;;containing the empty string on an empty input.
