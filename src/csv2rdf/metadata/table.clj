@@ -48,7 +48,6 @@
   (schema/validate-compatible validating? schema1 schema2))
 
 (defn compatibility-merge [user-table embedded-table]
-  ;;TODO: validate tables are compatible
   (let [notes (vec (concat (:notes user-table) (:notes embedded-table)))
         schema (schema/compatibility-merge (:tableSchema user-table) (:tableSchema embedded-table))]
     (-> (merge embedded-table user-table)

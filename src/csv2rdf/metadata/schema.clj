@@ -126,5 +126,4 @@
             (logging/log-warning (format "Columns at index %d not compatible" idx))))))))
 
 (defn compatibility-merge [user-schema embedded-schema]
-  ;;TODO: validate schemas are compatible
   (update user-schema :columns merge-columns (:columns embedded-schema)))

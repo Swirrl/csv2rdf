@@ -244,7 +244,7 @@
         (not-every? string? arr) (make-warning context "Column references should all be strings" invalid)
         :else arr))
 
-;;TODO: validation that each referenced column exists occurs at higher-level
+;;NOTE: validation that each referenced column exists occurs at higher-level
 (defn ^{:metadata-spec "5.1.4"} column-reference
   ([context x] (column-reference context x warn-invalid))
   ([context x error-fn]
@@ -376,8 +376,7 @@
     (let [resolved-obj (resolve-linked-object-property-object context object-uri)
           updated-context (with-document-uri context object-uri)
           obj ((contextual-object false object-validator) updated-context resolved-obj)]
-      ;;TODO: error if resolved JSON document is not an object? Specification does not mention this
-      ;;case but requires an empty object in other error cases. Add @id key as required due to normalisation
+      ;;Add @id key as required due to normalisation
       (cond (invalid? obj) {id-key object-uri}
             (contains? obj id-key) obj
             :else (assoc obj id-key object-uri)))))

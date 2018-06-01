@@ -104,7 +104,6 @@
     (validate-value-bounds cell-element)
     cell-element))
 
-;;TODO: move cell datatypes to own namespace?
 (s/def ::stringValue string?)
 (s/def ::list boolean?)
 (s/def ::datetime #(instance? Temporal %))
