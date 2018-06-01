@@ -18,7 +18,6 @@
     (.freeze builder)))
 
 (defn parse-template [template-string]
-  ;;TODO: handle/convert exceptions
   (URITemplate. template-string))
 
 (defn try-parse-template [template-string]

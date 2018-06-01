@@ -7,7 +7,6 @@
            [java.time.format DateTimeFormatter]
            [java.net URI]))
 
-;;TODO: add separate protocol for converting into sesame representation for RDf output?
 (defprotocol ToXmlRepresentation
   (canonical-value [this type-name]))
 
@@ -63,4 +62,3 @@
       :base64Binary (.encodeToString (Base64/getEncoder) arr)
       :hexBinary (util/to-hex-string arr)
       (throw (IllegalArgumentException. (format "Unknown binary type '%s'" type-name))))))
-
