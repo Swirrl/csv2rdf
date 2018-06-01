@@ -169,7 +169,6 @@
                     :max-length (count (first groups))
                     :group {:size nil}}]
 
-            ;;TODO: check how to handle decimal groups
             (let [primary-group (first groups)]
               [index {:min-length min-length
                       :max-length nil
@@ -275,7 +274,6 @@
    :decimal-char (or decimal-char \.)
    :group-char (or group-char \,)})
 
-;;TODO: integers cannot contain decimal chars - validate in schema parsing?
 (defn create-integer-format [group-char decimal-char]
   {:prefix optional-sign-prefix
    :integer flexible-integer
@@ -293,6 +291,12 @@
    :suffix ::optional-modifier
    :decimal-char (or decimal-char \.)
    :group-char (or group-char \,)})
+
+(defn allows-decimal-part? [format]
+  (not= ::none (:decimal format)))
+
+(defn allows-exponent-part? [format]
+  (not= ::none (:exponent format)))
 
 ;;numeric parsing
 
@@ -316,7 +320,12 @@
       :else (throw (IllegalArgumentException. (format "Invalid number format - bad sign %c in prefix definition" sign))))
     (throw (IllegalArgumentException. (format "String does not contain expected prefix '%s'" prefix)))))
 
-;;TODO: check numeric characters are ASCII digits (i.e. [0-9]) instead of using Character/isDigit?
+(defn is-ascii-digit? [^Character c]
+  (let [ci (int c)]
+    ;;48 - ASCII 0
+    ;;57 - ASCII 9
+    (and (>= ci 48) (<= ci (int 57)))))
+
 (defn parse-numeric-groups [^String s start-index ^Character group-char]
   (loop [idx start-index
          state :number
@@ -326,7 +335,7 @@
       (let [c (.charAt s idx)]
         (case state
           :number
-          (if (Character/isDigit c)
+          (if (is-ascii-digit? c)
             (recur (inc idx) :number-or-group (.append buf c) groups)
             (throw (IllegalArgumentException. (format "Expected digit at index %d" idx))))
 
@@ -399,8 +408,7 @@
         digit-count (count digits)]
     (validate-numeric-groups groups (:groups integer-spec))
     (cond
-      ;;TODO: min-length always non-nil?
-      (and (some? min-length) (< digit-count min-length))
+      (< digit-count min-length)
       (throw (IllegalArgumentException. (format "Not enough digits in integer part (expected at least %d, got %d)" min-length digit-count)))
 
       (and (some? max-length) (> digit-count max-length))
@@ -411,7 +419,6 @@
 (defn validate-decimal-groups [groups {{group-size :size :as group} :group :as decimal-spec}]
   ;;if decimal group size specified, then all groups except the last must match the expected size
   ;;the last group must be at most group-size in length
-  ;;TODO: refactor to use validate-group-size/validate-group-sizes?
   (cond
     (and (= ::none decimal-spec) (pos? (count groups)))
     (throw (IllegalArgumentException. "Format forbids decimal component"))

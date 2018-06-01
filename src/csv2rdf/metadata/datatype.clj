@@ -17,6 +17,24 @@
 
 (def number-format-pattern (chain string (try-parse-with #(uax35/parse-number-format %))))
 
+(defn validate-number-format-type
+  "Returns a validator which checks a parsed number format is valid for the named data type"
+  [type-name]
+  (fn [context format]
+    (cond
+      (and (xml-datatype/is-subtype? "integer" type-name)
+           (uax35/allows-decimal-part? format))
+      (make-warning context "Decimal part not allows in integer number format" invalid)
+
+      (and (xml-datatype/is-subtype? "decimal" type-name)
+           (uax35/allows-exponent-part? format))
+      (make-warning context "Exponent part not allowed in decimal number format" invalid)
+
+      :else format)))
+
+(defn typed-number-format-pattern [type-name]
+  (chain number-format-pattern (validate-number-format-type type-name)))
+
 (def numeric-type-format
   (object-of {:optional {:decimalChar character
                          :groupChar character
@@ -127,7 +145,8 @@
       ;;NOTE: non-string formats are validated as part of the datatype definition
       (xml-datatype/is-numeric-type? base)
       (if (string? format)
-        (let [number-format (number-format-pattern (append-path context "format") format)]
+        (let [format-validator (typed-number-format-pattern base)
+              number-format (format-validator (append-path context "format") format)]
           (if (invalid? number-format)
             (dissoc datatype :format)
             (assoc datatype :format {:pattern number-format})))
