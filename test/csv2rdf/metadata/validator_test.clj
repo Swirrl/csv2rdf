@@ -4,6 +4,7 @@
             [csv2rdf.test-common :refer [suppress-test-logging]]
             [csv2rdf.metadata.validator :refer :all]
             [csv2rdf.logging :as logging]
+            [csv2rdf.metadata.test-common :refer [validates-as warns-with warns-invalid]]
             [csv2rdf.metadata.context :as context])
   (:import [java.net URI]))
 
@@ -12,27 +13,19 @@
         v (default-if-invalid string default)
         context (context/make-context "http://example")]
     (testing "Valid value"
-      (let [value "ok"
-            {:keys [warnings result]} (logging/capture-warnings (v context value))]
-        (is (empty? warnings))
-        (is (= value result))))
+      (let [value "ok"]
+        (validates-as value (v context value))))
 
     (testing "Invalid value"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v context 4))]
-        (is (= 1 (count warnings)))
-        (is (= default result))))))
+      (warns-with default (v context 4)))))
 
 (deftest eq-test
   (let [v (eq "value")]
     (testing "Matches value"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v {} "value"))]
-        (is (empty? warnings))
-        (is (= "value" result))))
+      (validates-as "value" (v {} "value")))
 
     (testing "Does not match value"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v {} "other value"))]
-        (is (= 1 (count warnings)))
-        (is (invalid? result))))))
+      (warns-invalid (v {} "other value")))))
 
 (deftest type-eq-test
   (let [value "Table"
@@ -52,10 +45,8 @@
   (let [v (array-of string)
         context (context/make-context (URI. "http://example"))]
     (testing "Valid array with valid elements"
-      (let [arr ["foo" "bar" "baz"]
-            {:keys [warnings result]} (logging/capture-warnings (v context arr))]
-        (is (empty? warnings))
-        (is (= arr result))))
+      (let [arr ["foo" "bar" "baz"]]
+        (validates-as arr (v context arr))))
 
     (testing "Array with invalid elements"
       (let [arr ["foo" 2 "bar" {} "baz" nil]
@@ -64,66 +55,44 @@
         (is (= ["foo" "bar" "baz"] result))))
 
     (testing "Non-array"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v context "not an array"))]
-        (is (= 1 (count warnings)))
-        (is (= [] result))))))
+      (warns-with [] (v context "not an array")))))
 
 (deftest nullable-test
   (let [v (nullable string)
         context (context/make-context (URI. "http://example"))]
-    (testing "nil"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v context nil))]
-        (is (empty? warnings))
-        (is (nil? result))))
+    (validates-as nil (v context nil))
 
     (testing "Non-nil and valid for inner validator"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v context "s"))]
-        (is (empty? warnings))
-        (is (= "s" result))))
+      (validates-as "s" (v context "s")))
 
     (testing "Non-nil and invalid for inner validator"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v context [1,2,3]))]
-        (is (some? (seq warnings)))
-        (is (invalid? result))))))
+      (warns-invalid (v context [1,2,3])))))
 
 (deftest try-parse-with-test
   (let [v (try-parse-with #(Integer/parseInt %))
         context (context/make-context (URI. "http://example"))]
-    (testing "Valid"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v context "123"))]
-        (is (empty? warnings))
-        (is (= 123 result))))
+    (validates-as 123 (v context "123"))
 
     (testing "Invalid"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v context "not a number"))]
-        (is (= 1 (count warnings)))
-        (is (invalid? result))))))
+      (warns-invalid (v context "not a number")))))
 
 (deftest uri-test
   (let [context (context/make-context (URI. "http://example"))]
     (testing "Valid URI"
-      (let [uri-str "http://example.com/some/file.txt"
-            {:keys [warnings result]} (logging/capture-warnings (uri context uri-str))]
-        (is (empty? warnings))
-        (is (= (URI. uri-str) result))))
+      (let [uri-str "http://example.com/some/file.txt"]
+        (validates-as (URI. uri-str) (uri context uri-str))))
 
     (testing "Invalid URI"
-      (let [{:keys [warnings result]} (logging/capture-warnings (uri context "not a URI"))]
-        (is (= 1 (count warnings)))
-        (is (invalid? result))))
+      (warns-invalid (uri context "not a URI")))
 
     (testing "Invalid type"
-      (let [{:keys [warnings result]} (logging/capture-warnings (uri context 4))]
-        (is (= 1 (count warnings)))
-        (is (invalid? result))))))
+      (warns-invalid (uri context 4)))))
 
 (deftest required-key-test
   (let [v (required-key :k string)
         context (context/make-context (URI. "http://example"))]
     (testing "Key exists with valid value"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v context {:k "value" :other "ignored"}))]
-        (is (empty? warnings))
-        (is (= [:k "value"] result))))
+      (validates-as [:k "value"] (v context {:k "value" :other "ignored"})))
 
     (testing "Key missing"
       (validation-error (v context {:other 4})))
@@ -136,58 +105,40 @@
     (testing "Without default"
       (let [v (optional-key :k string)]
         (testing "Key exists with valid value"
-          (let [{:keys [warnings result]} (logging/capture-warnings (v context {:k "value" :other "ignored"}))]
-            (is (empty? warnings))
-            (is (= [:k "value"] result))))
+          (validates-as [:k "value"] (v context {:k "value" :other "ignored"})))
 
         (testing "Key missing"
-          (let [{:keys [warnings result]} (logging/capture-warnings (v context {:other "ignored"}))]
-            (is (empty? warnings))
-            (is (nil? result))))
+          (validates-as nil (v context {:other "ignored"})))
 
         (testing "Key exists with invalid value"
-          (let [{:keys [warnings result]} (logging/capture-warnings (v context {:k 4}))]
-            (is (some? (seq warnings)))
-            (is (nil? result))))))
+          (warns-with nil (v context {:k 4})))))
 
     (testing "With default"
       (let [default "default"
             key :k
             v (optional-key key string default)]
         (testing "Key exists with valid value"
-          (let [value "value"
-                {:keys [warnings result]} (logging/capture-warnings (v context {key value :other "ignored"}))]
-            (is (empty? warnings))
-            (is (= [key value] result))))
+          (let [value "value"]
+            (validates-as [key value] (v context {key value :other "ignored"}))))
 
         (testing "Key missing"
-          (let [{:keys [warnings result]} (logging/capture-warnings (v context {:other "ignored"}))]
-            (is (empty? warnings))
-            (is (= [key default] result))))
+          (validates-as [key default] (v context {:other "ignored"})))
 
         (testing "Key exists with invalid value"
-          (let [{:keys [warnings result]} (logging/capture-warnings (v context {key 5 :other "ignored"}))]
-            (is (some? (seq warnings)))
-            (is (= [key default] result))))))))
+          (warns-with [key default] (v context {key 5 :other "ignored"})))))))
 
 (deftest map-of-test
   (let [v (map-of string number)
         context (context/make-context (URI. "http://example"))]
     (testing "All keys and values valid"
-      (let [m {"foo" 1 "bar" 2 "baz" 3}
-            {:keys [warnings result]} (logging/capture-warnings (v context m))]
-        (is (empty? warnings))
-        (is (= m result))))
+      (let [m {"foo" 1 "bar" 2 "baz" 3}]
+        (validates-as m (v context m))))
 
     (testing "Invalid keys"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v context {"foo" 1 [] 2 true 3 "bar" 4 {} 5}))]
-        (is (some? (seq warnings)))
-        (is (= {"foo" 1 "bar" 4} result))))
+      (warns-with {"foo" 1 "bar" 4} (v context {"foo" 1 [] 2 true 3 "bar" 4 {} 5})))
 
     (testing "Invalid values"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v context {"foo" 1 "bar" false "baz" "x" "quux" 4}))]
-        (is (some? (seq warnings)))
-        (is (= {"foo" 1 "quux" 4} result))))))
+      (warns-with {"foo" 1 "quux" 4} (v context {"foo" 1 "bar" false "baz" "x" "quux" 4})))))
 
 (deftest one-of-test
   (let [values #{"foo" "bar" "baz"}
@@ -195,14 +146,10 @@
         context (context/make-context (URI. "http://example"))]
     (testing "Valid value"
       (doseq [value values]
-        (let [{:keys [warnings result]} (logging/capture-warnings (v context value))]
-          (is (empty? warnings))
-          (is (= value result)))))
+        (validates-as value (v context value))))
 
     (testing "Invalid value"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v context "invalid"))]
-        (is (= 1 (count warnings)))
-        (is (invalid? result))))))
+      (warns-invalid (v context "invalid")))))
 
 (deftest mapping-test
   (let [value-map {"foo" 1 "bar" 2 "baz" 3}
@@ -210,26 +157,18 @@
         v (mapping value-map)]
     (testing "Valid value"
       (doseq [[key value] value-map]
-        (let [{:keys [warnings result]} (logging/capture-warnings (v context key))]
-          (is (empty? warnings))
-          (is (= value result)))))
+        (validates-as value (v context key))))
 
     (testing "Invalid value"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v context "invalid"))]
-        (is (= 1 (count warnings)))
-        (is (invalid? result))))))
+      (warns-invalid (v context "invalid")))))
 
 (deftest where-test
   (let [v (where even? "even")
         context (context/make-context (URI. "http://example"))]
     (testing "Valid"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v context 2))]
-        (is (empty? warnings))
-        (is (= 2 result))))
+      (validates-as 2 (v context 2)))
 
     (testing "Invalid"
-      (let [{:keys [warnings result]} (logging/capture-warnings (v context 3))]
-        (is (= 1 (count warnings)))
-        (is (invalid? result))))))
+      (warns-invalid (v context 3)))))
 
 (use-fixtures :each suppress-test-logging)
