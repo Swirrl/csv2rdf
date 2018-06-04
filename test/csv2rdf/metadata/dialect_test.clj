@@ -1,16 +1,14 @@
 (ns csv2rdf.metadata.dialect-test
   (:require [csv2rdf.metadata.dialect :refer :all :as dialect]
+            [csv2rdf.metadata.test-common :refer [test-context validates-as warns-with warns-invalid]]
             [clojure.test :refer :all]
             [clojure.spec.alpha :as s]
             [clojure.spec.test.alpha :as stest]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
             [clojure.test.check :as tc]
-            [csv2rdf.metadata.context :as context]
-            [csv2rdf.metadata.validator :refer [invalid?]]
-            [csv2rdf.logging :as logging])
-  (:import [clojure.lang ExceptionInfo]
-           [java.net URI]))
+            [csv2rdf.metadata.validator :refer [invalid?]])
+  (:import [clojure.lang ExceptionInfo]))
 
 (deftest dialect->options-trim-test
   (testing "None"
@@ -80,48 +78,33 @@
 
 (deftest encoding-test
   (testing "valid encoding"
-    (let [context (context/make-context (URI. "http://example"))
-          enc "utf-16"
-          {:keys [warnings result]} (logging/capture-warnings (encoding context enc))]
-      (is (empty? warnings))
-      (is (= enc result))))
+    (let [enc "utf-16"]
+      (validates-as enc (encoding test-context enc))))
 
   (testing "invalid encoding"
-    (let [context (context/make-context (URI. "http://example"))
-          {:keys [warnings result]} (logging/capture-warnings (encoding context "unkown encoding"))]
-      (is (= 1 (count warnings)))
-      (is (invalid? result))))
+    (warns-invalid (encoding test-context "unknown encoding")))
 
   (testing "invalid type"
-    (let [context (context/make-context (URI. "http://example"))
-          {:keys [warnings result]} (logging/capture-warnings (encoding context ["not" "a" "string"]))]
-      (is (= 1 (count warnings)))
-      (is (invalid? result)))))
+    (warns-invalid (encoding test-context ["not" "a" "string"]))))
 
 (deftest trim-mode-test
   (testing "valid string"
-    (are [expected s] (= expected (trim-mode (context/make-context (URI. "http://example")) s))
+    (are [expected s] (= expected (trim-mode test-context s))
       :all "true"
       :start "start"
       :end "end"
       :none "false"))
 
   (testing "invalid string"
-    (let [context (context/make-context (URI. "http://example"))
-          {:keys [warnings result]} (logging/capture-warnings (trim-mode context "unknown"))]
-      (is (= 1 (count warnings)))
-      (is (invalid? result))))
+    (warns-invalid (trim-mode test-context "unknown")))
 
   (testing "boolean"
-    (are [expected b] (= expected (trim-mode (context/make-context (URI. "http://example")) b))
+    (are [expected b] (= expected (trim-mode test-context b))
       :all true
       :none false))
 
   (testing "invalid type"
-    (let [context (context/make-context (URI. "http://example"))
-          {:keys [warnings result]} (logging/capture-warnings (trim-mode context ["not" "a" "string" "or" "boolean"]))]
-      (is (= 1 (count warnings)))
-      (is (invalid? result)))))
+    (warns-invalid (trim-mode test-context ["not" "a" "string" "or" "boolean"]))))
 
 (defn with-instrumentation [f]
   ;;TODO: fix dialect specs
