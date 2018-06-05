@@ -23,9 +23,9 @@
          table-group-dialect (:dialect metadata)
          output-tables (remove properties/suppress-output? tables)
          {:keys [statements] :as ctx} (table-group-context mode metadata)
-         table-statements (util/lazy-mapcat (fn [table]
+         table-statements (util/mapcat-seq (fn [table]
                                               (get-table-statements ctx table table-group-dialect))
-                                            output-tables)]
+                                           output-tables)]
      (concat statements table-statements))))
 
 (defn csv->rdf->destination [tabular-source metadata-source destination options]
