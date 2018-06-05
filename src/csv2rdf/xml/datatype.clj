@@ -160,7 +160,8 @@
   (cond
     (nil? value) 0
 
-    (is-string-type? base) (.count (.codePoints value))
+    (is-string-type? base) (let [^String s value]
+                             (.count (.codePoints s)))
 
     ;;binary data expected to be byte array
     (is-binary-type? base) (let [#^bytes arr value]

@@ -130,7 +130,7 @@
         rows (reader/make-row-seq (io/input-stream io-source) options)]
     (csv/rows->embedded-metadata (source/->uri io-source) options rows)))
 
-(defmulti get-uri-metadata (fn [uri] (keyword (.getScheme uri))))
+(defmulti get-uri-metadata (fn [^URI uri] (keyword (.getScheme uri))))
 
 (defmethod get-uri-metadata :file [uri]
   (io-source->embedded-metadata uri))

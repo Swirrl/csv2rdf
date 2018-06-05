@@ -195,6 +195,9 @@
       (throw (IllegalArgumentException. (str "Invalid hex digit " c)))
       i)))
 
+(defn long->integer ^Integer [^long i]
+  (int i))
+
 (defn parse-hex-string
   "Parses a hex string into a byte array"
   [^String string-value]
@@ -204,8 +207,9 @@
       (doseq [idx (range byte-count)]
         (let [offset (* 2 idx)
               b1 (parse-hex-digit (.charAt string-value offset))
-              b2 (parse-hex-digit (.charAt string-value (inc offset)))]
-          (aset bytes idx (.byteValue (bit-or (bit-shift-left b1 4) b2)))))
+              b2 (parse-hex-digit (.charAt string-value (inc offset)))
+              ^byte rb (.byteValue (bit-or (bit-shift-left b1 4) b2))]
+          (aset bytes idx rb)))
       bytes)
     (throw (IllegalArgumentException. "Hex string must contain even number of characters"))))
 
@@ -229,14 +233,15 @@
                         (throw ex))))
         get-next (fn []
                    (try
-                     (.next @ita)
+                     (let [^Iterator it @ita]
+                       (.next it))
                      (catch Exception ex
                        (move-done)
                        (throw ex))))]
     (reify
       Iterator
       (hasNext [this]
-        (case @state
+        (case (long @state)
           0 (do
               (move-open)
               (.hasNext this))
@@ -257,7 +262,7 @@
           (throw (IllegalStateException. (str "Unexpected state " @state)))))
 
       (next [this]
-        (case @state
+        (case (long @state)
           0 (do
               (move-open)
               (get-next))

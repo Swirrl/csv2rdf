@@ -12,7 +12,7 @@
   (cond
     (instance? URI property) property
     (string? property) (let [expanded (json-ld/expand-uri-string property)
-                             expanded-uri (util/ignore-exceptions (URI. expanded))]
+                             ^URI expanded-uri (util/ignore-exceptions (URI. expanded))]
                          (if (and (some? expanded-uri) (.isAbsolute expanded-uri))
                            expanded-uri))
     :else nil))
@@ -55,7 +55,7 @@
                              ;;TODO: keep common properties as strings when parsing metadata?
                              (cond
                                (instance? URI k) (json-ld->rdf s-node k v)
-                               (and (string? k) (not (.startsWith k "@"))) (json-ld->rdf s-node k v)
+                               (and (string? k) (let [^String s k] (not (.startsWith s "@")))) (json-ld->rdf s-node k v)
                                :else nil))
                            value)]
         (cons t_4_1 (concat ts_4_2 ts_4_3)))

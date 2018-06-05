@@ -52,7 +52,7 @@
 (defprotocol InputStreamRequestable
   (request-input-stream [this]))
 
-(defmulti request-uri-input-stream (fn [uri] (keyword (.getScheme uri))))
+(defmulti request-uri-input-stream (fn [^URI uri] (keyword (.getScheme uri))))
 
 (defmethod request-uri-input-stream :http [uri]
   (let [{:keys [status headers body] :as response} (http/get-uri uri)]

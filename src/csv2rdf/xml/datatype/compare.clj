@@ -21,11 +21,11 @@
 (extend XMLGregorianCalendar
   Comp
   (merge default-methods
-         {:lt? (fn [this other]
+         {:lt? (fn [^XMLGregorianCalendar this other]
                  (= DatatypeConstants/LESSER (.compare this other)))
-          :ge? (fn [this other]
+          :ge? (fn [^XMLGregorianCalendar this other]
                  (= DatatypeConstants/GREATER (.compare this other)))
-          :eql? (fn [this other]
+          :eql? (fn [^XMLGregorianCalendar this other]
                   (= DatatypeConstants/EQUAL (.compare this other)))}))
 
 ;;NOTE: this implementation is for the values of date/time datatypes. All the parsed result types implement
@@ -34,11 +34,11 @@
 (extend Temporal
   Comp
   (merge default-methods
-         {:lt? (fn [this other]
+         {:lt? (fn [^Comparable this other]
                  (neg? (.compareTo this other)))
-          :gt? (fn [this other]
+          :gt? (fn [^Comparable this other]
                  (pos? (.compareTo this other)))
-          :eql? (fn [this other]
+          :eql? (fn [^Comparable this other]
                   (zero? (.compareTo this other)))}))
 
 (extend-protocol Comp

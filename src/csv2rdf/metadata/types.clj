@@ -109,10 +109,10 @@
   (if (string? x)
     (if-let [datatype-iri (xml-datatype/get-datatype-iri x)]
       datatype-iri
-      (let [uri (try
-                  (URI. (expand-uri-string x))
-                  (catch URISyntaxException ex
-                    (make-error context (format "Invalid URI '%s'" x))))]
+      (let [^URI uri (try
+                       (URI. (expand-uri-string x))
+                       (catch URISyntaxException _ex
+                         (make-error context (format "Invalid URI '%s'" x))))]
         (if (.isAbsolute uri)
           uri
           (make-error context "Type URI must be absolute"))))
@@ -121,10 +121,10 @@
 (defn validate-common-property-type-without-value [context ^String s]
   (if-let [type-uri (json-ld/expand-description-object-type-uri s)]
     type-uri
-    (let [uri (try
-                (URI. (expand-uri-string s))
-                (catch URISyntaxException _ex
-                  (make-error context (format "Invalid type - expected description object type, compact or absolute URI"))))]
+    (let [^URI uri (try
+                     (URI. (expand-uri-string s))
+                     (catch URISyntaxException _ex
+                       (make-error context (format "Invalid type - expected description object type, compact or absolute URI"))))]
       (if (.isAbsolute uri)
         uri
         (make-error context "Type URI must be absolute")))))

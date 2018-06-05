@@ -6,6 +6,9 @@
 (def base-key (keyword "@base"))
 (def language-key :language)
 
+(defn document-uri ^URI [context]
+  (:document-uri context))
+
 (defn make-context [metadata-uri]
   {:base-uri metadata-uri :document-uri metadata-uri :path [] :language nil})
 
@@ -17,8 +20,8 @@
   [context local-context]
   (let [;;NOTE: @base key is 'a URL which is resolved against the location of the metadata document to provide the
         ;; base URL for other URLs in the metadata document'
-        context-base-uri (get local-context base-key)
-        base-uri (some->> context-base-uri (.resolve (:document-uri context)))
+        ^URI context-base-uri (get local-context base-key)
+        base-uri (some->> context-base-uri (.resolve (document-uri context)))
         from-local {:base-uri base-uri :language (get local-context language-key)}
         local (util/filter-values some? from-local)]
     (merge context local)))
@@ -29,6 +32,6 @@
 (defn resolve-uri [{:keys [^URI base-uri] :as context} ^URI uri]
   (util/resolve-uri base-uri uri))
 
-(defn with-document-uri [context new-document-uri]
+(defn with-document-uri [context ^URI new-document-uri]
   (assoc context :document-uri new-document-uri))
 
