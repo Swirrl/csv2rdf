@@ -11,13 +11,13 @@
                  [clj-http "3.7.0"]
                  [org.clojure/tools.cli "0.3.7"]
                  [org.clojure/tools.logging "0.4.1"]
-                 [org.slf4j/slf4j-api "1.7.25"]
-                 [org.apache.logging.log4j/log4j-api "2.11.0"]
-                 [org.apache.logging.log4j/log4j-core "2.11.0"]
-                 [org.apache.logging.log4j/log4j-slf4j-impl "2.11.0"]]
+                 [org.slf4j/slf4j-api "1.7.25"]]
   :main csv2rdf.main
   :profiles
   {:dev
    {:dependencies [[org.clojure/test.check "0.9.0"]
-                   [org.clojure/data.csv "0.1.4"]]
+                   [org.clojure/data.csv "0.1.4"]
+                   [org.apache.logging.log4j/log4j-api "2.11.0"]
+                   [org.apache.logging.log4j/log4j-core "2.11.0"]
+                   [org.apache.logging.log4j/log4j-slf4j-impl "2.11.0"]]
     :resource-paths ["test/resources"]}})
