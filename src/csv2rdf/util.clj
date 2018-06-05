@@ -195,9 +195,6 @@
       (throw (IllegalArgumentException. (str "Invalid hex digit " c)))
       i)))
 
-(defn long->integer ^Integer [^long i]
-  (int i))
-
 (defn parse-hex-string
   "Parses a hex string into a byte array"
   [^String string-value]
