@@ -1,6 +1,7 @@
 (ns csv2rdf.csvw.minimal
   (:require [csv2rdf.vocabulary :refer [rdf:nil rdf:first rdf:rest]]
-            [csv2rdf.csvw.common :refer :all]))
+            [csv2rdf.csvw.common :refer :all]
+            [csv2rdf.util :refer [liberal-mapcat]]))
 
 (defn minimal-cell-statements [table-url default-subject {:keys [aboutUrl] :as cell}]
   (let [subject (or aboutUrl default-subject)
@@ -19,6 +20,6 @@
    :statements []})
 
 (defmethod table-statements :minimal [_context {:keys [url] :as table} annotated-rows]
-  (mapcat (fn [row]
-            (minimal-row-statements url row))
-          annotated-rows))
+  (liberal-mapcat (fn [row]
+                    (minimal-row-statements url row))
+                  annotated-rows))

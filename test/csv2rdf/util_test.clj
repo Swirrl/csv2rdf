@@ -44,7 +44,7 @@
       "https://example.com:4433/" "https://example.com:4433"
       "https://example.com/some/path" "https://example.com/some/path")))
 
-(defspec concat-seq-test 100
+(defspec liberal-concat-test 100
   (prop/for-all
     [vs (gen/vector (gen/vector gen/int))]
-    (= (apply concat vs) (concat-seq vs))))
+    (= (seq (apply concat vs)) (seq (apply liberal-concat vs)))))

@@ -5,7 +5,7 @@
             [csv2rdf.json :refer [array? object?]]
             [grafter.rdf :refer [->Triple]]
             [grafter.rdf.io :refer [language literal]]
-            [csv2rdf.util :as util])
+            [csv2rdf.util :refer [liberal-concat liberal-mapcat] :as util])
   (:import [java.net URI]))
 
 (defn ^{:csvw-spec "6.1"} try-expand-property [property]
@@ -109,8 +109,9 @@
         t-4_2 (->Triple table-group-subject csvw:table table-subject)
         t-4_3 (->Triple table-subject rdf:type csvw:Table)
         t-4_4 (->Triple table-subject csvw:url url)]
-    (concat [t-4_2 t-4_3 t-4_4]
-            (notes-non-core-annotation-statements table-subject table)
-            (mapcat (fn [row]
-                      (row-statements table-subject table row))
-                    annotated-rows))))
+    (liberal-concat
+      [t-4_2 t-4_3 t-4_4]
+      (notes-non-core-annotation-statements table-subject table)
+      (liberal-mapcat (fn [row]
+                        (row-statements table-subject table row))
+                      annotated-rows))))

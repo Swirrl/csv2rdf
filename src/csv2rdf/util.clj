@@ -274,16 +274,7 @@
       (close [this]
         (move-done)))))
 
-(defn mapcat-seq
-  "Version of mapcat which takes an explicit sequence argument instead of a varargs sequence like mapcat. Applies the
-  function f to each input element on demand and avoids holding onto the head of any of the generated sub-sequences."
-  [f coll]
-  (lazy-seq
-    (when (seq coll)
-      (let [s (first coll)]
-        (concat (f s) (mapcat-seq f (rest coll)))))))
-
-(defn concat-seq
+(defn- concat-seq
   "Version of concat which takes a sequence of sequences to concatenate. Avoids holding onto the heads of the
   subsequences."
   [coll]
@@ -291,6 +282,16 @@
     (when (seq coll)
       (let [s (first coll)]
         (concat s (concat-seq (rest coll)))))))
+
+(defn liberal-concat
+  "Version of concat which avoids holding onto the heads of the argument functions"
+  [& seqs]
+  (concat-seq (into '() (reverse seqs))))
+
+(defn liberal-mapcat
+  "Version of mapcat which avoids holding onto the heads of the generated subsequences."
+  [f s]
+  (concat-seq (map f s)))
 
 (defmulti normalise-uri
           "Does path and scheme-based normalisation for HTTP and HTTPS URIs, path-based normalisation for other URIs."
