@@ -12,9 +12,10 @@
                  [org.clojure/tools.cli "0.3.7"]
                  [org.clojure/tools.logging "0.4.1"]
                  [org.slf4j/slf4j-api "1.7.25"]]
-  :main csv2rdf.main
+  
   :profiles
-  {:dev
+  {:uberjar {:main csv2rdf.main}
+   :dev
    {:dependencies [[org.clojure/test.check "0.9.0"]
                    [org.clojure/data.csv "0.1.4"]
                    [org.apache.logging.log4j/log4j-api "2.11.0"]
