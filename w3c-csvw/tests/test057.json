@@ -1,0 +1,37 @@
+{
+  "tables": [
+    {
+      "url": "http://www.w3.org/2013/csvw/tests/test057.csv",
+      "row": [
+        {
+          "url": "http://www.w3.org/2013/csvw/tests/test057.csv#row=3",
+          "rownum": 1,
+          "describes": [
+            {
+              "on_street": " ADDISON AV ",
+              "species": " Celtis australis ",
+              "trim_cycle": " Large Tree Routine Prune ",
+              "inventory_date": "2010-10-18"
+            }
+          ]
+        },
+        {
+          "url": "http://www.w3.org/2013/csvw/tests/test057.csv#row=6",
+          "rownum": 2,
+          "describes": [
+            {
+              "on_street": " EMERSON ST ",
+              "species": " Liquidambar styraciflua ",
+              "trim_cycle": " Large Tree Routine Prune ",
+              "inventory_date": "2010-06-02"
+            }
+          ]
+        }
+      ],
+      "rdfs:comment": [
+        "publisher City of Palo Alto",
+        "updated 12/31/2010"
+      ]
+    }
+  ]
+}

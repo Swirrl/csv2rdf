@@ -1,0 +1,163 @@
+!!! 5
+%html{lang: :en, prefix: "csvwt: http://www.w3.org/2013/csvw/tests/vocab# mf: http://www.w3.org/2001/sw/DataAccess/tests/test-manifest# rdft: http://www.w3.org/ns/rdftest#"}
+  %head
+    %meta{"http-equiv" => "Content-Type", content: "text/html;charset=utf-8"}
+    %meta{name: "viewport", content: "width=device-width, initial-scale=1.0"}
+    %link{rel: "stylesheet", type: "text/css", href: "https://www.w3.org/StyleSheets/TR/base"}
+    :css
+      body: {bacground-image: none;}
+      dl.test-detail, dl.test-options {
+        padding: 0.5em;
+      }
+      dl.test-detail>dt, dl.test-options>dt {
+        float: left;
+        clear: left;
+        text-align: right;
+        font-weight: bold;
+        color: green;
+      }
+      dl.test-detail>dt:after, dl.test-options>dt:after {content: ": "}
+      dl.test-detail>dd, dl.test-options>dd {
+        margin: 0 0 0 110px;
+        padding: 0 0 0.5em 0;
+      }
+      dl.test-description>dt {margin-top: 2em;}
+      dd {margin-left: 0;}
+      dd code {display: inline;}
+      footer {text-align: center;}
+    %title
+      = man['label']
+    :css
+      em.rfc2119 { 
+        text-transform: lowercase;
+        font-variant:   small-caps;
+        font-style:     normal;
+        color:          #900;
+      }
+      a.testlink {
+        color: inherit;
+        text-decoration: none;
+      }
+      a.testlink:hover {
+        text-decoration: underline;
+      }
+      .warning {color: orange;}
+      .error {color: red;}
+
+  %body{resource: man['id'], typeof: man['type']}
+    %p
+      %a{href: "http://www.w3.org/"}
+        %img{src: "http://www.w3.org/Icons/w3c_home", alt: "W3C", height: 48, width: 72}
+    %h1{property: "rdfs:label"}<= man['label']
+    %p{property: "rdfs:comment"}<= man['comment']
+    :markdown
+      This page describes CSVW tests for JSON, RDF, Validation, and Non-normative profiles. These tests are also described in [JSON-LD](manifest.jsonld) and [Turtle](manifest.ttl) format for convenience. The manifest vocabulary is described in the [CSVT Vocabulary](vocab.html) ([JSON-LD](vocab.jsonld), [Turtle](vocab.ttl)) and is based on the [RDF Test Vocabulary](http://www.w3.org/TR/2014/NOTE-rdf11-testcases-20140225/).
+
+      ## General instructions for running the CSVW Test suites
+      All test manifests have a similar structure and reference an _action_ file, and may reference a _result_ file. **Evaluation Tests** reference both an _action_ and a _result_ file, and the result of processing the _action_ file should result in output equivalent to the _result_ file. For a **ToRdfTest**, the results should be compared using [RDF graph isomorphism](http://www.w3.org/TR/rdf11-concepts/#graph-isomorphism). For a **ToJsonTest**, the results should be compared using JSON object comparison.
+
+      A **PositiveValidationTest** should process the input and find no validation errors. A **WarningValidationTest** should validate the input and generate one or more warnings; the content of these warnings is not checked as part of the test, as there is no normative form for validation warnings. A **NegativeValiationTest** should result in a validation error.
+
+      Tests may be defined with processor options and expected HTTP headers which should be treated as if they were provided with the _action_ file.
+
+      The _action_ file may reference a tabular data file (CSV or TSV) or a Metadata file (JSON).
+
+      Tests included in the non-normative manifest test aspects of processing CSV files which are not normatively defined in CSVW; implementations are not required to pass such tests to be conforming.
+
+      Developers are encouraged to make a local copy of the test suite (available on [GitHub](http://github.com/w3c/csvw/tests/)) and simulate the behavior of fetching test files remotely and setting HTTP headers as described in a particular test entry.
+
+      ## Contributing Tests
+      The test manifests and entries are built automatically from [manifest.csv](manifest.csv) using [mk_manifest.rb](mk_manifest.rb), where each row defines a combination of RDF, JSON and Validation tests for the same _action_ and implicit files. Tests may be contributed via pull request to [https://github.com/w3c/csvw](https://github.com/w3c/csvw) with suitable changes to the [manifest.csv](manifest.csv) and necessary _action_, _result_ and _implicit_ files. Tests will also be considered if a contribution is sent to [public-csv-wg-comments@w3.org](mailto:public-csv-wg-comments@w3.org).
+
+      ## Distribution
+        Distributed under both the [W3C Test Suite License](http://www.w3.org/Consortium/Legal/2008/04-testsuite-license) and the [W3C 3-clause BSD License](http://www.w3.org/Consortium/Legal/2008/03-bsd-license). To contribute to a W3C Test Suite, see the [policies and contribution forms](http://www.w3.org/2004/10/27-testcases).
+
+      ## Disclaimer
+        UNDER BOTH MUTUALLY EXCLUSIVE LICENSES, THIS DOCUMENT AND ALL DOCUMENTS, TESTS AND SOFTWARE THAT LINK THIS STATEMENT ARE PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THE DOCUMENT ARE SUITABLE FOR ANY PURPOSE; NOR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY THIRD PARTY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+        COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE DOCUMENT OR THE PERFORMANCE OR IMPLEMENTATION OF THE CONTENTS THEREOF.
+
+    %section.contents
+      %h2="Contents"
+      %ol
+        - manifests.each do |id, man|
+          %li
+            %a{href: "##{id}"}<=man['label']
+            = "– #{man['entries'].count} entries"
+    - manifests.each do |id, man|
+      %section{id: id, property: "mf:entry", inlist: true, resource: id, typeof: man['type']}
+        %h2<= "#{man['label']} (#{man['entries'].count} entries)"
+        %p{property: "rdfs:comment"}<= man['comment']
+        %p
+          - if id =~/json/
+            JSON tests are passed when the result of transforming the action and implicit files generates the same JSON as the result file using JSON object comparison.
+          - elsif id =~ /rdf/
+            RDF tests are passed when the graph generated by transforming the action and implicit files is isomorphic to that in the result file.
+          - elsif id =~ /validation/
+            Validation tests are passed when the accept and implicit files are validating without errors, with one or more warnings, or one or more errors depending on the type of test being run.
+          - elsif id =~ /nonnorm/
+            Non-normative tests include variations described above. Conforming implementations are not required to pass such tests.
+        %dl.test-description
+          - man['entries'].each do |test|
+            %dt{id: test['id']}
+              %a.testlink{href: "##{test['id']}"}
+                = "#{test['id']}:"
+              %span{about: test['id'], property: "mf:name"}<~test['name']
+            %dd{property: "mf:entry", inlist: true, resource: test['id'], typeof: test['type']}
+              %div{property: "rdfs:comment"}
+                :markdown
+                  #{test['comment'].gsub(/(MUST|SHOULD|MAY)/, '<em class="rfc2119">\\1</em>')}
+                - if test['type'] =~ /Negative/
+                  %p.error
+                    Negative Test
+                - if test['type'] =~ /Warning/
+                  %p.warning
+                    Expects Warnings
+              %dl.test-detail
+                %dt="type"
+                %dd<~test['type']
+                %dt="approval"
+                %dd{property: "mf:approval", resource: test['approval']}<~test['approval']
+                - if test['action']
+                  %dt="action"
+                  %dd
+                    %a{property: "mf:action", href: test['action']}<~test['action']
+                - if test['result']
+                  %dt="result"
+                  %dd
+                    %a{property: "mf:result", href: test['result']}<~test['result']
+                - if test['httpLink']
+                  %dt="Link Header"
+                  %dd{property: "csvt:httpLink", content: test['httpLink']}
+                    %code
+                      &= test['httpLink']
+                - if test['httpStatus']
+                  %dt="Status Code"
+                  %dd{property: "csvt:httpStatus", content: test['httpStatus'], datatype: "xsd:integer"}
+                    %code
+                      &= test['httpStatus']
+                - if test['contentType']
+                  %dt="Content Type"
+                  %dd{property: "csvt:contentType", content: test['contentType']}
+                    %code
+                      &= test['contentType']
+                - if test['implicit']
+                  %dt="Implicit"
+                  %dd{rel: "csvt:implicit"}
+                    - test['implicit'].each do |u|
+                      %a{href: u}<~u
+                - if test['option']
+                  %dt="options"
+                  %dd{property: "csvt:option", typeof: ""}
+                    - if test['option']['noProv']
+                      noProv:
+                      %span{property: "noProv", datatype: "xsd:boolean"}="true"
+                    - if test['option']['minimal']
+                      minimal:
+                      %span{property: "csvt:minimal", datatype: "xsd:boolean"}="true"
+                    - if test['option']['metadata']
+                      user metadata:
+                      %a{property: "csvt:metadata", href: test['option']['metadata']}<~test['option']['metadata']
+
+    %footer
+      :markdown
+        [Copyright ©](http://www.w3.org/Consortium/Legal/ipr-notice#Copyright) 2015 [W3C](http://www.w3.org/)® ([MIT](http://www.csail.mit.edu/), [ERCIM](http://www.ercim.org/), [Keio](http://www.keio.ac.jp/), [Beihang](http://ev.buaa.edu.cn/)). W3C® [liability](http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer), [trademark](http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks) and [document use](http://www.w3.org/Consortium/Legal/copyright-documents) rules apply.

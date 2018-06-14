@@ -1,0 +1,7 @@
+{
+  "skipRows":      1,
+  "commentPrefix": "#",
+  "skipColumns":   1,
+  "skipBlankRows": true,
+  "trim":          true
+}
