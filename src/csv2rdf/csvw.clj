@@ -10,13 +10,18 @@
             [csv2rdf.metadata.properties :as properties]
             [csv2rdf.util :as util]))
 
-(defn get-table-statements [context {:keys [url dialect] :as table} table-group-dialect]
+(defn- get-table-statements [context {:keys [url dialect] :as table} table-group-dialect]
   (let [dialect (or dialect table-group-dialect)]
     (let [annotated-rows (csv/annotated-rows url table dialect)]
       (table-statements context table annotated-rows))))
 
 (defn csv->rdf
-  ([csv-source metadata-source] (csv->rdf csv-source metadata-source {}))
+  "Runs the CSVW process for the given tabular or metadata data sources and options. If metadata-source
+   is non-nil then processing will start from the asscociated metadata document, otherwise it will start
+   from tabular-source. Returns a lazy sequence of statements containing the CSVW output for the specified
+   CSVW mode. Mode can be specified by the :mode key of the options map if provided, otherwise standard mode
+   will be used."
+  ([tabular-source metadata-source] (csv->rdf tabular-source metadata-source {}))
   ([tabular-source metadata-source {:keys [mode] :as options}]
    (let [mode (or mode :standard)
          {:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source)
@@ -28,10 +33,17 @@
                                                output-tables)]
      (concat statements table-statements))))
 
-(defn csv->rdf->destination [tabular-source metadata-source destination options]
+(defn csv->rdf->destination
+  "Run csv->rdf for the given tabular/metadata sources and options then write the resulting
+   statements to the given destination. destination must implement
+   grafter.tabular.protocols/ITripleWriteable."
+  [tabular-source metadata-source destination options]
   (rdf/add destination (csv->rdf tabular-source metadata-source options)))
 
-(defn csv->rdf->file [tabular-source metadata-source dest-file options]
+(defn csv->rdf->file
+  "Run csv->rdf for the given tabular/metadata source and options then write the resulting
+   statements to dest-file."
+  [tabular-source metadata-source dest-file options]
   (with-open [os (io/output-stream dest-file)]
     (let [writer (gio/rdf-serializer os :format :ttl :prefixes nil)]
       (csv->rdf->destination tabular-source metadata-source writer options))))
