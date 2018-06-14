@@ -14,7 +14,10 @@
                  [org.slf4j/slf4j-api "1.7.25"]]
   
   :profiles
-  {:uberjar {:main csv2rdf.main}
+  {:uberjar {:main csv2rdf.main
+             :dependencies [[org.apache.logging.log4j/log4j-api "2.11.0"]
+                            [org.apache.logging.log4j/log4j-core "2.11.0"]
+                            [org.apache.logging.log4j/log4j-slf4j-impl "2.11.0"]]}
    :dev
    {:dependencies [[org.clojure/test.check "0.9.0"]
                    [org.clojure/data.csv "0.1.4"]
