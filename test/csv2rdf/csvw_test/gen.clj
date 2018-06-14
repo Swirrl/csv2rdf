@@ -2,7 +2,6 @@
   (:require [clojure.data.csv :as csv]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [csv2rdf.csvw :as csvw]
             [grafter.rdf :as rdf]
             [csv2rdf.http :as http]
             [csv2rdf.csvw-test.impl :refer :all]
@@ -10,7 +9,7 @@
   (:import [java.io File]
            [java.net URI URL]))
 
-(def test-data-dir (io/file "csvw_data"))
+(def test-data-dir (io/file "w3c-csvw/tests"))
 (def test-base-uri (URI. "http://www.w3.org/2013/csvw/tests/"))
 (def manifest (io/file test-data-dir "manifest.csv"))
 
