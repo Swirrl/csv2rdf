@@ -1,0 +1,3276 @@
+## CSV+ tests
+## Distributed under both the W3C Test Suite License[1] and the W3C 3-
+## clause BSD License[2]. To contribute to a W3C Test Suite, see the
+## policies and contribution forms [3]
+##
+## 1. http://www.w3.org/Consortium/Legal/2008/04-testsuite-license
+## 2. http://www.w3.org/Consortium/Legal/2008/03-bsd-license
+## 3. http://www.w3.org/2004/10/27-testcases
+
+@prefix : <manifest-rdf#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:   <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix csvt: <http://www.w3.org/2013/csvw/tests/vocab#> .
+@prefix rdft: <http://www.w3.org/ns/rdftest#> .
+
+<manifest-rdf>  a mf:Manifest ;
+
+  rdfs:label "CSVW RDF Tests";
+  rdfs:comment """Tests transformation of CSV to RDF.""";
+  mf:entries (
+    :test001 :test005 :test006 :test007 :test008 :test009 :test010 :test011 :test012 :test013
+    :test014 :test015 :test016 :test017 :test018 :test023 :test027 :test028 :test029 :test030
+    :test031 :test032 :test033 :test034 :test035 :test036 :test037 :test038 :test039 :test040
+    :test041 :test042 :test043 :test044 :test045 :test046 :test047 :test048 :test049 :test059
+    :test060 :test061 :test062 :test063 :test065 :test066 :test067 :test068 :test069 :test070
+    :test071 :test072 :test073 :test074 :test075 :test076 :test077 :test078 :test079 :test080
+    :test081 :test082 :test083 :test084 :test085 :test086 :test087 :test088 :test089 :test090
+    :test093 :test095 :test097 :test098 :test099 :test100 :test101 :test102 :test103 :test104
+    :test105 :test106 :test107 :test108 :test109 :test110 :test111 :test112 :test113 :test114
+    :test115 :test116 :test117 :test118 :test119 :test120 :test121 :test122 :test123 :test124
+    :test125 :test126 :test127 :test128 :test129 :test130 :test131 :test132 :test133 :test134
+    :test135 :test136 :test137 :test138 :test139 :test140 :test141 :test142 :test143 :test144
+    :test146 :test147 :test148 :test149 :test150 :test151 :test152 :test153 :test154 :test155
+    :test156 :test157 :test158 :test159 :test160 :test161 :test162 :test163 :test164 :test165
+    :test166 :test167 :test168 :test169 :test170 :test171 :test172 :test173 :test174 :test175
+    :test176 :test177 :test178 :test179 :test180 :test181 :test182 :test183 :test184 :test185
+    :test186 :test187 :test188 :test189 :test190 :test191 :test192 :test193 :test194 :test195
+    :test196 :test197 :test198 :test199 :test200 :test201 :test202 :test203 :test204 :test205
+    :test206 :test207 :test208 :test209 :test210 :test211 :test212 :test213 :test214 :test215
+    :test216 :test217 :test218 :test219 :test220 :test221 :test222 :test223 :test224 :test225
+    :test226 :test227 :test228 :test229 :test230 :test231 :test232 :test233 :test234 :test235
+    :test236 :test237 :test238 :test242 :test243 :test244 :test245 :test246 :test247 :test248
+    :test251 :test252 :test253 :test259 :test260 :test261 :test263 :test264 :test266 :test267
+    :test268 :test269 :test270 :test271 :test272 :test273 :test274 :test275 :test276 :test277
+    :test278 :test279 :test280 :test281 :test282 :test283 :test284 :test285 :test286 :test287
+    :test288 :test289 :test290 :test291 :test292 :test293 :test294 :test295 :test296 :test297
+    :test298 :test299 :test300 :test301 :test302 :test303 :test304 :test305 :test306 :test307
+  ) .
+
+:test001 a csvt:ToRdfTest;
+  mf:name "Simple table";
+  rdfs:comment """The simplest possible table without metadata""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test001.csv>;
+  mf:result <test001.ttl>;
+  .
+
+:test005 a csvt:ToRdfTest;
+  mf:name "Identifier references";
+  rdfs:comment """A table with entity identifiers and references to other entities without metadata""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test005.csv>;
+  mf:result <test005.ttl>;
+  .
+
+:test006 a csvt:ToRdfTest;
+  mf:name "No identifiers";
+  rdfs:comment """Records contain two entities with relationships which are duplicated without metadata""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test006.csv>;
+  mf:result <test006.ttl>;
+  .
+
+:test007 a csvt:ToRdfTest;
+  mf:name "Joined table with unique identifiers";
+  rdfs:comment """Joined data with identified records without metadata""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test007.csv>;
+  mf:result <test007.ttl>;
+  .
+
+:test008 a csvt:ToRdfTest;
+  mf:name "Microsyntax - internal field separator";
+  rdfs:comment """One field has comma-separated values without metadata""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test008.csv>;
+  mf:result <test008.ttl>;
+  .
+
+:test009 a csvt:ToRdfTest;
+  mf:name "Microsyntax - formatted time";
+  rdfs:comment """Field with parseable human formatted time without metadata""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test009.csv>;
+  mf:result <test009.ttl>;
+  .
+
+:test010 a csvt:ToRdfTest;
+  mf:name "Country-codes-and-names example";
+  rdfs:comment """Country-codes-and-names example""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test010.csv>;
+  mf:result <test010.ttl>;
+  .
+
+:test011 a csvt:ToRdfTest;
+  mf:name "tree-ops example with metadata";
+  rdfs:comment """Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test011/tree-ops.csv>;
+  mf:result <test011/result.ttl>;
+  csvt:implicit <test011/tree-ops.csv-metadata.json>;
+  .
+
+:test012 a csvt:ToRdfTest;
+  mf:name "tree-ops example with directory metadata";
+  rdfs:comment """Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test012/tree-ops.csv>;
+  mf:result <test012/result.ttl>;
+  csvt:implicit <test012/csv-metadata.json>;
+  .
+
+:test013 a csvt:ToRdfTest;
+  mf:name "tree-ops example from user metadata";
+  rdfs:comment """Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+    csvt:metadata <test013-user-metadata.json>;
+  ];
+  mf:action <tree-ops.csv>;
+  mf:result <test013.ttl>;
+  csvt:implicit <test013-user-metadata.json>;
+  .
+
+:test014 a csvt:ToRdfTest;
+  mf:name "tree-ops example with linked metadata";
+  rdfs:comment """Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  csvt:httpLink "<linked-metadata.json>; rel=\"describedby\"";
+  mf:action <test014/tree-ops.csv>;
+  mf:result <test014/result.ttl>;
+  csvt:implicit <test014/linked-metadata.json>;
+  .
+
+:test015 a csvt:ToRdfTest;
+  mf:name "tree-ops example with user and directory metadata";
+  rdfs:comment """Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+    csvt:metadata <test015/user-metadata.json>;
+  ];
+  mf:action <test015/tree-ops.csv>;
+  mf:result <test015/result.ttl>;
+  csvt:implicit <test015/csv-metadata.json>,
+    <test015/user-metadata.json>;
+  .
+
+:test016 a csvt:ToRdfTest;
+  mf:name "tree-ops example with linked and directory metadata";
+  rdfs:comment """Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  csvt:httpLink "<linked-metadata.json>; rel=\"describedby\"";
+  mf:action <test016/tree-ops.csv>;
+  mf:result <test016/result.ttl>;
+  csvt:implicit <test016/csv-metadata.json>,
+    <test016/linked-metadata.json>;
+  .
+
+:test017 a csvt:ToRdfTest;
+  mf:name "tree-ops example with file and directory metadata";
+  rdfs:comment """Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test017/tree-ops.csv>;
+  mf:result <test017/result.ttl>;
+  csvt:implicit <test017/tree-ops.csv-metadata.json>,
+    <test017/csv-metadata.json>;
+  .
+
+:test018 a csvt:ToRdfTest;
+  mf:name "tree-ops example with user, file and directory metadata";
+  rdfs:comment """Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+    csvt:metadata <test018/user-metadata.json>;
+  ];
+  mf:action <test018/tree-ops.csv>;
+  mf:result <test018/result.ttl>;
+  csvt:implicit <test018/tree-ops.csv-metadata.json>,
+    <test018/csv-metadata.json>,
+    <test018/user-metadata.json>;
+  .
+
+:test023 a csvt:ToRdfTest;
+  mf:name "dialect: header=false";
+  rdfs:comment """If `true`, sets the `header row count` flag to 1, and if `false` to 0, unless `headerRowCount` is provided, in which case the value provided for the `header` property is ignored.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+    csvt:metadata <test023-user-metadata.json>;
+  ];
+  mf:action <tree-ops.csv>;
+  mf:result <test023.ttl>;
+  csvt:implicit <test023-user-metadata.json>;
+  .
+
+:test027 a csvt:ToRdfTest;
+  mf:name "tree-ops minimal output";
+  rdfs:comment """Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+    csvt:metadata <test027-user-metadata.json>;
+    csvt:minimal true;
+  ];
+  mf:action <tree-ops.csv>;
+  mf:result <test027.ttl>;
+  csvt:implicit <test027-user-metadata.json>;
+  .
+
+:test028 a csvt:ToRdfTest;
+  mf:name "countries.csv example";
+  rdfs:comment """If no metadata is supplied or found, processors MUST use embedded metadata.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <countries.csv>;
+  mf:result <test028.ttl>;
+  .
+
+:test029 a csvt:ToRdfTest;
+  mf:name "countries.csv minimal";
+  rdfs:comment """If no metadata is supplied or found, processors MUST use embedded metadata.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+    csvt:minimal true;
+  ];
+  mf:action <countries.csv>;
+  mf:result <test029.ttl>;
+  .
+
+:test030 a csvt:ToRdfTest;
+  mf:name "countries.json example";
+  rdfs:comment """countries.json from metadata""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <countries.json>;
+  mf:result <test030.ttl>;
+  csvt:implicit <countries.csv>,
+    <country_slice.csv>;
+  .
+
+:test031 a csvt:ToRdfTest;
+  mf:name "countries.json example minimal output";
+  rdfs:comment """countries.json from metadata minimal output""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+    csvt:minimal true;
+  ];
+  mf:action <countries.json>;
+  mf:result <test031.ttl>;
+  csvt:implicit <countries.csv>,
+    <country_slice.csv>;
+  .
+
+:test032 a csvt:ToRdfTest;
+  mf:name "events-listing.csv example";
+  rdfs:comment """events-listing example from metadata, virtual columns and multiple subjects per row""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test032/csv-metadata.json>;
+  mf:result <test032/result.ttl>;
+  csvt:implicit <test032/events-listing.csv>;
+  .
+
+:test033 a csvt:ToRdfTest;
+  mf:name "events-listing.csv minimal output";
+  rdfs:comment """events-listing example from metadata, virtual columns and multiple subjects per row; minimal output""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+    csvt:minimal true;
+  ];
+  mf:action <test033/csv-metadata.json>;
+  mf:result <test033/result.ttl>;
+  csvt:implicit <test033/events-listing.csv>;
+  .
+
+:test034 a csvt:ToRdfTest;
+  mf:name "roles example";
+  rdfs:comment """Public Sector Roles example with referenced schemas. Validation fails because organization.csv intentionally contains an invalid reference.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test034/csv-metadata.json>;
+  mf:result <test034/result.ttl>;
+  csvt:implicit <test034/senior-roles.csv>,
+    <test034/junior-roles.csv>,
+    <test034/gov.uk/data/organizations.csv>,
+    <test034/gov.uk/data/professions.csv>,
+    <test034/gov.uk/schema/junior-roles.json>,
+    <test034/gov.uk/schema/senior-roles.json>,
+    <test034/gov.uk/schema/organizations.json>,
+    <test034/gov.uk/schema/professions.json>;
+  .
+
+:test035 a csvt:ToRdfTest;
+  mf:name "roles minimal";
+  rdfs:comment """Public Sector Roles example with referenced schemas; minimal output. Validation fails because organization.csv intentionally contains an invalid reference.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+    csvt:minimal true;
+  ];
+  mf:action <test035/csv-metadata.json>;
+  mf:result <test035/result.ttl>;
+  csvt:implicit <test035/senior-roles.csv>,
+    <test035/junior-roles.csv>,
+    <test035/gov.uk/data/organizations.csv>,
+    <test035/gov.uk/data/professions.csv>,
+    <test035/gov.uk/schema/junior-roles.json>,
+    <test035/gov.uk/schema/senior-roles.json>,
+    <test035/gov.uk/schema/organizations.json>,
+    <test035/gov.uk/schema/professions.json>;
+  .
+
+:test036 a csvt:ToRdfTest;
+  mf:name "tree-ops-ext example";
+  rdfs:comment """tree-ops extended example""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test036/tree-ops-ext.csv>;
+  mf:result <test036/result.ttl>;
+  csvt:implicit <test036/tree-ops-ext.csv-metadata.json>;
+  .
+
+:test037 a csvt:ToRdfTest;
+  mf:name "tree-ops-ext minimal";
+  rdfs:comment """tree-ops extended example; minimal output""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+    csvt:minimal true;
+  ];
+  mf:action <test037/tree-ops-ext.csv>;
+  mf:result <test037/result.ttl>;
+  csvt:implicit <test037/tree-ops-ext.csv-metadata.json>;
+  .
+
+:test038 a csvt:ToRdfTest;
+  mf:name "inherited properties propagation";
+  rdfs:comment """Setting inherited properties at different levels inherit to cell""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test038-metadata.json>;
+  mf:result <test038.ttl>;
+  csvt:implicit <test038.csv>;
+  .
+
+:test039 a csvt:ToRdfTest;
+  mf:name "valid inherited properties";
+  rdfs:comment """Different combinations of valid inherited properties""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test039-metadata.json>;
+  mf:result <test039.ttl>;
+  csvt:implicit <test039.csv>;
+  .
+
+:test040 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid null";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test040-metadata.json>;
+  mf:result <test040.ttl>;
+  csvt:implicit <test040.csv>;
+  .
+
+:test041 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid lang";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test041-metadata.json>;
+  mf:result <test041.ttl>;
+  csvt:implicit <test041.csv>;
+  .
+
+:test042 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid textDirection";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test042-metadata.json>;
+  mf:result <test042.ttl>;
+  csvt:implicit <test042.csv>;
+  .
+
+:test043 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid separator";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test043-metadata.json>;
+  mf:result <test043.ttl>;
+  csvt:implicit <test043.csv>;
+  .
+
+:test044 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid ordered";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test044-metadata.json>;
+  mf:result <test044.ttl>;
+  csvt:implicit <test044.csv>;
+  .
+
+:test045 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid default";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test045-metadata.json>;
+  mf:result <test045.ttl>;
+  csvt:implicit <test045.csv>;
+  .
+
+:test046 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid dataype";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test046-metadata.json>;
+  mf:result <test046.ttl>;
+  csvt:implicit <test046.csv>;
+  .
+
+:test047 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid aboutUrl";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test047-metadata.json>;
+  mf:result <test047.ttl>;
+  csvt:implicit <test047.csv>;
+  .
+
+:test048 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid propertyUrl";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test048-metadata.json>;
+  mf:result <test048.ttl>;
+  csvt:implicit <test048.csv>;
+  .
+
+:test049 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid valueUrl";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test049-metadata.json>;
+  mf:result <test049.ttl>;
+  csvt:implicit <test049.csv>;
+  .
+
+:test059 a csvt:ToRdfTestWithWarnings;
+  mf:name "dialect: invalid commentPrefix";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test059-metadata.json>;
+  mf:result <test059.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test060 a csvt:ToRdfTestWithWarnings;
+  mf:name "dialect: invalid delimiter";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test060-metadata.json>;
+  mf:result <test060.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test061 a csvt:ToRdfTestWithWarnings;
+  mf:name "dialect: invalid doubleQuote";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test061-metadata.json>;
+  mf:result <test061.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test062 a csvt:ToRdfTestWithWarnings;
+  mf:name "dialect: invalid encoding";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test062-metadata.json>;
+  mf:result <test062.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test063 a csvt:ToRdfTestWithWarnings;
+  mf:name "dialect: invalid header";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test063-metadata.json>;
+  mf:result <test063.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test065 a csvt:ToRdfTestWithWarnings;
+  mf:name "dialect: invalid headerRowCount";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test065-metadata.json>;
+  mf:result <test065.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test066 a csvt:ToRdfTestWithWarnings;
+  mf:name "dialect: invalid lineTerminators";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test066-metadata.json>;
+  mf:result <test066.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test067 a csvt:ToRdfTestWithWarnings;
+  mf:name "dialect: invalid quoteChar";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test067-metadata.json>;
+  mf:result <test067.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test068 a csvt:ToRdfTestWithWarnings;
+  mf:name "dialect: invalid skipBlankRows";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test068-metadata.json>;
+  mf:result <test068.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test069 a csvt:ToRdfTestWithWarnings;
+  mf:name "dialect: invalid skipColumns";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test069-metadata.json>;
+  mf:result <test069.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test070 a csvt:ToRdfTestWithWarnings;
+  mf:name "dialect: invalid skipInitialSpace";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test070-metadata.json>;
+  mf:result <test070.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test071 a csvt:ToRdfTestWithWarnings;
+  mf:name "dialect: invalid skipRows";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test071-metadata.json>;
+  mf:result <test071.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test072 a csvt:ToRdfTestWithWarnings;
+  mf:name "dialect: invalid trim";
+  rdfs:comment """If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test072-metadata.json>;
+  mf:result <test072.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test073 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid @language";
+  rdfs:comment """The value of `@language` MUST be a valid `BCP47` language code""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test073-metadata.json>;
+  mf:result <test073.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test074 a csvt:NegativeRdfTest;
+  mf:name "empty tables";
+  rdfs:comment """Compliant application MUST raise an error if this array does not contain one or more `table descriptions`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test074-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test075 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid tableGroup tableDirection";
+  rdfs:comment """An atomic property that MUST have a single string value that is one of "rtl", "ltr" or "auto".""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test075-metadata.json>;
+  mf:result <test075.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test076 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid table tableDirection";
+  rdfs:comment """An atomic property that MUST have a single string value that is one of "rtl", "ltr" or "auto".""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test076-metadata.json>;
+  mf:result <test076.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test077 a csvt:NegativeRdfTest;
+  mf:name "invalid tableGroup @id";
+  rdfs:comment """It MUST NOT start with `_:`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test077-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test078 a csvt:NegativeRdfTest;
+  mf:name "invalid table @id";
+  rdfs:comment """It MUST NOT start with `_:`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test078-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test079 a csvt:NegativeRdfTest;
+  mf:name "invalid schema @id";
+  rdfs:comment """It MUST NOT start with `_:`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test079-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test080 a csvt:NegativeRdfTest;
+  mf:name "invalid column @id";
+  rdfs:comment """It MUST NOT start with `_:`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test080-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test081 a csvt:NegativeRdfTest;
+  mf:name "invalid dialect @id";
+  rdfs:comment """It MUST NOT start with `_:`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test081-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test082 a csvt:NegativeRdfTest;
+  mf:name "invalid template @id";
+  rdfs:comment """It MUST NOT start with `_:`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test082-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test083 a csvt:NegativeRdfTest;
+  mf:name "invalid tableGroup @type";
+  rdfs:comment """If included `@type` MUST be `TableGroup`""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test083-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test084 a csvt:NegativeRdfTest;
+  mf:name "invalid table @type";
+  rdfs:comment """If included `@type` MUST be `TableGroup`""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test084-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test085 a csvt:NegativeRdfTest;
+  mf:name "invalid schema @type";
+  rdfs:comment """If included `@type` MUST be `TableGroup`""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test085-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test086 a csvt:NegativeRdfTest;
+  mf:name "invalid column @type";
+  rdfs:comment """If included `@type` MUST be `TableGroup`""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test086-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test087 a csvt:NegativeRdfTest;
+  mf:name "invalid dialect @type";
+  rdfs:comment """If included `@type` MUST be `Dialect`""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test087-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test088 a csvt:NegativeRdfTest;
+  mf:name "invalid transformation @type";
+  rdfs:comment """If included `@type` MUST be `Template`""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test088-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test089 a csvt:NegativeRdfTest;
+  mf:name "missing tables in TableGroup";
+  rdfs:comment """The `tables` property is required in a `TableGroup`""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test089-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test090 a csvt:NegativeRdfTest;
+  mf:name "missing url in Table";
+  rdfs:comment """The `url` property is required in a `Table`""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test090-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test093 a csvt:ToRdfTestWithWarnings;
+  mf:name "undefined properties";
+  rdfs:comment """Compliant applications MUST ignore properties (aside from _common properties_) which are not defined in this specification and MUST generate a warning when they are encoutered""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test093-metadata.json>;
+  mf:result <test093.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test095 a csvt:ToRdfTestWithWarnings;
+  mf:name "inconsistent array values: transformations";
+  rdfs:comment """Any items within an array that are not valid objects of the type expected are ignored""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test095-metadata.json>;
+  mf:result <test095.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test097 a csvt:ToRdfTestWithWarnings;
+  mf:name "inconsistent array values: foreignKeys";
+  rdfs:comment """Any items within an array that are not valid objects of the type expected are ignored""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test097-metadata.json>;
+  mf:result <test097.ttl>;
+  csvt:implicit <countries.csv>,
+    <country_slice.csv>;
+  .
+
+:test098 a csvt:NegativeRdfTest;
+  mf:name "inconsistent array values: tables";
+  rdfs:comment """If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array. Compliant application MUST raise an error if this array does not contain one or more table descriptions.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test098-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test099 a csvt:ToRdfTestWithWarnings;
+  mf:name "inconsistent array values: transformations";
+  rdfs:comment """If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test099-metadata.json>;
+  mf:result <test099.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test100 a csvt:ToRdfTestWithWarnings;
+  mf:name "inconsistent array values: columns";
+  rdfs:comment """If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test100-metadata.json>;
+  mf:result <test100.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test101 a csvt:ToRdfTestWithWarnings;
+  mf:name "inconsistent array values: foreignKeys";
+  rdfs:comment """If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test101-metadata.json>;
+  mf:result <test101.ttl>;
+  csvt:implicit <countries.csv>,
+    <country_slice.csv>;
+  .
+
+:test102 a csvt:ToRdfTestWithWarnings;
+  mf:name "inconsistent link values: @id";
+  rdfs:comment """If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test102-metadata.json>;
+  mf:result <test102.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test103 a csvt:NegativeRdfTest;
+  mf:name "inconsistent link values: url";
+  rdfs:comment """If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test103-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test104 a csvt:NegativeRdfTest;
+  mf:name "invalid columnReference";
+  rdfs:comment """The referenced description object MUST have a name property""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test104-metadata.json>;
+  csvt:implicit <countries.csv>,
+    <country_slice.csv>;
+  .
+
+:test105 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid primaryKey";
+  rdfs:comment """The referenced description object MUST have a name property""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test105-metadata.json>;
+  mf:result <test105.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test106 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid dialect";
+  rdfs:comment """If the supplied value of an object property is not a string or object (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been specified as an object with no properties.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test106-metadata.json>;
+  mf:result <test106.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test107 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid tableSchema";
+  rdfs:comment """If the supplied value of an object property is not a string or object (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been specified as an object with no properties.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test107-metadata.json>;
+  mf:result <test107.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test108 a csvt:NegativeRdfTest;
+  mf:name "invalid reference";
+  rdfs:comment """If the supplied value of an object property is not a string or object (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been specified as an object with no properties.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test108-metadata.json>;
+  csvt:implicit <countries.csv>,
+    <country_slice.csv>;
+  .
+
+:test109 a csvt:ToRdfTestWithWarnings;
+  mf:name "titles with invalid language";
+  rdfs:comment """Natural Language properties may be objects whose properties MUST be language codes as defined by [BCP47] and whose values are either strings or arrays, providing natural language strings in that language. Validation fails because without a title, the metadata is incompatible with the CSV, which isn't a problem when not validating.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test109-metadata.json>;
+  mf:result <test109.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test110 a csvt:ToRdfTestWithWarnings;
+  mf:name "titles with non-string values";
+  rdfs:comment """Natural Language properties may be objects whose properties MUST be language codes as defined by [BCP47] and whose values are either strings or arrays, providing natural language strings in that language""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test110-metadata.json>;
+  mf:result <test110.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test111 a csvt:ToRdfTestWithWarnings;
+  mf:name "titles with invalid value";
+  rdfs:comment """If the supplied value of a natural language property is not a string, array or object (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been specified as an empty array. Validation fails because without a title, the metadata is incompatible with the CSV, which isn't a problem when not validating.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test111-metadata.json>;
+  mf:result <test111.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test112 a csvt:ToRdfTestWithWarnings;
+  mf:name "titles with non-string array values";
+  rdfs:comment """If the supplied value is an array, any items in that array that are not strings MUST be ignored""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test112-metadata.json>;
+  mf:result <test112.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test113 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid suppressOutput";
+  rdfs:comment """Atomic properties: Processors MUST issue a warning if a property is set to an invalid value type""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test113-metadata.json>;
+  mf:result <test113.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test114 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid name";
+  rdfs:comment """Atomic properties: Processors MUST issue a warning if a property is set to an invalid value type""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test114-metadata.json>;
+  mf:result <test114.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test115 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid virtual";
+  rdfs:comment """Atomic properties: Processors MUST issue a warning if a property is set to an invalid value type""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test115-metadata.json>;
+  mf:result <test115.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test116 a csvt:ToRdfTest;
+  mf:name "file-metadata with query component not found";
+  rdfs:comment """processors MUST attempt to locate a metadata documents through site-wide configuration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test116.csv?query>;
+  mf:result <test116.ttl>;
+  csvt:implicit <test116.csv-metadata.json>;
+  .
+
+:test117 a csvt:ToRdfTestWithWarnings;
+  mf:name "file-metadata not referencing file";
+  rdfs:comment """If the metadata file found at this location does not explicitly include a reference to the requested tabular data file then it MUST be ignored.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test117.csv>;
+  mf:result <test117.ttl>;
+  csvt:implicit <test117.csv-metadata.json>;
+  .
+
+:test118 a csvt:ToRdfTest;
+  mf:name "directory-metadata with query component";
+  rdfs:comment """processors MUST attempt to locate a metadata documents through site-wide configuration. component.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test118/action.csv?query>;
+  mf:result <test118/result.ttl>;
+  csvt:implicit <test118/csv-metadata.json>;
+  .
+
+:test119 a csvt:ToRdfTestWithWarnings;
+  mf:name "directory-metadata not referencing file";
+  rdfs:comment """If the metadata file found at this location does not explicitly include a reference to the requested tabular data file then it MUST be ignored.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test119/action.csv>;
+  mf:result <test119/result.ttl>;
+  csvt:implicit <test119/csv-metadata.json>;
+  .
+
+:test120 a csvt:ToRdfTestWithWarnings;
+  mf:name "link-metadata not referencing file";
+  rdfs:comment """If the metadata file found at this location does not explicitly include a reference to the requested tabular data file then it MUST be ignored.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  csvt:httpLink "<test120-linked-metadata.json>; rel=\"describedby\"";
+  mf:action <test120.csv>;
+  mf:result <test120.ttl>;
+  csvt:implicit <test120-linked-metadata.json>;
+  .
+
+:test121 a csvt:ToRdfTest;
+  mf:name "user-metadata not referencing file";
+  rdfs:comment """User-specified metadata does not need to reference the starting CSV""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+    csvt:metadata <test121-user-metadata.json>;
+  ];
+  mf:action <test121.csv>;
+  mf:result <test121.ttl>;
+  csvt:implicit <test121-ref.csv>,
+    <test121-user-metadata.json>;
+  .
+
+:test122 a csvt:ToRdfTestWithWarnings;
+  mf:name "link-metadata not describing file uses file-metadata";
+  rdfs:comment """If the metadata file found at this location does not explicitly include a reference to the requested tabular data file then it MUST be ignored.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  csvt:httpLink "<test122-linked-metadata.json>; rel=\"describedby\"";
+  mf:action <test122.csv>;
+  mf:result <test122.ttl>;
+  csvt:implicit <test122.csv-metadata.json>,
+    <test122-linked-metadata.json>;
+  .
+
+:test123 a csvt:ToRdfTestWithWarnings;
+  mf:name "file-metadata not describing file uses directory-metadata";
+  rdfs:comment """If the metadata file found at this location does not explicitly include a reference to the requested tabular data file then it MUST be ignored.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test123/action.csv>;
+  mf:result <test123/result.ttl>;
+  csvt:implicit <test123/action.csv-metadata.json>,
+    <test123/csv-metadata.json>;
+  .
+
+:test124 a csvt:ToRdfTest;
+  mf:name "metadata with columns not matching csv titles";
+  rdfs:comment """If not validating, and one schema has a name property but not a titles property, and the other has a titles property but not a name property.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+    csvt:metadata <test124-user-metadata.json>;
+  ];
+  mf:action <tree-ops.csv>;
+  mf:result <test124.ttl>;
+  csvt:implicit <test124-user-metadata.json>;
+  .
+
+:test125 a csvt:ToRdfTestWithWarnings;
+  mf:name "required column with empty cell";
+  rdfs:comment """If the column required annotation is true, add an error to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test125-metadata.json>;
+  mf:result <test125.ttl>;
+  csvt:implicit <test125.csv>;
+  .
+
+:test126 a csvt:ToRdfTestWithWarnings;
+  mf:name "required column with cell matching null";
+  rdfs:comment """if the string is the same as any one of the values of the column null annotation, then the resulting value is null. If the column separator annotation is null and the column required annotation is true, add an error to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test126-metadata.json>;
+  mf:result <test126.ttl>;
+  csvt:implicit <test126.csv>;
+  .
+
+:test127 a csvt:ToRdfTestWithWarnings;
+  mf:name "incompatible table";
+  rdfs:comment """if TM is not compatible with EM validators MUST raise an error, other processors MUST generate a warning and continue processing""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test127-metadata.json>;
+  mf:result <test127.ttl>;
+  csvt:implicit <test127.csv>;
+  .
+
+:test128 a csvt:NegativeRdfTest;
+  mf:name "duplicate column names";
+  rdfs:comment """The name properties of the column descriptions MUST be unique within a given table description.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test128-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test129 a csvt:ToRdfTestWithWarnings;
+  mf:name "columnn name as integer";
+  rdfs:comment """This (name) MUST be a string and this property has no default value, which means it MUST be ignored if the supplied value is not a string.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test129-metadata.json>;
+  mf:result <test129.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test130 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid column name";
+  rdfs:comment """column names are restricted as defined in Variables in [URI-TEMPLATE] """;
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test130-metadata.json>;
+  mf:result <test130.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test131 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid column name";
+  rdfs:comment """column names are restricted ... names beginning with '_' are reserved by this specification and MUST NOT be used within metadata documents.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test131-metadata.json>;
+  mf:result <test131.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test132 a csvt:ToRdfTest;
+  mf:name "name annotation from title percent encoded";
+  rdfs:comment """If there is no name property defined on this column, the first titles value having the same language tag as default language, or und or if no default language is specified, becomes the name annotation for the described column. This annotation MUST be percent-encoded as necessary to conform to the syntactic requirements defined in [RFC3986]""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test132-metadata.json>;
+  mf:result <test132.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test133 a csvt:NegativeRdfTest;
+  mf:name "virtual before non-virtual";
+  rdfs:comment """If present, a virtual column MUST appear after all other non-virtual column definitions.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test133-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test134 a csvt:NegativeRdfTest;
+  mf:name "context in common property";
+  rdfs:comment """A metadata document MUST NOT add a new context""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test134-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test135 a csvt:NegativeRdfTest;
+  mf:name "@list value";
+  rdfs:comment """Values MUST NOT use list objects or set objects.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test135-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test136 a csvt:NegativeRdfTest;
+  mf:name "@set value";
+  rdfs:comment """Values MUST NOT use list objects or set objects.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test136-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test137 a csvt:NegativeRdfTest;
+  mf:name "@type out of range (as datatype)";
+  rdfs:comment """The value of any @id or @type contained within a metadata document MUST NOT be a blank node.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test137-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test138 a csvt:NegativeRdfTest;
+  mf:name "@type out of range (as node type)";
+  rdfs:comment """The value of any @id or @type contained within a metadata document MUST NOT be a blank node.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test138-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test139 a csvt:NegativeRdfTest;
+  mf:name "@type out of range (as node type) - string";
+  rdfs:comment """The value of any member of @type MUST be either a term defined in [csvw-context], a prefixed name where the prefix is a term defined in [csvw-context], or an absolute URL.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test139-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test140 a csvt:NegativeRdfTest;
+  mf:name "@type out of range (as node type) - integer";
+  rdfs:comment """The value of any member of @type MUST be either a term defined in [csvw-context], a prefixed name where the prefix is a term defined in [csvw-context], or an absolute URL.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test140-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test141 a csvt:NegativeRdfTest;
+  mf:name "@id out of range (as node type) - bnode";
+  rdfs:comment """The value of any @id or @type contained within a metadata document MUST NOT be a blank node.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test141-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test142 a csvt:NegativeRdfTest;
+  mf:name "@value with @language and @type";
+  rdfs:comment """If a @value property is used on an object, that object MUST NOT have any other properties aside from either @type or @language, and MUST NOT have both @type and @language as properties. The value of the @value property MUST be a string, number, or boolean value.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test142-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test143 a csvt:NegativeRdfTest;
+  mf:name "@value with extra properties";
+  rdfs:comment """If a @value property is used on an object, that object MUST NOT have any other properties aside from either @type or @language, and MUST NOT have both @type and @language as properties. The value of the @value property MUST be a string, number, or boolean value.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test143-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test144 a csvt:NegativeRdfTest;
+  mf:name "@language outside of @value";
+  rdfs:comment """A @language property MUST NOT be used on an object unless it also has a @value property.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test144-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test146 a csvt:NegativeRdfTest;
+  mf:name "Invalid faux-keyword";
+  rdfs:comment """Aside from @value, @type, @language, and @id, the properties used on an object MUST NOT start with @.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test146-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test147 a csvt:ToRdfTestWithWarnings;
+  mf:name "title incompatible with title on case";
+  rdfs:comment """If there is a non-empty case-sensitive intersection between the titles values, where matches MUST have a matching language; `und` matches any language, and languages match if they are equal when truncated, as defined in [BCP47], to the length of the shortest language tag.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test147-metadata.json>;
+  mf:result <test147.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test148 a csvt:ToRdfTestWithWarnings;
+  mf:name "title incompatible with title on language";
+  rdfs:comment """If there is a non-empty case-sensitive intersection between the titles values, where matches MUST have a matching language; `und` matches any language, and languages match if they are equal when truncated, as defined in [BCP47], to the length of the shortest language tag.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test148-metadata.json>;
+  mf:result <test148.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test149 a csvt:ToRdfTest;
+  mf:name "title compatible with title on less specific language";
+  rdfs:comment """If there is a non-empty case-sensitive intersection between the titles values, where matches MUST have a matching language; `und` matches any language, and languages match if they are equal when truncated, as defined in [BCP47], to the length of the shortest language tag.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test149-metadata.json>;
+  mf:result <test149.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test150 a csvt:ToRdfTestWithWarnings;
+  mf:name "non-builtin datatype (datatype value)";
+  rdfs:comment """If the value of this property is a string, it MUST be one of the built-in datatypes defined in section 5.11.1 Built-in Datatypes or an absolute URL""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test150-metadata.json>;
+  mf:result <test150.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test151 a csvt:ToRdfTestWithWarnings;
+  mf:name "non-builtin datatype (base value)";
+  rdfs:comment """If the value of this property is a string, it MUST be one of the built-in datatypes""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test151-metadata.json>;
+  mf:result <test151.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test152 a csvt:ToRdfTest;
+  mf:name "string format (valid combinations)";
+  rdfs:comment """If the datatype base is not numeric, boolean, a date/time type, or a duration type, the datatype format annotation provides a regular expression for the string values""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test152-metadata.json>;
+  mf:result <test152.ttl>;
+  csvt:implicit <test152.csv>;
+  .
+
+:test153 a csvt:ToRdfTestWithWarnings;
+  mf:name "string format (bad format string)";
+  rdfs:comment """If the datatype base is not numeric, boolean, a date/time type, or a duration type, the datatype format annotation provides a regular expression for the string values""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test153-metadata.json>;
+  mf:result <test153.ttl>;
+  csvt:implicit <test153.csv>;
+  .
+
+:test154 a csvt:ToRdfTestWithWarnings;
+  mf:name "string format (value not matching format)";
+  rdfs:comment """If the datatype base is not numeric, boolean, a date/time type, or a duration type, the datatype format annotation provides a regular expression for the string values""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test154-metadata.json>;
+  mf:result <test154.ttl>;
+  csvt:implicit <test154.csv>;
+  .
+
+:test155 a csvt:ToRdfTest;
+  mf:name "number format (valid combinations)";
+  rdfs:comment """If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test155-metadata.json>;
+  mf:result <test155.ttl>;
+  csvt:implicit <test155.csv>;
+  .
+
+:test156 a csvt:ToRdfTestWithWarnings;
+  mf:name "number format (bad format string)";
+  rdfs:comment """If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test156-metadata.json>;
+  mf:result <test156.ttl>;
+  csvt:implicit <test156.csv>;
+  .
+
+:test157 a csvt:ToRdfTestWithWarnings;
+  mf:name "number format (value not matching format)";
+  rdfs:comment """If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test157-metadata.json>;
+  mf:result <test157.ttl>;
+  csvt:implicit <test157.csv>;
+  .
+
+:test158 a csvt:ToRdfTest;
+  mf:name "number format (valid combinations)";
+  rdfs:comment """Numeric dataype with object format""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test158-metadata.json>;
+  mf:result <test158.ttl>;
+  csvt:implicit <test158.csv>;
+  .
+
+:test159 a csvt:ToRdfTestWithWarnings;
+  mf:name "number format (bad pattern format string)";
+  rdfs:comment """If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test159-metadata.json>;
+  mf:result <test159.ttl>;
+  csvt:implicit <test159.csv>;
+  .
+
+:test160 a csvt:ToRdfTestWithWarnings;
+  mf:name "number format (not matching values with pattern)";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test160-metadata.json>;
+  mf:result <test160.ttl>;
+  csvt:implicit <test160.csv>;
+  .
+
+:test161 a csvt:ToRdfTestWithWarnings;
+  mf:name "number format (not matching values without pattern)";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test161-metadata.json>;
+  mf:result <test161.ttl>;
+  csvt:implicit <test161.csv>;
+  .
+
+:test162 a csvt:ToRdfTestWithWarnings;
+  mf:name "numeric format (consecutive groupChar)";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed contains two consecutive groupChar strings""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test162-metadata.json>;
+  mf:result <test162.ttl>;
+  csvt:implicit <test162.csv>;
+  .
+
+:test163 a csvt:ToRdfTestWithWarnings;
+  mf:name "integer datatype with decimalChar";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed contains the decimalChar, if the datatype base is integer or one of its sub-values""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test163-metadata.json>;
+  mf:result <test163.ttl>;
+  csvt:implicit <test163.csv>;
+  .
+
+:test164 a csvt:ToRdfTestWithWarnings;
+  mf:name "decimal datatype with exponent";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, if the datatype base is decimal or one of its sub-values""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test164-metadata.json>;
+  mf:result <test164.ttl>;
+  csvt:implicit <test164.csv>;
+  .
+
+:test165 a csvt:ToRdfTestWithWarnings;
+  mf:name "decimal type with NaN";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, is one of the special values NaN, INF, or -INF, if the datatype base is decimal or one of its sub-values""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test165-metadata.json>;
+  mf:result <test165.ttl>;
+  csvt:implicit <test165.csv>;
+  .
+
+:test166 a csvt:ToRdfTestWithWarnings;
+  mf:name "decimal type with INF";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, is one of the special values NaN, INF, or -INF, if the datatype base is decimal or one of its sub-values""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test166-metadata.json>;
+  mf:result <test166.ttl>;
+  csvt:implicit <test166.csv>;
+  .
+
+:test167 a csvt:ToRdfTestWithWarnings;
+  mf:name "decimal type with -INF";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, is one of the special values NaN, INF, or -INF, if the datatype base is decimal or one of its sub-values""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test167-metadata.json>;
+  mf:result <test167.ttl>;
+  csvt:implicit <test167.csv>;
+  .
+
+:test168 a csvt:ToRdfTest;
+  mf:name "decimal with implicit groupChar";
+  rdfs:comment """When parsing the string value of a cell against this format specification, implementations MUST recognise and parse numbers""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test168-metadata.json>;
+  mf:result <test168.ttl>;
+  csvt:implicit <test168.csv>;
+  .
+
+:test169 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid decimal";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test169-metadata.json>;
+  mf:result <test169.ttl>;
+  csvt:implicit <test169.csv>;
+  .
+
+:test170 a csvt:ToRdfTest;
+  mf:name "decimal with percent";
+  rdfs:comment """Implementations MUST use the sign, exponent, percent, and per-mille signs when parsing the string value of a cell to provide the value of the cell""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test170-metadata.json>;
+  mf:result <test170.ttl>;
+  csvt:implicit <test170.csv>;
+  .
+
+:test171 a csvt:ToRdfTest;
+  mf:name "decimal with per-mille";
+  rdfs:comment """Implementations MUST use the sign, exponent, percent, and per-mille signs when parsing the string value of a cell to provide the value of the cell""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test171-metadata.json>;
+  mf:result <test171.ttl>;
+  csvt:implicit <test171.csv>;
+  .
+
+:test172 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid byte";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test172-metadata.json>;
+  mf:result <test172.ttl>;
+  csvt:implicit <test172.csv>;
+  .
+
+:test173 a csvt:ToRdfTestWithWarnings;
+  mf:name "invald unsignedLong";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test173-metadata.json>;
+  mf:result <test173.ttl>;
+  csvt:implicit <test173.csv>;
+  .
+
+:test174 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid unsignedShort";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test174-metadata.json>;
+  mf:result <test174.ttl>;
+  csvt:implicit <test174.csv>;
+  .
+
+:test175 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid unsignedByte";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test175-metadata.json>;
+  mf:result <test175.ttl>;
+  csvt:implicit <test175.csv>;
+  .
+
+:test176 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid positiveInteger";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test176-metadata.json>;
+  mf:result <test176.ttl>;
+  csvt:implicit <test176.csv>;
+  .
+
+:test177 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid negativeInteger";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test177-metadata.json>;
+  mf:result <test177.ttl>;
+  csvt:implicit <test177.csv>;
+  .
+
+:test178 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid nonPositiveInteger";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test178-metadata.json>;
+  mf:result <test178.ttl>;
+  csvt:implicit <test178.csv>;
+  .
+
+:test179 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid nonNegativeInteger";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test179-metadata.json>;
+  mf:result <test179.ttl>;
+  csvt:implicit <test179.csv>;
+  .
+
+:test180 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid double";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test180-metadata.json>;
+  mf:result <test180.ttl>;
+  csvt:implicit <test180.csv>;
+  .
+
+:test181 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid number";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test181-metadata.json>;
+  mf:result <test181.ttl>;
+  csvt:implicit <test181.csv>;
+  .
+
+:test182 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid float";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test182-metadata.json>;
+  mf:result <test182.ttl>;
+  csvt:implicit <test182.csv>;
+  .
+
+:test183 a csvt:ToRdfTest;
+  mf:name "boolean format (valid combinations)";
+  rdfs:comment """If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test183-metadata.json>;
+  mf:result <test183.ttl>;
+  csvt:implicit <test183.csv>;
+  .
+
+:test184 a csvt:ToRdfTestWithWarnings;
+  mf:name "boolean format (bad format string)";
+  rdfs:comment """If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test184-metadata.json>;
+  mf:result <test184.ttl>;
+  csvt:implicit <test184.csv>;
+  .
+
+:test185 a csvt:ToRdfTestWithWarnings;
+  mf:name "boolean format (value not matching format)";
+  rdfs:comment """If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test185-metadata.json>;
+  mf:result <test185.ttl>;
+  csvt:implicit <test185.csv>;
+  .
+
+:test186 a csvt:ToRdfTestWithWarnings;
+  mf:name "boolean format (not matching datatype)";
+  rdfs:comment """Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test186-metadata.json>;
+  mf:result <test186.ttl>;
+  csvt:implicit <test186.csv>;
+  .
+
+:test187 a csvt:ToRdfTest;
+  mf:name "date format (valid native combinations)";
+  rdfs:comment """The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test187-metadata.json>;
+  mf:result <test187.ttl>;
+  csvt:implicit <test187.csv>;
+  .
+
+:test188 a csvt:ToRdfTest;
+  mf:name "date format (valid date combinations with formats)";
+  rdfs:comment """The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test188-metadata.json>;
+  mf:result <test188.ttl>;
+  csvt:implicit <test188.csv>;
+  .
+
+:test189 a csvt:ToRdfTest;
+  mf:name "date format (valid time combinations with formats)";
+  rdfs:comment """The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test189-metadata.json>;
+  mf:result <test189.ttl>;
+  csvt:implicit <test189.csv>;
+  .
+
+:test190 a csvt:ToRdfTest;
+  mf:name "date format (valid dateTime combinations with formats)";
+  rdfs:comment """The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test190-metadata.json>;
+  mf:result <test190.ttl>;
+  csvt:implicit <test190.csv>;
+  .
+
+:test191 a csvt:ToRdfTestWithWarnings;
+  mf:name "date format (bad format string)";
+  rdfs:comment """The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test191-metadata.json>;
+  mf:result <test191.ttl>;
+  csvt:implicit <test191.csv>;
+  .
+
+:test192 a csvt:ToRdfTestWithWarnings;
+  mf:name "date format (value not matching format)";
+  rdfs:comment """The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test192-metadata.json>;
+  mf:result <test192.ttl>;
+  csvt:implicit <test192.csv>;
+  .
+
+:test193 a csvt:ToRdfTest;
+  mf:name "duration format (valid combinations)";
+  rdfs:comment """If the datatype base is a duration type, the datatype format annotation provides a regular expression for the string values""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test193-metadata.json>;
+  mf:result <test193.ttl>;
+  csvt:implicit <test193.csv>;
+  .
+
+:test194 a csvt:ToRdfTestWithWarnings;
+  mf:name "duration format (value not matching format)";
+  rdfs:comment """If the datatype base is a duration type, the datatype format annotation provides a regular expression for the string values""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test194-metadata.json>;
+  mf:result <test194.ttl>;
+  csvt:implicit <test194.csv>;
+  .
+
+:test195 a csvt:ToRdfTest;
+  mf:name "values with matching length";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test195-metadata.json>;
+  mf:result <test195.ttl>;
+  csvt:implicit <test195.csv>;
+  .
+
+:test196 a csvt:ToRdfTestWithWarnings;
+  mf:name "values with wrong length";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test196-metadata.json>;
+  mf:result <test196.ttl>;
+  csvt:implicit <test196.csv>;
+  .
+
+:test197 a csvt:ToRdfTestWithWarnings;
+  mf:name "values with wrong maxLength";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test197-metadata.json>;
+  mf:result <test197.ttl>;
+  csvt:implicit <test197.csv>;
+  .
+
+:test198 a csvt:ToRdfTestWithWarnings;
+  mf:name "values with wrong minLength";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test198-metadata.json>;
+  mf:result <test198.ttl>;
+  csvt:implicit <test198.csv>;
+  .
+
+:test199 a csvt:NegativeRdfTest;
+  mf:name "length < minLength";
+  rdfs:comment """Applications MUST raise an error if both length and minLength are specified and length is less than minLength. """;
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test199-metadata.json>;
+  csvt:implicit <test199.csv>;
+  .
+
+:test200 a csvt:NegativeRdfTest;
+  mf:name "length > maxLength";
+  rdfs:comment """Applications MUST raise an error if both length and maxLength are specified and length is greater than maxLength. """;
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test200-metadata.json>;
+  csvt:implicit <test200.csv>;
+  .
+
+:test201 a csvt:NegativeRdfTest;
+  mf:name "length on date";
+  rdfs:comment """Applications MUST raise an error if length, maxLength, or minLength are specified and the base datatype is not string or one of its subtypes, or a binary type.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test201-metadata.json>;
+  csvt:implicit <test201.csv>;
+  .
+
+:test202 a csvt:ToRdfTest;
+  mf:name "float matching constraints";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test202-metadata.json>;
+  mf:result <test202.ttl>;
+  csvt:implicit <test202.csv>;
+  .
+
+:test203 a csvt:ToRdfTestWithWarnings;
+  mf:name "float value constraint not matching minimum";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test203-metadata.json>;
+  mf:result <test203.ttl>;
+  csvt:implicit <test203.csv>;
+  .
+
+:test204 a csvt:ToRdfTestWithWarnings;
+  mf:name "float value constraint not matching maximum";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test204-metadata.json>;
+  mf:result <test204.ttl>;
+  csvt:implicit <test204.csv>;
+  .
+
+:test205 a csvt:ToRdfTestWithWarnings;
+  mf:name "float value constraint not matching minInclusive";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test205-metadata.json>;
+  mf:result <test205.ttl>;
+  csvt:implicit <test205.csv>;
+  .
+
+:test206 a csvt:ToRdfTestWithWarnings;
+  mf:name "float value constraint not matching minExclusive";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test206-metadata.json>;
+  mf:result <test206.ttl>;
+  csvt:implicit <test206.csv>;
+  .
+
+:test207 a csvt:ToRdfTestWithWarnings;
+  mf:name "float value constraint not matching maxInclusive";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test207-metadata.json>;
+  mf:result <test207.ttl>;
+  csvt:implicit <test207.csv>;
+  .
+
+:test208 a csvt:ToRdfTestWithWarnings;
+  mf:name "float value constraint not matching maxExclusive";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test208-metadata.json>;
+  mf:result <test208.ttl>;
+  csvt:implicit <test208.csv>;
+  .
+
+:test209 a csvt:ToRdfTest;
+  mf:name "date matching constraints";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test209-metadata.json>;
+  mf:result <test209.ttl>;
+  csvt:implicit <test209.csv>;
+  .
+
+:test210 a csvt:ToRdfTestWithWarnings;
+  mf:name "date value constraint not matching minimum";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test210-metadata.json>;
+  mf:result <test210.ttl>;
+  csvt:implicit <test210.csv>;
+  .
+
+:test211 a csvt:ToRdfTestWithWarnings;
+  mf:name "date value constraint not matching maximum";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test211-metadata.json>;
+  mf:result <test211.ttl>;
+  csvt:implicit <test211.csv>;
+  .
+
+:test212 a csvt:ToRdfTestWithWarnings;
+  mf:name "date value constraint not matching minInclusive";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test212-metadata.json>;
+  mf:result <test212.ttl>;
+  csvt:implicit <test212.csv>;
+  .
+
+:test213 a csvt:ToRdfTestWithWarnings;
+  mf:name "date value constraint not matching minExclusive";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test213-metadata.json>;
+  mf:result <test213.ttl>;
+  csvt:implicit <test213.csv>;
+  .
+
+:test214 a csvt:ToRdfTestWithWarnings;
+  mf:name "date value constraint not matching maxInclusive";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test214-metadata.json>;
+  mf:result <test214.ttl>;
+  csvt:implicit <test214.csv>;
+  .
+
+:test215 a csvt:ToRdfTestWithWarnings;
+  mf:name "date value constraint not matching maxExclusive";
+  rdfs:comment """validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test215-metadata.json>;
+  mf:result <test215.ttl>;
+  csvt:implicit <test215.csv>;
+  .
+
+:test216 a csvt:NegativeRdfTest;
+  mf:name "minInclusive and minExclusive";
+  rdfs:comment """Applications MUST raise an error if both minInclusive and minExclusive are specified, or if both maxInclusive and maxExclusive are specified. """;
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test216-metadata.json>;
+  csvt:implicit <test216.csv>;
+  .
+
+:test217 a csvt:NegativeRdfTest;
+  mf:name "maxInclusive and maxExclusive";
+  rdfs:comment """Applications MUST raise an error if both minInclusive and minExclusive are specified, or if both maxInclusive and maxExclusive are specified. """;
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test217-metadata.json>;
+  csvt:implicit <test217.csv>;
+  .
+
+:test218 a csvt:NegativeRdfTest;
+  mf:name "maxInclusive < minInclusive";
+  rdfs:comment """Applications MUST raise an error if both minInclusive and maxInclusive are specified and maxInclusive is less than minInclusive, or if both minInclusive and maxExclusive are specified and maxExclusive is less than or equal to minInclusive.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test218-metadata.json>;
+  csvt:implicit <test218.csv>;
+  .
+
+:test219 a csvt:NegativeRdfTest;
+  mf:name "maxExclusive = minInclusive";
+  rdfs:comment """Applications MUST raise an error if both minInclusive and maxInclusive are specified and maxInclusive is less than minInclusive, or if both minInclusive and maxExclusive are specified and maxExclusive is less than or equal to minInclusive.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test219-metadata.json>;
+  csvt:implicit <test219.csv>;
+  .
+
+:test220 a csvt:NegativeRdfTest;
+  mf:name "maxExclusive < minExclusive";
+  rdfs:comment """Applications MUST raise an error if both minExclusive and maxExclusive are specified and maxExclusive is less than minExclusive, or if both minExclusive and maxInclusive are specified and maxInclusive is less than or equal to minExclusive.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test220-metadata.json>;
+  csvt:implicit <test220.csv>;
+  .
+
+:test221 a csvt:NegativeRdfTest;
+  mf:name "maxInclusive = minExclusive";
+  rdfs:comment """Applications MUST raise an error if both minExclusive and maxExclusive are specified and maxExclusive is less than minExclusive, or if both minExclusive and maxInclusive are specified and maxInclusive is less than or equal to minExclusive.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test221-metadata.json>;
+  csvt:implicit <test221.csv>;
+  .
+
+:test222 a csvt:NegativeRdfTest;
+  mf:name "string datatype with minimum";
+  rdfs:comment """Applications MUST raise an error if minimum, minInclusive, maximum, maxInclusive, minExclusive, or maxExclusive are specified and the base datatype is not a numeric, date/time, or duration type.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test222-metadata.json>;
+  csvt:implicit <test222.csv>;
+  .
+
+:test223 a csvt:NegativeRdfTest;
+  mf:name "string datatype with maxium";
+  rdfs:comment """Applications MUST raise an error if minimum, minInclusive, maximum, maxInclusive, minExclusive, or maxExclusive are specified and the base datatype is not a numeric, date/time, or duration type.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test223-metadata.json>;
+  csvt:implicit <test223.csv>;
+  .
+
+:test224 a csvt:NegativeRdfTest;
+  mf:name "string datatype with minInclusive";
+  rdfs:comment """Applications MUST raise an error if minimum, minInclusive, maximum, maxInclusive, minExclusive, or maxExclusive are specified and the base datatype is not a numeric, date/time, or duration type.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test224-metadata.json>;
+  csvt:implicit <test224.csv>;
+  .
+
+:test225 a csvt:NegativeRdfTest;
+  mf:name "string datatype with maxInclusive";
+  rdfs:comment """Applications MUST raise an error if minimum, minInclusive, maximum, maxInclusive, minExclusive, or maxExclusive are specified and the base datatype is not a numeric, date/time, or duration type.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test225-metadata.json>;
+  csvt:implicit <test225.csv>;
+  .
+
+:test226 a csvt:NegativeRdfTest;
+  mf:name "string datatype with minExclusive";
+  rdfs:comment """Applications MUST raise an error if minimum, minInclusive, maximum, maxInclusive, minExclusive, or maxExclusive are specified and the base datatype is not a numeric, date/time, or duration type.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test226-metadata.json>;
+  csvt:implicit <test226.csv>;
+  .
+
+:test227 a csvt:NegativeRdfTest;
+  mf:name "string datatype with maxExclusive";
+  rdfs:comment """Applications MUST raise an error if minimum, minInclusive, maximum, maxInclusive, minExclusive, or maxExclusive are specified and the base datatype is not a numeric, date/time, or duration type.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test227-metadata.json>;
+  csvt:implicit <test227.csv>;
+  .
+
+:test228 a csvt:ToRdfTest;
+  mf:name "length with separator";
+  rdfs:comment """If the value is a list, the constraint applies to each element of the list.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test228-metadata.json>;
+  mf:result <test228.ttl>;
+  csvt:implicit <test228.csv>;
+  .
+
+:test229 a csvt:ToRdfTest;
+  mf:name "matching minLength with separator";
+  rdfs:comment """If the value is a list, the constraint applies to each element of the list.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test229-metadata.json>;
+  mf:result <test229.ttl>;
+  csvt:implicit <test229.csv>;
+  .
+
+:test230 a csvt:ToRdfTestWithWarnings;
+  mf:name "failing minLength with separator";
+  rdfs:comment """If the value is a list, the constraint applies to each element of the list.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test230-metadata.json>;
+  mf:result <test230.ttl>;
+  csvt:implicit <test230.csv>;
+  .
+
+:test231 a csvt:ToRdfTest;
+  mf:name "single column primaryKey success";
+  rdfs:comment """As defined in [tabular-data-model], validators MUST check that each row has a unique combination of values of cells in the indicated columns.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test231-metadata.json>;
+  mf:result <test231.ttl>;
+  csvt:implicit <test231.csv>;
+  .
+
+:test232 a csvt:ToRdfTest;
+  mf:name "single column primaryKey violation";
+  rdfs:comment """Validators MUST raise errors if there is more than one row with the same primary key""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test232-metadata.json>;
+  mf:result <test232.ttl>;
+  csvt:implicit <test232.csv>;
+  .
+
+:test233 a csvt:ToRdfTest;
+  mf:name "multiple column primaryKey success";
+  rdfs:comment """As defined in [tabular-data-model], validators MUST check that each row has a unique combination of values of cells in the indicated columns.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test233-metadata.json>;
+  mf:result <test233.ttl>;
+  csvt:implicit <test233.csv>;
+  .
+
+:test234 a csvt:ToRdfTest;
+  mf:name "multiple column primaryKey violation";
+  rdfs:comment """Validators MUST raise errors if there is more than one row with the same primary key""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test234-metadata.json>;
+  mf:result <test234.ttl>;
+  csvt:implicit <test234.csv>;
+  .
+
+:test235 a csvt:ToRdfTest;
+  mf:name "rowTitles on one column";
+  rdfs:comment """if row titles is not null, insert any titles specified for the row. For each value, tv, of the row titles annotation""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test235-metadata.json>;
+  mf:result <test235.ttl>;
+  csvt:implicit <countries.csv>,
+    <country_slice.csv>;
+  .
+
+:test236 a csvt:ToRdfTest;
+  mf:name "rowTitles on multiple columns";
+  rdfs:comment """if row titles is not null, insert any titles specified for the row. For each value, tv, of the row titles annotation""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test236-metadata.json>;
+  mf:result <test236.ttl>;
+  csvt:implicit <countries.csv>,
+    <country_slice.csv>;
+  .
+
+:test237 a csvt:ToRdfTest;
+  mf:name "rowTitles on one column (minimal)";
+  rdfs:comment """if row titles is not null, insert any titles specified for the row. For each value, tv, of the row titles annotation""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+    csvt:minimal true;
+  ];
+  mf:action <test237-metadata.json>;
+  mf:result <test237.ttl>;
+  csvt:implicit <countries.csv>,
+    <country_slice.csv>;
+  .
+
+:test238 a csvt:ToRdfTestWithWarnings;
+  mf:name "datatype value an absolute URL";
+  rdfs:comment """it must be the name of one of the built-in datatypes defined in section 5.11.1 Built-in Datatypes""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test238-metadata.json>;
+  mf:result <test238.ttl>;
+  csvt:implicit <test238.csv>;
+  .
+
+:test242 a csvt:ToRdfTest;
+  mf:name "datatype @id an absolute URL";
+  rdfs:comment """If included, @id is a link property that identifies the datatype described by this datatype description.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test242-metadata.json>;
+  mf:result <test242.ttl>;
+  csvt:implicit <test242.csv>;
+  .
+
+:test243 a csvt:NegativeRdfTest;
+  mf:name "invalid datatype @id";
+  rdfs:comment """It MUST NOT start with `_:`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test243-metadata.json>;
+  csvt:implicit <test243.csv>;
+  .
+
+:test244 a csvt:NegativeRdfTest;
+  mf:name "invalid datatype @id";
+  rdfs:comment """It MUST NOT be the URL of a built-in datatype.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test244-metadata.json>;
+  csvt:implicit <test244.csv>;
+  .
+
+:test245 a csvt:ToRdfTest;
+  mf:name "date format (valid time combinations with formats and milliseconds)";
+  rdfs:comment """The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test245-metadata.json>;
+  mf:result <test245.ttl>;
+  csvt:implicit <test245.csv>;
+  .
+
+:test246 a csvt:ToRdfTest;
+  mf:name "date format (valid dateTime combinations with formats and milliseconds)";
+  rdfs:comment """The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test246-metadata.json>;
+  mf:result <test246.ttl>;
+  csvt:implicit <test246.csv>;
+  .
+
+:test247 a csvt:ToRdfTestWithWarnings;
+  mf:name "date format (extra milliseconds)";
+  rdfs:comment """The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test247-metadata.json>;
+  mf:result <test247.ttl>;
+  csvt:implicit <test247.csv>;
+  .
+
+:test248 a csvt:ToRdfTest;
+  mf:name "Unicode in non-Normalized form";
+  rdfs:comment """No Unicode normalization (as specified in [UAX15]) is applied to these string values""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test248-metadata.json>;
+  mf:result <test248.ttl>;
+  csvt:implicit <test248.csv>;
+  .
+
+:test251 a csvt:NegativeRdfTest;
+  mf:name "missing source reference";
+  rdfs:comment """As defined in [tabular-data-model], validators MUST check that, for each row, the combination of cells in the referencing columns references a unique row within the referenced table through a combination of cells in the referenced columns.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test251-metadata.json>;
+  csvt:implicit <countries.csv>,
+    <country_slice.csv>;
+  .
+
+:test252 a csvt:NegativeRdfTest;
+  mf:name "missing destination reference column";
+  rdfs:comment """As defined in [tabular-data-model], validators MUST check that, for each row, the combination of cells in the referencing columns references a unique row within the referenced table through a combination of cells in the referenced columns.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test252-metadata.json>;
+  csvt:implicit <countries.csv>,
+    <country_slice.csv>;
+  .
+
+:test253 a csvt:NegativeRdfTest;
+  mf:name "missing destination table";
+  rdfs:comment """As defined in [tabular-data-model], validators MUST check that, for each row, the combination of cells in the referencing columns references a unique row within the referenced table through a combination of cells in the referenced columns.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test253-metadata.json>;
+  csvt:implicit <countries.csv>,
+    <country_slice.csv>;
+  .
+
+:test259 a csvt:ToRdfTest;
+  mf:name "tree-ops example with csvm.json (w3.org/.well-known/csvm)";
+  rdfs:comment """Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test259/tree-ops.csv>;
+  mf:result <test259/result.ttl>;
+  csvt:implicit <test259/csvm.json>;
+  .
+
+:test260 a csvt:ToRdfTest;
+  mf:name "tree-ops example with {+url}.json (w3.org/.well-known/csvm)";
+  rdfs:comment """Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test260/tree-ops.csv>;
+  mf:result <test260/result.ttl>;
+  csvt:implicit <test260/tree-ops.csv.json>;
+  .
+
+:test261 a csvt:NegativeRdfTest;
+  mf:name "maxLength < minLength";
+  rdfs:comment """Applications MUST raise an error if both minLength and maxLength are specified and minLength is greater than maxLength.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test261-metadata.json>;
+  csvt:implicit <test261.csv>;
+  .
+
+:test263 a csvt:ToRdfTest;
+  mf:name "@type on a common property can be a built-in type";
+  rdfs:comment """The value of any member of `@type` MUST be either a _term_ defined in [csvw-context], a _prefixed name_ where the prefix is a term defined in [csvw-context], or an absolute URL.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test263-metadata.json>;
+  mf:result <test263.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test264 a csvt:ToRdfTest;
+  mf:name "@type on a common property can be a CURIE if the prefix is one of the built-in ones";
+  rdfs:comment """The value of any member of `@type` MUST be either a _term_ defined in [csvw-context], a _prefixed name_ where the prefix is a term defined in [csvw-context], or an absolute URL.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test264-metadata.json>;
+  mf:result <test264.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test266 a csvt:ToRdfTestWithWarnings;
+  mf:name "`null` contains an array of (valid) string & (invalid) numeric values";
+  rdfs:comment """Processors MUST issue a warning if a property is set to an invalid value type""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test266-metadata.json>;
+  mf:result <test266.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test267 a csvt:NegativeRdfTest;
+  mf:name "@id on datatype is invalid (eg starts with _:)";
+  rdfs:comment """It MUST NOT start with `_:` and it MUST NOT be the URL of a built-in datatype.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test267-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test268 a csvt:ToRdfTest;
+  mf:name "`base` missing on datatype (defaults to string)";
+  rdfs:comment """An atomic property that contains a single string: the name of one of the built-in datatypes, as listed above (and which are defined as terms in the default context). Its default is string.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test268-metadata.json>;
+  mf:result <test268.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test269 a csvt:ToRdfTestWithWarnings;
+  mf:name "`format` for a boolean datatype is a string but in the wrong form (eg YN)";
+  rdfs:comment """If the datatype base for a cell is `boolean`, the datatype format annotation provides the true value followed by the false value, separated by `|`. If the format does not follow this syntax, implementations MUST issue a warning and proceed as if no format had been provided.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test269-metadata.json>;
+  mf:result <test269.ttl>;
+  csvt:implicit <test269.csv>;
+  .
+
+:test270 a csvt:ToRdfTestWithWarnings;
+  mf:name "transformation includes an invalid property (eg foo)";
+  rdfs:comment """All terms used within a metadata document MUST be defined in [csvw-context] defined for this specification""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test270-metadata.json>;
+  mf:result <test270.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test271 a csvt:NegativeRdfTest;
+  mf:name "foreign key includes an invalid property (eg `dc:description`)";
+  rdfs:comment """A foreign key definition is a JSON object that must contain only the following properties. . .""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test271-metadata.json>;
+  csvt:implicit <test271.csv>,
+    <countries.csv>;
+  .
+
+:test272 a csvt:NegativeRdfTest;
+  mf:name "foreign key reference includes an invalid property (eg `dc:description`)";
+  rdfs:comment """A foreign key definition is a JSON object that must contain only the following properties. . .""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test272-metadata.json>;
+  csvt:implicit <test272.csv>,
+    <countries.csv>;
+  .
+
+:test273 a csvt:ToRdfTest;
+  mf:name "`@base` set in `@context` overriding eg CSV location";
+  rdfs:comment """If present, its value MUST be a string that is interpreted as a URL which is resolved against the location of the metadata document to provide the **base URL** for other URLs in the metadata document.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test273-metadata.json>;
+  mf:result <test273.ttl>;
+  csvt:implicit <test273/action.csv>;
+  .
+
+:test274 a csvt:NegativeRdfTest;
+  mf:name "`@context` object includes properties other than `@base` and `@language`";
+  rdfs:comment """The `@context` MUST have one of the following values: An array composed of a string followed by an object, where the string is `http://www.w3.org/ns/csvw` and the object represents a local context definition, which is restricted to contain either or both of the following members.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test274-metadata.json>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test275 a csvt:ToRdfTestWithWarnings;
+  mf:name "property acceptable on column appears on table group";
+  rdfs:comment """Table Group may only use defined properties.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test275-metadata.json>;
+  mf:result <test275.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test276 a csvt:ToRdfTestWithWarnings;
+  mf:name "property acceptable on column appears on table";
+  rdfs:comment """Table may only use defined properties.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test276-metadata.json>;
+  mf:result <test276.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test277 a csvt:ToRdfTestWithWarnings;
+  mf:name "property acceptable on table appears on column";
+  rdfs:comment """Column may only use defined properties.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test277-metadata.json>;
+  mf:result <test277.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test278 a csvt:ToRdfTestWithWarnings;
+  mf:name "CSV has more headers than there are columns in the metadata";
+  rdfs:comment """Two schemas are compatible if they have the same number of non-virtual column descriptions, and the non-virtual column descriptions at the same index within each are compatible with each other.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test278-metadata.json>;
+  mf:result <test278.ttl>;
+  csvt:implicit <tree-ops.csv>;
+  .
+
+:test279 a csvt:ToRdfTestWithWarnings;
+  mf:name "duration not matching xsd pattern";
+  rdfs:comment """Value MUST be a valid xsd:duration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test279-metadata.json>;
+  mf:result <test279.ttl>;
+  csvt:implicit <test279.csv>;
+  .
+
+:test280 a csvt:ToRdfTestWithWarnings;
+  mf:name "dayTimeDuration not matching xsd pattern";
+  rdfs:comment """Value MUST be a valid xsd:dayTimeDuration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test280-metadata.json>;
+  mf:result <test280.ttl>;
+  csvt:implicit <test280.csv>;
+  .
+
+:test281 a csvt:ToRdfTestWithWarnings;
+  mf:name "yearMonthDuration not matching xsd pattern";
+  rdfs:comment """Value MUST be a valid xsd:yearMonthDuration.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test281-metadata.json>;
+  mf:result <test281.ttl>;
+  csvt:implicit <test281.csv>;
+  .
+
+:test282 a csvt:ToRdfTest;
+  mf:name "valid number patterns";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test282-metadata.json>;
+  mf:result <test282.ttl>;
+  csvt:implicit <test282.csv>;
+  .
+
+:test283 a csvt:ToRdfTest;
+  mf:name "valid number patterns (signs and percent/permille)";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test283-metadata.json>;
+  mf:result <test283.ttl>;
+  csvt:implicit <test283.csv>;
+  .
+
+:test284 a csvt:ToRdfTest;
+  mf:name "valid number patterns (grouping)";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test284-metadata.json>;
+  mf:result <test284.ttl>;
+  csvt:implicit <test284.csv>;
+  .
+
+:test285 a csvt:ToRdfTest;
+  mf:name "valid number patterns (fractional grouping)";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test285-metadata.json>;
+  mf:result <test285.ttl>;
+  csvt:implicit <test285.csv>;
+  .
+
+:test286 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid ##0 1,234";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test286-metadata.json>;
+  mf:result <test286.ttl>;
+  csvt:implicit <test286.csv>;
+  .
+
+:test287 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid ##0 123.4";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test287-metadata.json>;
+  mf:result <test287.ttl>;
+  csvt:implicit <test287.csv>;
+  .
+
+:test288 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #,#00 1";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test288-metadata.json>;
+  mf:result <test288.ttl>;
+  csvt:implicit <test288.csv>;
+  .
+
+:test289 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #,#00 1234";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test289-metadata.json>;
+  mf:result <test289.ttl>;
+  csvt:implicit <test289.csv>;
+  .
+
+:test290 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #,#00 12,34";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test290-metadata.json>;
+  mf:result <test290.ttl>;
+  csvt:implicit <test290.csv>;
+  .
+
+:test291 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #,#00 12,34,567";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test291-metadata.json>;
+  mf:result <test291.ttl>;
+  csvt:implicit <test291.csv>;
+  .
+
+:test292 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #,##,#00 1";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test292-metadata.json>;
+  mf:result <test292.ttl>;
+  csvt:implicit <test292.csv>;
+  .
+
+:test293 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #,##,#00 1234";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test293-metadata.json>;
+  mf:result <test293.ttl>;
+  csvt:implicit <test293.csv>;
+  .
+
+:test294 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #,##,#00 12,34";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test294-metadata.json>;
+  mf:result <test294.ttl>;
+  csvt:implicit <test294.csv>;
+  .
+
+:test295 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #,##,#00 1,234,567";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test295-metadata.json>;
+  mf:result <test295.ttl>;
+  csvt:implicit <test295.csv>;
+  .
+
+:test296 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #0.# 12.34";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test296-metadata.json>;
+  mf:result <test296.ttl>;
+  csvt:implicit <test296.csv>;
+  .
+
+:test297 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #0.# 1,234.5";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test297-metadata.json>;
+  mf:result <test297.ttl>;
+  csvt:implicit <test297.csv>;
+  .
+
+:test298 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #0.0 1";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test298-metadata.json>;
+  mf:result <test298.ttl>;
+  csvt:implicit <test298.csv>;
+  .
+
+:test299 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #0.0 12.34";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test299-metadata.json>;
+  mf:result <test299.ttl>;
+  csvt:implicit <test299.csv>;
+  .
+
+:test300 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #0.0# 1";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test300-metadata.json>;
+  mf:result <test300.ttl>;
+  csvt:implicit <test300.csv>;
+  .
+
+:test301 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #0.0# 12.345";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test301-metadata.json>;
+  mf:result <test301.ttl>;
+  csvt:implicit <test301.csv>;
+  .
+
+:test302 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #0.0#,# 1";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test302-metadata.json>;
+  mf:result <test302.ttl>;
+  csvt:implicit <test302.csv>;
+  .
+
+:test303 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #0.0#,# 12.345";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test303-metadata.json>;
+  mf:result <test303.ttl>;
+  csvt:implicit <test303.csv>;
+  .
+
+:test304 a csvt:ToRdfTestWithWarnings;
+  mf:name "invalid #0.0#,# 12.34,567";
+  rdfs:comment """A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test304-metadata.json>;
+  mf:result <test304.ttl>;
+  csvt:implicit <test304.csv>;
+  .
+
+:test305 a csvt:ToRdfTest;
+  mf:name "multiple values with same subject and property (unordered)";
+  rdfs:comment """Values in separate columns using the same propertyUrl are kept in proper relative order.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test305-metadata.json>;
+  mf:result <test305.ttl>;
+  csvt:implicit <test305.csv>;
+  .
+
+:test306 a csvt:ToRdfTest;
+  mf:name "multiple values with same subject and property (ordered)";
+  rdfs:comment """Values in separate columns using the same propertyUrl are kept in proper relative order.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test306-metadata.json>;
+  mf:result <test306.ttl>;
+  csvt:implicit <test306.csv>;
+  .
+
+:test307 a csvt:ToRdfTest;
+  mf:name "multiple values with same subject and property (ordered and unordered)";
+  rdfs:comment """Values in separate columns using the same propertyUrl are kept in proper relative order.""";
+  rdft:approval rdft:Approved;
+  csvt:option [
+    csvt:noProv true;
+  ];
+  mf:action <test307-metadata.json>;
+  mf:result <test307.ttl>;
+  csvt:implicit <test307.csv>;
+  .

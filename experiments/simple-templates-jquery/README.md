@@ -1,0 +1,3 @@
+# CSV+ implementation #
+
+This has gone a bit beyond what one might call an experimentation, so I decided to move this project 'out' of the CSVW repo into [its own repo](https://github.com/iherman/CSVPlus). The code & co. on this part of the repo is hereby frozen...

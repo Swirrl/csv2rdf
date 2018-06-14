@@ -1,0 +1,13 @@
+{
+  "url": "http://www.iana.org/assignments/link-relations/link-relations-1.csv",
+  "tableSchema": {
+    "aboutUrl": "{name}",
+    "lang": "en",
+    "columns": [
+      {"name": "name", "titles": "Relation Name", "propertyUrl": "rdfs:label"},
+      {"name": "comment", "titles": "Description", "propertyUrl": "rdfs:comment"},
+      {"name": "type", "titles": "Reference", "propertyUrl": "rdf:type", "valueUrl": "rdf:Property"},
+      {"titles": "Notes", "suppressOutput": true}
+    ]
+  }
+}

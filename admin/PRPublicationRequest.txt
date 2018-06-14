@@ -1,0 +1,49 @@
+[Version sent to the webmaster, 2015-11-16]
+
+Denis,
+
+This is an official publication request for the publication of four CSVW WG documents as Proposed Recommendations. The publication date is the 17th of November, 2015. The transition request for CR has been issued in:
+
+	https://lists.w3.org/Archives/Member/chairs/2015OctDec/0086.html
+
+the Director's approval is in:
+
+	https://www.w3.org/2015/11/09-csvwpr-minutes#item10
+
+Document Titles and URL-s
+-------------------------
+
+Model for Tabular Data and Metadata on the Web
+----------------------------------------------
+
+http://www.w3.org/TR/2015/PR-tabular-data-model-20151117/
+
+
+Metadata Vocabulary for Tabular Data
+------------------------------------
+
+http://www.w3.org/TR/2015/PR-tabular-metadata-20151117/
+
+
+Generating RDF from Tabular Data on the Web
+-------------------------------------------
+
+http://www.w3.org/TR/2015/PR-csv2rdf-20151117/
+
+
+Generating JSON from Tabular Data on the Web
+--------------------------------------------
+
+http://www.w3.org/TR/2015/PR-csv2json-20151117/
+
+
+Abstract and Status Sections
+----------------------------
+
+See the previous URL-s
+
+The documents are already in place and I will make sure they will pass the pubrules' checker. I will send, once those checks are done, additional remarks on the pubrules' checker output, in case there are any.
+
+Thanks!
+
+Ivan
