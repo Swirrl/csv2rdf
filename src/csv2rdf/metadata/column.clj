@@ -102,12 +102,13 @@
 
 (defn from-titles
   "Creates a new column given the column index and the sequence of titles"
-  [column-index titles]
-  (let [normalised-titles {"und" titles}
-        column-name (get-column-name {:titles normalised-titles} column-index "und")]
-    {::name column-name
-     :titles normalised-titles
-     :virtual false
+  [column-index titles lang]
+  (let [lang (or lang "und")
+        normalised-titles {lang titles}
+        column-name (get-column-name {:titles normalised-titles} column-index lang)]
+    {::name          column-name
+     :titles         normalised-titles
+     :virtual        false
      :suppressOutput false}))
 
 (defn from-index [column-index]

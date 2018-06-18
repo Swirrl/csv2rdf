@@ -12,7 +12,7 @@
   (set-table-group-parents (tmeta/get-metadata file-source)))
 
 (defn validate-merge-table [validating? dialect {:keys [url] :as user-table}]
-  (let [embedded-metadata (csv/extract-embedded-metadata url dialect)
+  (let [embedded-metadata (csv/extract-embedded-metadata url dialect (properties/lang user-table))
         table-metadata (get-in embedded-metadata [:tables 0])]
     (table/validate-compatible validating? user-table table-metadata)
     (table/compatibility-merge user-table table-metadata)))

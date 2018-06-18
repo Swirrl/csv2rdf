@@ -20,13 +20,13 @@
                             :else nil))
                     skipped-rows)))
 
-(defn ^{:table-spec "8.7"} get-header-row-columns [header-rows]
+(defn ^{:table-spec "8.7"} get-header-row-columns [header-rows default-lang]
   {:pre [(some? (seq header-rows))]}
   (let [comment-rows (filter reader/is-comment-row? header-rows)
         title-rows (remove reader/is-comment-row? header-rows)
         titles (apply map vector (map :cells title-rows))
         columns (map-indexed (fn [idx titles]
-                               (column/from-titles idx titles))
+                               (column/from-titles idx titles default-lang))
                              titles)]
     {:comments (mapv :comment comment-rows)
      :columns columns}))
@@ -51,7 +51,7 @@
   "Gets the header given a sequence of header/data rows, and a returns a pair of
   [data-rows, header]. The header is a map containing the columns definitions
   and any comments found in the header."
-  [rows {:keys [num-header-rows skipColumns] :as options}]
+  [rows {:keys [num-header-rows skipColumns lang] :as options}]
   (if (zero? num-header-rows)
     (if-let [first-row (first rows)]
       (let [cells (:cells first-row)
@@ -59,7 +59,7 @@
         [rows {:columns (mapv column/from-index (range num-columns))}])
       [rows {:columns []}])
     (let [[header-rows data-rows] (split-at num-header-rows rows)]
-      [data-rows (get-header-row-columns header-rows)])))
+      [data-rows (get-header-row-columns header-rows lang)])))
 
 (defn rows->embedded-metadata [csv-uri {:keys [skipRows] :as options} rows]
   (let [[skipped-rows remaining-rows] (split-at skipRows rows)
@@ -82,8 +82,10 @@
 ;;TODO: section 8.10.4.5.1 - add any extra columns for rows not defined in the input table
 (defn ^{:table-spec "8"} extract-embedded-metadata
   ([csv-source] (extract-embedded-metadata csv-source dialect/default-dialect))
-  ([csv-source dialect]
+  ([csv-source dialect] (extract-embedded-metadata csv-source dialect nil))
+  ([csv-source dialect default-lang]
    (let [options (dialect/dialect->options dialect)
+         options (assoc options :lang default-lang)
          rows (reader/read-rows csv-source dialect)]
      (rows->embedded-metadata (source/->uri csv-source) options rows))))
 
