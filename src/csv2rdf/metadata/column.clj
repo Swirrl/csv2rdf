@@ -5,6 +5,7 @@
             [csv2rdf.metadata.context :refer [language-code-or-default]]
             [csv2rdf.metadata.types :refer [natural-language id]]
             [csv2rdf.metadata.inherited :refer [metadata-of]]
+            [csv2rdf.bcp47 :as bcp47]
             [clojure.string :as string]
             [clojure.set :as set])
   (:import [java.nio CharBuffer]
@@ -101,7 +102,7 @@
     cols))
 
 (defn from-titles
-  "Creates a new column given the column index and the sequence of titles"
+  "Creates a new column given the column index and the sequence of titles with the specified language"
   [column-index titles lang]
   (let [lang (or lang "und")
         normalised-titles {lang titles}
@@ -119,20 +120,49 @@
   [columns]
   (into {} (filter (fn [[_idx col]] (non-virtual? col)) (map-indexed vector columns))))
 
+(defn- ^{:metadata-spec "5.5.1"} has-matching-truncation?
+  "Returns whether any truncations of long-lang-tag match short-lang-tag."
+  [^String short-lang-tag ^String long-lang-tag]
+  {:pre [(>= (.length long-lang-tag) (.length short-lang-tag))]}
+  (boolean (some #(bcp47/language-tag-strings-equal? short-lang-tag %) (bcp47/language-tag-string-truncation-strings long-lang-tag))))
+
+(defn- ^{:metadata-spec "5.5.1"} common-lang [^String lang1 ^String lang2]
+  (cond
+    (bcp47/language-tag-strings-equal? lang1 lang2)
+    lang1
+
+    (and (< (.length lang1) (.length lang2))
+         (has-matching-truncation? lang1 lang2))
+    lang1
+
+    (and (> (.length lang1) (.length lang2))
+         (has-matching-truncation? lang2 lang1))
+    lang2
+
+    :else nil))
+
+(defn find-compatible-titles [lang titles titles-map]
+  (let [title-set (set titles)]
+    (reduce (fn [acc [other-lang lang-titles]]
+              (if-let [cl (common-lang lang other-lang)]
+                (assoc acc cl (set/union (get acc cl) (set/intersection title-set (set lang-titles))))
+                acc))
+            {}
+            titles-map)))
+
 (defn intersect-titles
   "Returns a map {lang #{matching-titles}} containing the titles that match for each language within the titles definition
    of a column."
   [titles1 titles2]
-  ;;TODO: languages match if they are equal when truncated, as defined in [BCP47], to the length of the shortest language tag
   ;;und matches any language
   (let [und-intersection (set/union
                            (set/intersection (set (get titles1 "und")) (set (flatten (vals titles2))))
                            (set/intersection (set (get titles2 "und")) (set (flatten (vals titles1)))))
-        common-langs (disj (set/intersection (set (keys titles1)) (set (keys titles2))) "und")]
-    (into {"und" und-intersection}
-          (map (fn [lang]
-                 [lang (set/intersection (set (get titles1 lang)) (set (get titles2 lang)))])
-               common-langs))))
+        titles1-real (dissoc titles1 "und")
+        titles2-real (dissoc titles2 "und")
+        common-langs (map (fn [[lang titles]] (find-compatible-titles lang titles titles2-real)) titles1-real)]
+    (merge (if (empty? und-intersection) {} {"und" und-intersection})
+           (apply merge-with set/union common-langs))))
 
 (defn- titles-intersect? [column1 column2]
   (let [title-intersection (intersect-titles (:titles column1) (:titles column2))]
