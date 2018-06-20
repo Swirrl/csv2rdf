@@ -5,7 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/data.json "0.2.6"]
-                 [grafter "0.11.2"]
+                 [grafter "0.11.4"]
                  [com.github.fge/uri-template "0.9"]
                  [org.apache.httpcomponents/httpcore "4.4.9"]
                  [clj-http "3.7.0"]

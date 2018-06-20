@@ -1,23 +1,11 @@
 (ns csv2rdf.csvw-test.impl
   (:require [grafter.rdf.io :as gio]
-            [grafter.rdf.protocols :as gproto]
             [grafter.rdf :as rdf]
             [grafter.rdf.repository :as repo]
             [csv2rdf.http :as http]
-            [csv2rdf.xml.datatype.parsing :as parsing]
             [csv2rdf.logging :as logging]
             [csv2rdf.csvw :refer [csv->rdf->destination]])
   (:import [org.openrdf.model.util Models]))
-
-;;Grafter does not support the floating literals INF or -INF. Replace the implementations for these types
-(remove-method gio/literal-datatype->type "http://www.w3.org/2001/XMLSchema#double")
-(remove-method gio/literal-datatype->type "http://www.w3.org/2001/XMLSchema#float")
-
-(defmethod gio/literal-datatype->type "http://www.w3.org/2001/XMLSchema#double" [literal]
-  (parsing/parse "double" (gproto/raw-value literal)))
-
-(defmethod gio/literal-datatype->type "http://www.w3.org/2001/XMLSchema#float" [literal]
-  (parsing/parse "float" (gproto/raw-value literal)))
 
 (defn is-isomorphic? [expected-statements actual-statements]
   (Models/isomorphic
