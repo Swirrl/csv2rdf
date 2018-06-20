@@ -43,6 +43,22 @@
                                                  {"name" "col2" "virtual" true}
                                                  {"name" "col3"}])))))
 
+(deftest intersect-titles-test
+  (testing "und matches any language"
+    (is (= {"und" #{"title"}} (intersect-titles {"und" ["title"]} {"en" ["title"]})))
+    (is (= {"und" #{"title"}} (intersect-titles {"en" ["title"]} {"und" ["title" "other"]}))))
+
+  (testing "languages match exactly"
+    (is (= {"en" #{"title"}
+            "fr" #{"le title"}}
+           (intersect-titles {"en" ["title" "other title"] "fr" ["le title" "title deux"] "de" ["der title"]}
+                             {"en" ["header" "title"] "fr" ["le title"] "es" ["el title"]}))))
+
+  (testing "language tag prefixes match"
+    (is (= {"en" #{"title" "other title"}}
+           (intersect-titles {"en" ["title" "other title"] "fr" ["le title"]}
+                             {"en-US" ["title" "yet another title"] "en-GB" ["other title"]})))))
+
 (deftest compatible?-test
   (testing "without name or title properties"
     (is (compatible? false {} {:virtual false})))

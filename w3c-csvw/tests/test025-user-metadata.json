@@ -1,0 +1,14 @@
+{
+  "@context": "http://www.w3.org/ns/csvw",
+  "url": "tree-ops.csv",
+  "dialect": {"header": false, "skipRows": 1},
+  "tableSchema": {
+    "columns": [
+      {"name": "GID"},
+      {"name": "on_street"},
+      {"name": "species"},
+      {"name": "trim_cycle"},
+      {"name": "inventory_date"}
+    ]
+  }
+}
