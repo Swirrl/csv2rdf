@@ -89,7 +89,7 @@
   (metadata-of
     {:optional {:columns     column/columns
                 :foreignKeys (array-of foreign-key)
-                :primaryKey  column-reference            ;;TODO: validators MUST check that each row has a unique combination of values of cells in the indicated columns
+                :primaryKey  column-reference
                 :rowTitles   column-reference
                 :id         id
                 :type       (type-eq "Schema")}}))

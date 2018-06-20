@@ -107,7 +107,6 @@
     (warns-invalid (trim-mode test-context ["not" "a" "string" "or" "boolean"]))))
 
 (defn with-instrumentation [f]
-  ;;TODO: fix dialect specs
   (let [to-instrument [`calculate-dialect-options `expand-dialect]]
     (doseq [sym to-instrument]
       (stest/instrument sym))

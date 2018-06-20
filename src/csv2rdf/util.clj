@@ -30,7 +30,6 @@
   [x]
   (if (coll? x) x [x]))
 
-;;TODO: make into spec?
 (defn non-negative?
   "Whether the given value is a non-negative number."
   [x]
