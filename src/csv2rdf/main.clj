@@ -30,12 +30,16 @@
     (catch URISyntaxException _ex
       (io/file source-str))))
 
-(defn get-errors [{:keys [errors options] :as parse-result}]
+(defn get-errors
+  "Returns the collection of invocation option errors from the parsed options map."
+  [{:keys [errors options] :as parse-result}]
   (if (or (contains? options :tabular) (contains? options :user-metadata))
     errors
     (cons "User metadata or tabular data file required" errors)))
 
-(defn usage-error [errors summary]
+(defn usage-error
+  "Displays the given invocation errors followed by the usage summary before exiting."
+  [errors summary]
   (doseq [e errors]
     (log/error e))
   (log/info "Usage:")

@@ -1,4 +1,8 @@
 (ns csv2rdf.xml.datatype.parsing
+  "Functions for parsing XML datatypes in either a specified format or the default format defined by XML schema.
+   The representation for datatype formats vary by the target datatype and is defined by the metadata validator.
+
+   XML schema spec: https://www.w3.org/TR/xmlschema11-2/"
   (:require [csv2rdf.xml.datatype :as xml-datatype]
             [clojure.string :as string]
             [csv2rdf.uax35 :as uax35]
@@ -14,11 +18,12 @@
 (def special-float-values {"NaN" Float/NaN "INF" Float/POSITIVE_INFINITY "-INF" Float/NEGATIVE_INFINITY})
 (def special-double-values {"NaN" Double/NaN "INF" Double/POSITIVE_INFINITY "-INF" Double/NEGATIVE_INFINITY})
 
-(defmulti parse "Parses a values to one for the named XML datatype"
+(defmulti parse "Parses a string value for the named XML datatype. Throws IllegalArgumentException if
+                 the input string is not in the expected format."
           (fn [type-name string-value] (xml-datatype/dispatch-key type-name))
           :hierarchy #'xml-datatype/dispatch-hierarchy)
 
-(defmulti parse-format "Parses a datatype according to the given format"
+(defmulti parse-format "Parses a string value into the given datatype according to format."
           (fn [type-name string-value format]
             (xml-datatype/dispatch-key type-name))
           :hierarchy #'xml-datatype/dispatch-hierarchy)
@@ -227,7 +232,7 @@
 
 ;;numbers
 
-(defn construct-integer-string [{:keys [negative? integer-digits]}]
+(defn- construct-integer-string [{:keys [negative? integer-digits]}]
   (format "%s%s" (if negative? "-" "") integer-digits))
 
 (defmethod parse-format :integer [type-name string-value {:keys [pattern decimalChar groupChar] :as fmt}]
@@ -238,7 +243,7 @@
         constructed (construct-integer-string result)]
     (uax35/apply-modifier (parse type-name constructed) modifier)))
 
-(defn ^String construct-decimal-string [{:keys [decimal-digits] :as result}]
+(defn- ^String construct-decimal-string [{:keys [decimal-digits] :as result}]
   (format "%s.%s" (construct-integer-string result) decimal-digits))
 
 (defmethod parse-format :decimal [type-name string-value {:keys [pattern decimalChar groupChar] :as fmt}]
@@ -247,7 +252,7 @@
         constructed (construct-decimal-string result)]
     (uax35/apply-modifier (BigDecimal. constructed) modifier)))
 
-(defn construct-floating-string [{:keys [negative? integer-digits decimal-digits exponent-digits exponent-negative?]}]
+(defn- construct-floating-string [{:keys [negative? integer-digits decimal-digits exponent-digits exponent-negative?]}]
   (let [exponent (if (string/blank? exponent-digits)
                   ""
                   (format "e%s%s" (if exponent-negative? "-" "") exponent-digits))]
@@ -257,7 +262,7 @@
             decimal-digits
             exponent)))
 
-(defn normalise-formatted-floating [string-value {:keys [pattern decimalChar groupChar] :as fmt}]
+(defn- normalise-formatted-floating [string-value {:keys [pattern decimalChar groupChar] :as fmt}]
   (let [float-format (if (some? pattern)
                        pattern
                        (uax35/create-floating-format groupChar decimalChar))

@@ -1,4 +1,5 @@
 (ns csv2rdf.json
+  "Functions for processing JSON maps"
   (:require [clojure.spec.alpha :as s]))
 
 (s/def ::json-type #{:null :array :object :number :string :boolean})

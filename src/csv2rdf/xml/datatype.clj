@@ -1,10 +1,14 @@
 (ns csv2rdf.xml.datatype
+  "Defines the XML schema type hierarchy and funtions for querying sub/super type relationships."
   (:require [clojure.spec.alpha :as s]
             [csv2rdf.util :as util]
             [csv2rdf.vocabulary :refer :all]
             [clojure.set :as set]))
 
 (def type-hierarchy
+  ^{:metadata-spec "5.11.1"
+    :doc "Defines the XML schema type hierarchy. Leaf nodes are strings, internal nodes are a pair of
+          the type name and the list of immediate subtypes."}
   ["anyAtomicType"
    ["anyURI"
     "base64Binary"
@@ -51,7 +55,9 @@
 (def ^{:doc "All known type names"} type-names
   (into #{} (concat primitive-type-names (keys aliases))))
 
-(defn resolve-type-name [type-name]
+(defn- resolve-type-name
+  "Resolves any type aliases to the aliased type name. Returns the type name directly if it is not an alias."
+  [type-name]
   (get aliases type-name type-name))
 
 (defn is-leaf? [x] (string? x))
@@ -61,7 +67,8 @@
 (defn node-name [x]
   (if (is-leaf? x) x (first x)))
 
-(defn find-root
+(defn- find-root
+  "Finds the subtree with the given type name (or alias) as the root."
   ([type-name] (find-root type-name type-hierarchy))
   ([type-name node]
    (let [type-name (resolve-type-name type-name)]
@@ -71,7 +78,7 @@
            node
            (recur (concat (rest q) (children node)))))))))
 
-(defn make-dispatch-hierarchy
+(defn- make-dispatch-hierarchy
   "Constructs a hierarchy for the XML datatype hierarchy"
   ([] (make-dispatch-hierarchy (make-hierarchy) nil type-hierarchy))
   ([h parent-key node]
@@ -88,29 +95,35 @@
 
 (def dispatch-hierarchy (make-dispatch-hierarchy))
 
-(defn dispatch-key [type-name]
+(defn dispatch-key
+  "Returns the key for the given type name in the multimethod dispatch hierarchy."
+  [type-name]
   (if-let [resolved-name (resolve-type-name type-name)]
     (keyword resolved-name)
     (throw (IllegalArgumentException. (str "Unknown type: " type-name)))))
 
-(defn node-subtypes [node]
+(defn- node-subtypes [node]
   (if (is-leaf? node)
     [node]
     (cons (node-name node) (mapcat node-subtypes (children node)))))
 
-(defn subtypes [type-name]
+(defn- subtypes
+  "Returns a sequence of all subtypes for the given type name."
+  [type-name]
   (if-let [root (find-root type-name)]
     (node-subtypes root)))
 
-(defn is-subtype? [supertype-name type-name]
-  (let [type-name (resolve-type-name type-name)]
-    (boolean (some #(= type-name %) (subtypes supertype-name)))))
+(defn is-subtype?
+  "Returns whether type b is a subtype of type a"
+  [a b]
+  (let [type-name (resolve-type-name b)]
+    (boolean (some #(= type-name %) (subtypes a)))))
 
 (defn is-binary-type? [type-name]
   (contains? #{"hexBinary" "base64Binary"} (resolve-type-name type-name)))
 
 (defn is-numeric-type? [type-name]
-  (some #(is-subtype? % type-name) ["decimal" "double" "float"]))
+  (boolean (some #(is-subtype? % type-name) ["decimal" "double" "float"])))
 
 (defn is-date-time-type? [type-name]
   (or (is-subtype? "date" type-name)
@@ -156,7 +169,9 @@
 
 (s/fdef expand :ret ::datatype)
 
-(defn ^{:table-spec "4.6.1"} get-length [value {:keys [base] :as datatype}]
+(defn ^{:table-spec "4.6.1"} get-length
+  "Returns the length of the value of the given datatype."
+  [value {:keys [base] :as datatype}]
   (cond
     (nil? value) 0
 
@@ -170,12 +185,14 @@
     ;;length undefined for type
     :else nil))
 
-(def indirect-mapping-iris
+(def ^{:doc "Type IRIs which are not mapped directly to an XSD type IRI based on their name"} indirect-mapping-iris
   {"xml" rdf:XMLLiteral
    "html" rdf:HTML
    "json" csvw:JSON})
 
-(defn type-name->xmls-url [type-name]
+(defn- type-name->xmls-url
+  "Returns the URI for the named datatype"
+  [type-name]
   (let [resolved (resolve-type-name type-name)]
     (util/set-fragment xsd resolved)))
 
@@ -188,5 +205,7 @@
 (def iri->datatype-name (into (set/map-invert indirect-mapping-iris)
                               (map (fn [type-name] [(type-name->xmls-url type-name) type-name]) primitive-type-names)))
 
-(defn is-built-in-type-iri? [type-iri]
+(defn is-built-in-type-iri?
+  "Whether the given IRI identifies a built-in datatype."
+  [type-iri]
   (contains? iri->datatype-name type-iri))

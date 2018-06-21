@@ -1,4 +1,7 @@
 (ns csv2rdf.http
+  "Functions for making HTTP requests and processing responses.
+
+  RFC 5988: https://tools.ietf.org/html/rfc5988"
   (:require [clojure.spec.alpha :as s]
             [clj-http.client :as client]
             [csv2rdf.util :as util])
@@ -13,7 +16,9 @@
 (s/def ::headers (s/map-of string? ::header-value))
 (s/def ::response (s/keys :req-un [::status ::headers ::body]))
 
-(defn is-ok-response? [{:keys [status] :as response}]
+(defn is-ok-response?
+  "Whether the given map represents a successful HTTP response"
+  [{:keys [status] :as response}]
   (and (>= status 200) (<= status 300)))
 
 (defn ^{:table-spec "5.3"} is-not-found-response?
@@ -21,10 +26,12 @@
   [{:keys [status]}]
   (and (>= status 400) (<= status 600)))
 
-(defn parse-parameters [^HeaderElement element]
+(defn- parse-parameters [^HeaderElement element]
   (into {} (map (fn [^NameValuePair p] [(keyword (.getName p)) (.getValue p)]) (.getParameters element))))
 
-(defn parse-link-uri [link-str]
+(defn- parse-link-uri
+  "Extracts the URI referenced in a Link response header."
+  [link-str]
   (if-let [[_ uri-str] (re-find #"<([^>]*)>" link-str)]
     (try
       (URI. uri-str)
@@ -69,6 +76,7 @@ relation-type= util/equals-ignore-case?)
        (remove nil?)))
 
 (defprotocol HttpClient
+  "Represents a client for making HTTP GET requests"
   (http-get [this uri]))
 
 (defrecord CljHttpClient []
@@ -76,12 +84,15 @@ relation-type= util/equals-ignore-case?)
   (http-get [_ uri]
     (client/get (str uri))))
 
-(def ^:dynamic *http-client* (->CljHttpClient))
+(def ^{:dynamic true :doc "The currently-bound default HTTP client"} *http-client* (->CljHttpClient))
 
-(defmacro with-http-client [client & body]
+(defmacro with-http-client
+  "Executes body with the given HttpClient implementation as the default"
+  [client & body]
   `(binding [*http-client* ~client]
      ~@body))
 
 (defn get-uri
+  "Executes a HTTP GET request against the given URI"
   ([uri] (get-uri uri *http-client*))
   ([uri client] (http-get client uri)))

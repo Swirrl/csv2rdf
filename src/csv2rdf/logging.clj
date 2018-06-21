@@ -1,4 +1,6 @@
 (ns csv2rdf.logging
+  "Entry point for logging messages during the CSVW process. Components should call log-warning and log-error
+   instead of writing log messages directly. The sink for log messages can be configured by setting *logger*."
   (:require [clojure.tools.logging :as log]))
 
 (defprotocol Logger
@@ -25,22 +27,33 @@
 
 (def ^:dynamic *logger* (->ForwardingLogger))
 
-(defmacro with-logger [logger & body]
+(defmacro with-logger
+  "Executes body with the given log message sink."
+  [logger & body]
   `(binding [*logger* ~logger]
      ~@body))
 
-(defmacro capture-warnings [& body]
+(defmacro capture-warnings
+  "Captures any warning messages logged while executing body. Logged warnings are returned under
+   the :warnings key in the returned map. The result of body is returned under the :result key."
+  [& body]
   `(let [warnings# (atom [])
          errors# (atom [])
          logger# (->MemoryLogger warnings# errors#)
          result# (with-logger logger# ~@body)]
      {:warnings @warnings# :result result#}))
 
-(defmacro suppress-logging [& body]
+(defmacro suppress-logging
+  "Discards all log messages generated while executing body."
+  [& body]
   `(with-logger (->NullLogger) ~@body))
 
-(defn log-warning [msg]
+(defn log-warning
+  "Logs the given warning to the current logger."
+  [msg]
   (warn *logger* msg))
 
-(defn log-error [msg]
+(defn log-error
+  "Logs the given error to the current logger."
+  [msg]
   (error *logger* msg))

@@ -1,16 +1,17 @@
-(ns csv2rdf.uax35)
+(ns csv2rdf.uax35
+  "Parser for unicode number formats described in http://unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns.")
 
-(def mph-char \u2030)
+(def per-mille-char \u2030)
 
 (defn is-modifier-char? [^Character c]
-  (contains? #{\% mph-char} c))
+  (contains? #{\% per-mille-char} c))
 
 (defn apply-modifier
   "Modifies the result of parsing a formatted number according to any contained modifier (percent or mph)."
   [value modifier]
   (cond
     (= \% modifier) (/ value 100)
-    (= mph-char modifier) (/ value 1000)
+    (= per-mille-char modifier) (/ value 1000)
     :else value))
 
 ;; <prefix>([#0,])*.([#0,])*E[+-]?(\d)+<modifier>?<suffix>?

@@ -1,4 +1,5 @@
 (ns csv2rdf.xml.datatype.compare
+  "Defines protocol and implementations for partially-ordered datatypes."
   (:import [javax.xml.datatype XMLGregorianCalendar DatatypeConstants]
            [java.time.temporal Temporal]))
 

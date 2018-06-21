@@ -9,6 +9,7 @@
            [java.io File InputStream ByteArrayInputStream]))
 
 (defprotocol URIable
+  "Represents an object with an associated URI."
   (->uri ^URI [this]))
 
 (extend-protocol URIable
@@ -37,6 +38,7 @@
   (get-json [_this] json))
 
 (defprotocol IntoInputStream
+  "Represents an object which can be coerced into a java.io.InputStream."
   (into-input-stream [this]))
 
 (extend-protocol IntoInputStream
@@ -50,6 +52,8 @@
   (into-input-stream [f] (io/input-stream f)))
 
 (defprotocol InputStreamRequestable
+  "Represents a source which can be de-referenced to return an input stream along with a map
+   of associated header values."
   (request-input-stream [this]))
 
 (defmulti request-uri-input-stream (fn [^URI uri] (keyword (.getScheme uri))))

@@ -1,8 +1,13 @@
 (ns csv2rdf.json-ld
-  (:require [csv2rdf.vocabulary :refer [csvw]]
-            [csv2rdf.util :as util]))
+  "Implementation of any parts of the JSON-LD specification required for expanding URIs in metadata documents.
+   Defines the prefixes required to support compact URIs in common properties.
 
-(def ^{:rdfa-spec ""} prefixes
+   RDFa initial context spec: https://www.w3.org/2011/rdfa-context/rdfa-1.1
+   JSON-LD spec: https://www.w3.org/TR/json-ld/
+   JSON-LD API spec: https://www.w3.org/TR/json-ld-api/")
+
+(def ^{:metadata-spec "5.8.1"
+       :rdfa-context-spec "vocabulary prefixes"} prefixes
   {"as" "https://www.w3.org/ns/activitystreams#"
    "csvw" "http://www.w3.org/ns/csvw#"
    "dcat" "http://www.w3.org/ns/dcat#"
@@ -60,13 +65,16 @@
 (defn is-keyword? [^String s]
   (contains? keywords s))
 
-(defn split-colon [^String s]
+(defn- split-colon [^String s]
   (let [idx (.indexOf s ":")]
     (if (= -1 idx)
       [s ""]
       [(.substring s 0 idx) (.substring s (inc idx))])))
 
-(defn ^String ^{:jsonld-api-spec "6.3"} expand-uri-string [^String uri-str]
+(defn ^String ^{:jsonld-api-spec "6.3"} expand-uri-string
+  "Expands a string containing a URI or prefixed URI into a string containing the full URI. String which
+   do not contain a URI are unaffected by the expansion."
+  [^String uri-str]
   (if (is-keyword? uri-str)
     uri-str
     (let [[^String prefix ^String suffix] (split-colon uri-str)]
@@ -75,9 +83,3 @@
         (if-let [prefix-uri (get prefixes prefix)]
           (str prefix-uri suffix)
           uri-str)))))
-
-(def description-object-types #{"TableGroup" "Table" "Schema" "Column" "Dialect" "Template" "Datatype"})
-
-(defn expand-description-object-type-uri [type]
-  (if (contains? description-object-types type)
-    (util/set-fragment csvw type)))

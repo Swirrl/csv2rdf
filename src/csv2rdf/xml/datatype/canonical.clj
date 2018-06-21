@@ -1,4 +1,5 @@
 (ns csv2rdf.xml.datatype.canonical
+  "Conversions for data types into their corresponding canonical values as defined by the XML schema specification."
   (:require [csv2rdf.xml.datatype :as xml-datatype]
             [csv2rdf.util :as util])
   (:import [java.util Base64]
@@ -8,6 +9,7 @@
            [java.net URI]))
 
 (defprotocol ToXmlRepresentation
+  "Protocol for converting java values into their canonical representation according to the XML schema specification"
   (canonical-value [this type-name]))
 
 (extend-protocol ToXmlRepresentation

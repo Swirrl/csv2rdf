@@ -11,7 +11,7 @@
             [clojure.string :as string]
             [csv2rdf.util :as util]
             [clojure.set :as set]
-            [csv2rdf.json-ld :as json-ld]
+            [csv2rdf.vocabulary :refer [csvw]]
             [csv2rdf.xml.datatype :as xml-datatype]
             [csv2rdf.logging :as logging])
   (:import [java.util Locale$Builder IllformedLocaleException]
@@ -118,8 +118,17 @@
           (make-error context "Type URI must be absolute"))))
     (make-error context (type-error-message #{:string} (mjson/get-json-type x)))))
 
+(def description-object-types #{"TableGroup" "Table" "Schema" "Column" "Dialect" "Template" "Datatype"})
+
+(defn ^{:metadata-spec "5.8.2"} expand-description-object-type-uri
+  "If type is the name of a description object defined in the metadata specification (e.g. Table, Schema),
+   returns the corresponding id URI for the type. Otherwise returns nil."
+  [type]
+  (if (contains? description-object-types type)
+    (util/set-fragment csvw type)))
+
 (defn validate-common-property-type-without-value [context ^String s]
-  (if-let [type-uri (json-ld/expand-description-object-type-uri s)]
+  (if-let [type-uri (expand-description-object-type-uri s)]
     type-uri
     (let [^URI uri (try
                      (URI. (expand-uri-string s))

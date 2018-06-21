@@ -1,4 +1,6 @@
 (ns csv2rdf.bcp47
+  "Parser for language tags described by the BCP47 specification.
+   https://tools.ietf.org/html/bcp47"
   (:require [clojure.string :as string]
             [clojure.set :as set]
             [csv2rdf.util :as util]))
