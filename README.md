@@ -43,6 +43,10 @@ need to be provided when processing from a metadata file since the metadata shou
 
 csv2rdf also exposes its functionality as a library - please see [the csv2rdf library](doc/library.md) for a description of the library and its interface.
 
+## Overview of the code
+
+See [overview of the code](doc/code.md) for an overview of the codebase.
+
 ## License
 
 Copyright © 2018 Swirrl IT Ltd.
