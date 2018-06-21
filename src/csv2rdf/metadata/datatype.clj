@@ -40,7 +40,7 @@
                          :groupChar character
                          :pattern number-format-pattern}}))
 
-(defn ^{:table-spec "6.4.2"} validate-numeric-format [context format]
+(defn ^{:tabular-spec "6.4.2"} validate-numeric-format [context format]
   (if (empty? format)
     (make-warning context "Object must contain at least one of the keys decimalChar, groupChar or pattern" nil)
     format))
@@ -48,7 +48,7 @@
 ;;NOTE: numeric datatypes are the only ones that permit an object specifying the format, all other types allow only
 ;;a format string. The format of the format string depends on the datatype, so this can only be validated at the datatype
 ;;level, not here. See validate-derived-datatype-format
-(def ^{:table-spec "6.4.2"} datatype-format
+(def ^{:tabular-spec "6.4.2"} datatype-format
   (variant {:string any
             :object (chain numeric-type-format validate-numeric-format)}))
 
@@ -121,7 +121,7 @@
     (make-error context "Datatype @id property must not be the URL of a built-in datatype")
     id))
 
-(defn ^{:table-spec "6.4.3"} validate-boolean-format [context format-string]
+(defn ^{:tabular-spec "6.4.3"} validate-boolean-format [context format-string]
   (let [values (string/split format-string #"\|")]
     (if (= 2 (count values))
       (let [[true-value false-value] (map string/trim values)]
@@ -133,7 +133,7 @@
   ;;TODO: do this properly
   (DateTimeFormatter/ofPattern (.replace format-string "T" "'T'")))
 
-(defn ^{:table-spec "6.4"} validate-derived-datatype-format [context {:keys [format base] :as datatype}]
+(defn ^{:tabular-spec "6.4"} validate-derived-datatype-format [context {:keys [format base] :as datatype}]
   (let [set-format (fn [value]
                      (if (invalid? value)
                        (dissoc datatype :format)

@@ -16,22 +16,22 @@
 
 (def column-required-message "Column value required")
 
-(defn ^{:table-spec "6.4.1"} replace-special-whitespace [value column]
+(defn ^{:tabular-spec "6.4.1"} replace-special-whitespace [value column]
   (if-not (contains? #{"string" "json" "xml" "html" "anyAtomicType"} (mcolumn/datatype-base column))
     (string/replace value #"[\x{d}\x{a}\x{9}]" " ")
     value))
 
-(defn ^{:table-spec "6.4.2"} strip-whitespace [value column]
+(defn ^{:tabular-spec "6.4.2"} strip-whitespace [value column]
   (if-not (contains? #{"string" "json" "xml" "html" "anyAtomicType" "normalizedString"} (mcolumn/datatype-base column))
     (-> value (string/trim) (string/replace #"\s+" " "))
     value))
 
-(defn ^{:table-spec "6.4.3"} column-default-if-empty [^String value column]
+(defn ^{:tabular-spec "6.4.3"} column-default-if-empty [^String value column]
   (if (.isEmpty value)
     (properties/default column)
     value))
 
-(defn ^{:table-spec "6.4.7"} is-column-null? [value column]
+(defn ^{:tabular-spec "6.4.7"} is-column-null? [value column]
   (let [null-values (properties/null column)]
     (some #(= value %) null-values)))
 
@@ -47,7 +47,7 @@
 (defn add-cell-errors [cell-element errors]
   (reduce add-cell-error cell-element errors))
 
-(defn ^{:table-spec "6.4.8"} parse-datatype [string-value {fmt :format base :base :as datatype}]
+(defn ^{:tabular-spec "6.4.8"} parse-datatype [string-value {fmt :format base :base :as datatype}]
   (try
     (let [value (if (some? fmt)
                   (xml-parsing/parse-format base string-value fmt)
@@ -64,7 +64,7 @@
 
 (def length-relations {:length '= :minLength '>= :maxLength '<=})
 
-(defn ^{:table-spec "6.4.9"} validate-length
+(defn ^{:tabular-spec "6.4.9"} validate-length
   "Validates the length of the cell value is valid for the constraints on the column metadata"
   [{:keys [value datatype] :as cell-element}]
   (if-let [len (xml-datatype/get-length value datatype)]
@@ -74,7 +74,7 @@
       (add-cell-errors cell-element len-errors))
     cell-element))
 
-(defn ^{:table-spec "6.4.9"} validate-value-bounds
+(defn ^{:tabular-spec "6.4.9"} validate-value-bounds
   "Validates the cell value is valid for any bounds specified on its datatype"
   [{:keys [value stringValue datatype] :as cell-element}]
   (let [{:keys [minimum maximum minExclusive minInclusive maxExclusive maxInclusive]} datatype]
@@ -115,7 +115,7 @@
 (s/def ::parsed-cell (s/keys :req-un [::value ::stringValue ::list ::errors]
                              :opt-un [::datatype/datatype]))
 
-(defn ^{:table-spec "6.4.[6,7,8,9]"} parse-atomic-value
+(defn ^{:tabular-spec "6.4.[6,7,8,9]"} parse-atomic-value
   "Parses an 'atomic' value within a cell i.e. one which should be parsed directly according to the
   column datatype."
   [string-value column]
@@ -163,7 +163,7 @@
                 cell (combine-cell-values component-cells)]
             (assoc cell :list true :stringValue value)))))))
 
-(defn ^{:table-spec "6.4"} copy-column-annotations
+(defn ^{:tabular-spec "6.4"} copy-column-annotations
   "Copy required annotations onto a cell from its column"
   [cell column]
   ;;NOTE: lang not required by specification but is needed to set the string language
@@ -172,7 +172,7 @@
       (assoc :textDirection (properties/text-direction column))
       (assoc :lang (properties/lang column))))
 
-(defn ^{:table-spec "6.4"} parse-cell
+(defn ^{:tabular-spec "6.4"} parse-cell
   "Parses a cell value in the input CSV to obtain the semantic value."
   [value column]
   (let [cleaned (-> value

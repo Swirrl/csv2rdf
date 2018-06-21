@@ -16,21 +16,21 @@
   (:import [java.net URI]
            (java.io File InputStream)))
 
-(def ^{:table-spec "5.2"} metadata-link-header-content-types
+(def ^{:tabular-spec "5.2"} metadata-link-header-content-types
   #{"application/csvm+json" "application/ld+json" "application/json"})
 
-(defn ^{:table-spec "5.2"} is-metadata-link?
+(defn ^{:tabular-spec "5.2"} is-metadata-link?
   "Indicates whether the given CSV file response header is a valid Link header for the
    associated metadata file."
   [{:keys [rel type]}]
   (and (http/relation-type= "describedby" rel)
        (contains? metadata-link-header-content-types type)))
 
-(defn ^{:table-spec "5.2"} get-metadata-link [csv-headers]
+(defn ^{:tabular-spec "5.2"} get-metadata-link [csv-headers]
   (let [links (http/find-links csv-headers)]
     (last (filter is-metadata-link? links))))
 
-(defn ^{:table-spec "5.2"} get-metadata-link-uri [^URI csv-uri csv-headers]
+(defn ^{:tabular-spec "5.2"} get-metadata-link-uri [^URI csv-uri csv-headers]
   (if-let [link-header (get-metadata-link csv-headers)]
     (let [^URI link-uri (::http/link-uri link-header)]
       (.resolve csv-uri link-uri))))
@@ -43,7 +43,7 @@
       (source/get-json body))))
 
 
-(defn ^{:table-spec "5.2"} linked-metadata-references-data-file? [csv-uri ^URI metadata-uri metadata-doc]
+(defn ^{:tabular-spec "5.2"} linked-metadata-references-data-file? [csv-uri ^URI metadata-uri metadata-doc]
   ;;from the spec: If the metadata file found at this location does not explicitly include a reference
   ;; to the requested tabular data file then it MUST be ignored
   (let [tables (cond
@@ -65,13 +65,13 @@
       (log/log-warning (format "Metadata document at URI %s does not contain a reference to tabular file at URI %s" metadata-uri csv-uri)))
     has-reference?))
 
-(defn ^{:table-spec "5.2"} try-resolve-linked-metadata [csv-uri metadata-uri]
+(defn ^{:tabular-spec "5.2"} try-resolve-linked-metadata [csv-uri metadata-uri]
   (if (some? metadata-uri)
     (if-let [metadata (try-get-linked-metadata metadata-uri)]
       (if (linked-metadata-references-data-file? csv-uri metadata-uri metadata)
         metadata))))
 
-(def ^{:table-spec "5.3"} ^URI well-known-site-wide-configuration-uri (URI. "/.well-known/csvm"))
+(def ^{:tabular-spec "5.3"} ^URI well-known-site-wide-configuration-uri (URI. "/.well-known/csvm"))
 
 (defn ^{:template-spec "5.3"} parse-response-location-templates [^String body]
   ;;NOTE: specification states "This file MUST contain a URI template, as defined by [URI-TEMPLATE], on each line"
@@ -81,7 +81,7 @@
     []
     (string/split-lines body)))
 
-(defn ^{:table-spec "5.3"} try-get-location-templates [uri]
+(defn ^{:tabular-spec "5.3"} try-get-location-templates [uri]
   (let [{:keys [body] :as response} (http/get-uri uri)]
     (if-not (http/is-not-found-response? response)
       (parse-response-location-templates body))))
@@ -90,15 +90,15 @@
   (let [config-uri (.resolve csv-uri well-known-site-wide-configuration-uri)]
     (try-get-location-templates config-uri)))
 
-(def ^{:table-spec "5.3"} default-location-templates
+(def ^{:tabular-spec "5.3"} default-location-templates
   ["{+url}-metadata.json"
    "csv-metadata.json"])
 
-(defn ^{:table-spec "5.3"} get-site-wide-configuration-templates [csv-uri]
+(defn ^{:tabular-spec "5.3"} get-site-wide-configuration-templates [csv-uri]
   (or (try-get-site-wide-configuration-templates csv-uri)
       default-location-templates))
 
-(defn ^{:table-spec "5.3"} ^URI try-expand-location-template [csv-uri template-string]
+(defn ^{:tabular-spec "5.3"} ^URI try-expand-location-template [csv-uri template-string]
   (if-let [template (template/try-parse-template template-string)]
     (template/expand-template template {:url (util/remove-fragment csv-uri)})))
 

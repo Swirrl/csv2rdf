@@ -52,7 +52,7 @@
                 :id            id
                 :type (type-eq "Column")}}))
 
-(def ^{:table-spec "4.3"} index->column-number inc)
+(def ^{:tabular-spec "4.3"} index->column-number inc)
 
 (defn index-column-name [column-index]
   (str "_col." (index->column-number column-index)))

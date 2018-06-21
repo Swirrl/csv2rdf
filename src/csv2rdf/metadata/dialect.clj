@@ -123,7 +123,7 @@
         :args (s/cat :dialect ::dialect)
         :ret ::options)
 
-(defn ^{:table-spec "6.1.3.2"} get-default-dialect
+(defn ^{:tabular-spec "6.1.3.2"} get-default-dialect
   "Get the default dialect updated according to the HTTP response headers returned along with the tabular file response."
   [tabular-file-http-headers]
   (if-let [content-type-header (get tabular-file-http-headers "Content-Type")]
@@ -140,14 +140,14 @@
   ([tabular-file-http-headers]
     (dialect->options (get-default-dialect tabular-file-http-headers))))
 
-(defn ^{:table-spec "6.3.2"} resolve-dialect
+(defn ^{:tabular-spec "6.3.2"} resolve-dialect
   "Calculates the dialect for a tabular file - uses dialect if it is non-nil, otherwise
    calculates the default dialect based on the headers associated with accessing the
    tabular data source."
   [dialect tabular-file-headers]
   (or dialect (get-default-dialect tabular-file-headers)))
 
-(defn ^{:table-spec "6.3.2"} resolve-options
+(defn ^{:tabular-spec "6.3.2"} resolve-options
   "Calculates the options for a tabular file based on the provided dialect and any headers
   associated with the tabular data source."
   [dialect tabular-file-headers]

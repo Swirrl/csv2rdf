@@ -8,7 +8,7 @@
 (defn set-table-group-parents [table-group]
   (properties/set-table-group-parent-references table-group))
 
-(defn ^{:table-spec "6.1"} from-tabular-source [file-source]
+(defn ^{:tabular-spec "6.1"} from-tabular-source [file-source]
   (set-table-group-parents (tmeta/get-metadata file-source)))
 
 (defn validate-merge-table [validating? dialect {:keys [url] :as user-table}]
@@ -17,7 +17,7 @@
     (table/validate-compatible validating? user-table table-metadata)
     (table/compatibility-merge user-table table-metadata)))
 
-(defn ^{:table-spec "6.1"} get-metadata
+(defn ^{:tabular-spec "6.1"} get-metadata
   "Retrieves and resolves the metadata given either a tabular data source or metadata source. If user metadata
   is provided, each referenced table definition is validated against the corresponding tabular data file."
   [tabular-source metadata-source]

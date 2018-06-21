@@ -169,7 +169,7 @@
 
 (s/fdef expand :ret ::datatype)
 
-(defn ^{:table-spec "4.6.1"} get-length
+(defn ^{:tabular-spec "4.6.1"} get-length
   "Returns the length of the value of the given datatype."
   [value {:keys [base] :as datatype}]
   (cond

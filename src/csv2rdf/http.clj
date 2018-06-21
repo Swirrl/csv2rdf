@@ -21,7 +21,7 @@
   [{:keys [status] :as response}]
   (and (>= status 200) (<= status 300)))
 
-(defn ^{:table-spec "5.3"} is-not-found-response?
+(defn ^{:tabular-spec "5.3"} is-not-found-response?
   "Indicates whether the response map represents a 'not found' response."
   [{:keys [status]}]
   (and (>= status 400) (<= status 600)))
@@ -59,8 +59,8 @@
   (let [{:keys [value params]} (parse-header header-string)]
     (assoc params ::link-uri (parse-link-uri value))))
 
-(def ^{:table-spec "5.2"} link-header-name "Link")
-(def ^{:table-spec "6.1.3.2"} tsv-content-type "text/tab-separated-values")
+(def ^{:tabular-spec "5.2"} link-header-name "Link")
+(def ^{:tabular-spec "6.1.3.2"} tsv-content-type "text/tab-separated-values")
 
 (def ^{:rfc5988 "4.1"
        :doc "Whether two link relation types are equal. Relation types are compared case-insensitively."}

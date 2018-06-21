@@ -13,14 +13,14 @@
             [csv2rdf.source :as source]
             [csv2rdf.logging :as logging]))
 
-(defn ^{:table-spec "8.6"} get-skipped-rows-comments [skipped-rows]
+(defn ^{:tabular-spec "8.6"} get-skipped-rows-comments [skipped-rows]
   (remove nil? (map (fn [{:keys [type comment content] :as row}]
                       (cond (= :comment type) comment
                             (not (string/blank? content)) content
                             :else nil))
                     skipped-rows)))
 
-(defn ^{:table-spec "8.7"} get-header-row-columns [header-rows default-lang]
+(defn ^{:tabular-spec "8.7"} get-header-row-columns [header-rows default-lang]
   {:pre [(some? (seq header-rows))]}
   (let [comment-rows (filter reader/is-comment-row? header-rows)
         title-rows (remove reader/is-comment-row? header-rows)
@@ -31,7 +31,7 @@
     {:comments (mapv :comment comment-rows)
      :columns columns}))
 
-(defn ^{:table-spec "8.10.3"} validate-data-rows
+(defn ^{:tabular-spec "8.10.3"} validate-data-rows
   "Validates the data rows in the tabular file and extracts any embedded comments. The row number of any rows
   containing an unexpected number of cells (i.e. different from the first data row) are returned under the
   :invalid-row-numbers key."
@@ -47,7 +47,7 @@
           {:comments [] :cell-count nil :invalid-row-numbers []}
           data-rows))
 
-(defn ^{:table-spec ["8.7" "8.8"]} get-header
+(defn ^{:tabular-spec ["8.7" "8.8"]} get-header
   "Gets the header given a sequence of header/data rows, and a returns a pair of
   [data-rows, header]. The header is a map containing the columns definitions
   and any comments found in the header."
@@ -80,7 +80,7 @@
         (throw (ex-info msg {:invalid-rows invalid-row-numbers}))))))
 
 ;;TODO: section 8.10.4.5.1 - add any extra columns for rows not defined in the input table
-(defn ^{:table-spec "8"} extract-embedded-metadata
+(defn ^{:tabular-spec "8"} extract-embedded-metadata
   ([csv-source] (extract-embedded-metadata csv-source dialect/default-dialect))
   ([csv-source dialect] (extract-embedded-metadata csv-source dialect nil))
   ([csv-source dialect default-lang]
@@ -182,7 +182,7 @@
            (annotate-row row table title-column-indexes))
          data-rows)))
 
-(defn ^{:table-spec "8"} annotated-rows [source table dialect]
+(defn ^{:tabular-spec "8"} annotated-rows [source table dialect]
   (let [options (dialect/dialect->options dialect)
         rows (reader/read-rows source dialect)]
     (annotate-rows rows table options)))
