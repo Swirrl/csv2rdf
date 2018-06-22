@@ -1,0 +1,38 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dc:   <http://purl.org/dc/terms/> .
+@prefix earl: <http://www.w3.org/ns/earl#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://github.com/Swirrl/csv2rdf>
+  a doap:Project, earl:TestSubject, earl:Software ;
+  doap:name          "csv2rdf" ;
+  doap:homepage      <https://github.com/Swirrl/csv2rdf> ;
+  doap:license       <https://www.eclipse.org/legal/epl-v10.html> ;
+  doap:shortdesc     "Converts CSV to RDF"@en ;
+  doap:description   "Generates RDF from tabular data and metadata according to the CSV on the web specifications"@en ;
+  doap:created       "2018-02-09"^^xsd:date ;
+  doap:programming-language "Clojure" ;
+  doap:platform      "Java" ;
+  doap:implements    <https://www.w3.org/TR/2015/REC-csv2rdf-20151217/>,
+                     <https://www.w3.org/TR/2015/REC-tabular-data-model-20151217/>,
+                     <https://www.w3.org/TR/2015/REC-tabular-metadata-20151217/>;
+
+  doap:repository <https://github.com/Swirrl/csv2rdf.git> ;
+  doap:bug-database  <https://github.com/Swirrl/csv2rdf/issues> ;
+  dc:title           "csv2rdf" .
+
+<https://github.com/Swirrl/csv2rdf.git>
+  a doap:GitRepository ;
+  doap:repositoryOf <https://github.com/Swirrl/csv2rdf> ;
+  doap:browse <https://github.com/Swirrl/csv2rdf> ;
+  doap:location <https://github.com/Swirrl/csv2rdf.git> .
+
+<https://github.com/Swirrl/csv2rdf/csvw/test>
+  a earl:Assertor, earl:Software ;
+  dc:title "csv2rdf tests" ;
+  dc:description "Test fixture generated from the CSVW test cases" .
+
+

@@ -194,7 +194,7 @@
   (let [type (some-> (get-in test-row [:extra :rdf]) keyword)]
     (#{:positive :negative :warning} type)))
 
-(defn test-descriptor [{:keys [id action result-rdf] :as test-row}]
+(defn test-descriptor [{:keys [id action result-rdf comment] :as test-row}]
   (let [action-file (test-path->file action)
         action-ext (get-file-extension action-file)
         from-metadata? (= "json" action-ext)
@@ -207,6 +207,7 @@
         (merge
           m
           {:id id
+           :test-metadata {:title (:name test-row) :description comment}
            :mode (get-mode test-row)
            :expect-errors? (= :negative test-type)
            :expect-warnings? (= :warning test-type)
@@ -244,9 +245,9 @@
                   [uri (dissoc m :uri)])
                 requests)))
 
-(defn make-test [{:keys [csv-uri metadata-uri action-uri requests id expect-errors? expect-warnings? mode result-file] :as test}]
+(defn make-test [{:keys [csv-uri metadata-uri action-uri requests id expect-errors? expect-warnings? mode result-file test-metadata] :as test}]
   (let [request-map (build-request-map requests)]
-    `(~'deftest ~(symbol id)
+    `(~'deftest ~(symbol "^") ~test-metadata ~(symbol id)
        (~'let [~'http-client (~'->TestHttpClient ~(escape-read request-map))
                ~'csv-uri ~(escape-read csv-uri)
                ~'metadata-uri ~(escape-read metadata-uri)
