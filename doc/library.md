@@ -19,12 +19,12 @@ document as a clojure map. These two operations are defined by protocols in the 
 
 #### URIable
 
-The `csv2rdf.source\URIable` protocol represents resources with an associated URI. Implementations for `java.net.URI` and `java.io.File`
+The `csv2rdf.source/URIable` protocol represents resources with an associated URI. Implementations for `java.net.URI` and `java.io.File`
 are provided.
 
 #### JSONSource
 
-The `csv2rdf.source\JSONSource` protocol represents a source a JSON map can be loaded from. Implementations for `java.net.URI`, `java.io.File`
+The `csv2rdf.source/JSONSource` protocol represents a source a JSON map can be loaded from. Implementations for `java.net.URI`, `java.io.File`
 and `java.lang.String` are provided.
 
 Since both `java.net.URI` and `java.io.File` implement both the required protocols, these types can already be used to specify the location
