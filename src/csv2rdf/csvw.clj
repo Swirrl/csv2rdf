@@ -4,6 +4,7 @@
             [csv2rdf.csvw.common :refer [table-group-context table-statements]]
             [csv2rdf.csvw.minimal]
             [csv2rdf.csvw.standard]
+            [csv2rdf.csvw.minimal-plus]
             [clojure.java.io :as io]
             [csv2rdf.tabular.csv :as csv]
             [grafter.rdf.io :as gio]
