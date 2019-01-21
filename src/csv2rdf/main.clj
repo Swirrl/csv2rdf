@@ -14,7 +14,7 @@
    ["-u" "--user-metadata METADATA" "Location of the metadata file"]
    ["-o" "--output-file OUTPUT" "Output file to write to"]
    ["-m" "--mode MODE" "CSVW mode to run"
-    :validate [#(contains? #{:minimal :standard} %)]
+    :validate [#(contains? #{:minimal :standard :annotated} %)]
     :default :standard
     :parse-fn keyword]])
 
