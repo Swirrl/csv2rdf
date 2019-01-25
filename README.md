@@ -34,7 +34,9 @@ The triples are generated according to CSVW standard mode by default. The mode t
 
     java -jar csv2rdf-standalone.jar -t /path/to/tabular/file.csv -m minimal
 
-The supported values for the mode are `standard` and `minimal`
+The supported values for the mode are `standard` and `minimal` and `annotated`. `annotated` mode is a non-standard mode which behaves like
+`minimal` mode with the addition that any notes or non-standard annotations defined for table groups and tables will be output if the
+corresponding metadata element specifies an `@id`.
 
 The recommended way to start processing a tabular file is from a metadata document that describes the structure of a referenced tabular file. The tabular file does not
 need to be provided when processing from a metadata file since the metadata should contain a reference to the tabular file(s).
