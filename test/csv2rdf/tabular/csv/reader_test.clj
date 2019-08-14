@@ -27,27 +27,36 @@
   (testing "Quote and escape characters differ"
     (let [opts {:escapeChar \\ :quoteChar \" :delimiter \, :trim-mode :all}]
       (testing "No quotes or spaces"
-        (is (= ["a" "b" "c"] (parse-row-cells "a,b,c" opts))))
+        (is (= ["a" "b" "c"] (parse-row-cells "a,b,c" 0 opts))))
 
       (testing "No quotes with spaces"
-        (is (= ["a" "b" "c"] (parse-row-cells "a  , b ,    c" opts))))
+        (is (= ["a" "b" "c"] (parse-row-cells "a  , b ,    c" 0 opts))))
 
       (testing "With quotes no spaces"
-        (is (= ["a,b" "c" "d"] (parse-row-cells "\"a,b\",c,d" opts))))
+        (is (= ["a,b" "c" "d"] (parse-row-cells "\"a,b\",c,d" 0 opts))))
 
       (testing "With quotes and spaces"
-        (is (= ["a,b" "c" "d"] (parse-row-cells "\"  a,b  \",  c  ,    d" opts))))
+        (is (= ["a,b" "c" "d"] (parse-row-cells "\"  a,b  \",  c  ,    d" 0 opts))))
 
       (testing "With escape"
-        (is (= ["a\"b" "c" "d"] (parse-row-cells "a\\\"b,c,d" opts))))))
+        (is (= ["a\"b" "c" "d"] (parse-row-cells "a\\\"b,c,d" 0 opts))))
+
+      (testing "Dangling escape character"
+        (is (thrown? IllegalArgumentException (parse-row-cells "a,b,c\\" 0 opts))))
+
+      (testing "Quote beyond the start of cell value"
+        (is (thrown? IllegalArgumentException (parse-row-cells "start \"text\",b,c" 0 opts))))
+
+      (testing "Closing quote before the end of cell value"
+        (is (thrown? IllegalArgumentException (parse-row-cells "\"quoted text\" and more,b,c" 0 opts))))))
 
   (testing "Quote and escape characters the same"
     (let [opts {:escapeChar \" :quoteChar \" :delimiter \, :trim-mode :none}]
       (testing "With quotes"
-        (is (= ["a,b" "c" "d"] (parse-row-cells "\"a,b\",c,d" opts))))
+        (is (= ["a,b" "c" "d"] (parse-row-cells "\"a,b\",c,d" 0 opts))))
 
       (testing "Escaped quote"
-        (is (= ["a\"b" "c" "d"] (parse-row-cells "a\"\"b,c,d" opts)))))))
+        (is (= ["a\"b" "c" "d"] (parse-row-cells "a\"\"b,c,d" 0 opts)))))))
 
 (deftest trim-cell-test
   (are [expected input mode] (= expected (trim-cell input mode))

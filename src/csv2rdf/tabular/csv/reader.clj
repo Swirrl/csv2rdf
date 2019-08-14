@@ -128,7 +128,7 @@
     :end (string/trimr value)
     value))
 
-(defn ^{:tabular-spec "8"} parse-row-cells [^String row-content {:keys [^Character escapeChar ^Character quoteChar ^Character delimiter trim-mode] :as options}]
+(defn ^{:tabular-spec "8"} parse-row-cells [^String row-content source-row-number {:keys [^Character escapeChar ^Character quoteChar ^Character delimiter trim-mode] :as options}]
   (loop [idx 0
          cells []
          quoted false
@@ -145,7 +145,7 @@
           ;;3.2
           (and (= escapeChar c) (not= escapeChar quoteChar))
           (if (nil? next-char)
-            (throw (IllegalArgumentException. (format "Dangling escape character at index %d" idx)))
+            (throw (IllegalArgumentException. (format "Dangling escape character at row %d index %d" source-row-number idx)))
             (recur (inc next-index) cells quoted (.append sb next-char)))
 
           (= quoteChar c)
@@ -153,12 +153,12 @@
             ;;3.3.2 - peek following char if it exists, and raise an error if not the delimiter
             (if (and (< (inc idx) (.length row-content))
                      (not= delimiter (.charAt row-content (inc idx))))
-              (throw (IllegalArgumentException. (format "Expected delimiter following quoted cell value at index %d" (inc idx))))
+              (throw (IllegalArgumentException. (format "Expected delimiter following quoted cell value at row %d index %d" source-row-number (inc idx))))
               (recur (inc idx) cells false sb))
 
             ;;3.3.1 - opening quote should be at start of cell
             (if (pos? (.length sb))
-              (throw (IllegalArgumentException. (format "Opening quote must be at start of cell value at index %d" idx)))
+              (throw (IllegalArgumentException. (format "Opening quote must be at start of cell value at row %d index %d" source-row-number idx)))
               (recur (inc idx) cells true sb)))
 
           (= delimiter c)
@@ -190,7 +190,7 @@
      :comment (if is-comment?
                 (.substring row-content 1))
      :cells (if-not is-comment?
-              (parse-row-cells row-content options))
+              (parse-row-cells row-content source-row-num options))
      :type (if is-comment? :comment :data)}))
 
 (defn make-tabular-reader [^InputStream stream {:keys [^String encoding] :as options}]
