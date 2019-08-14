@@ -290,7 +290,8 @@
 (defn liberal-mapcat
   "Version of mapcat which avoids holding onto the heads of the generated subsequences."
   [f s]
-  (concat-seq (map f s)))
+  (when (seq s)
+    (concat (f (first s)) (lazy-seq (liberal-mapcat f (rest s))))))
 
 (defmulti normalise-uri
           "Does path and scheme-based normalisation for HTTP and HTTPS URIs, path-based normalisation for other URIs."
