@@ -58,7 +58,10 @@
 
 (defmulti request-uri-input-stream (fn [^URI uri] (keyword (.getScheme uri))))
 
-(defmethod request-uri-input-stream :http [uri]
+(defn- get-uri-input-stream
+  "Accesses a HTTP(S) URI through a GET request and returns the header
+  map and body as an input stream."
+  [uri]
   (let [{:keys [status headers body] :as response} (http/get-uri uri)]
     (if (http/is-not-found-response? response)
       (throw (ex-info
@@ -68,6 +71,12 @@
                 :status status})))
     {:headers headers
      :stream (into-input-stream body)}))
+
+(defmethod request-uri-input-stream :http [uri]
+  (get-uri-input-stream uri))
+
+(defmethod request-uri-input-stream :https [uri]
+  (get-uri-input-stream uri))
 
 (defmethod request-uri-input-stream :file [uri]
   {:headers {} :stream (io/input-stream uri)})
