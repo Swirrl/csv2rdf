@@ -1,17 +1,17 @@
 (ns csv2rdf.csvw.common
   (:require [csv2rdf.tabular.cell :as cell]
             [csv2rdf.vocabulary :refer :all]
-            [grafter.rdf :refer [->Triple] :as rdf]
+            [grafter-2.rdf.protocols :refer [->Triple] :as gproto]
             [csv2rdf.xml.datatype :as xml-datatype]
             [csv2rdf.xml.datatype.canonical :as xml-canonical]
             [csv2rdf.metadata.properties :as properties])
   (:import [java.net URI]
-           [org.openrdf.model.impl URIImpl]))
+           [org.eclipse.rdf4j.model.impl URIImpl]))
 
 (defn gen-blank-node
   "Generates a grafter representation of a new blank node"
   ([] (gen-blank-node "bnode"))
-  ([prefix] (keyword (gensym prefix))))
+  ([prefix] (gproto/make-blank-node (str prefix (gensym)))))
 
 (defn row-unsuppressed-cells
   "Gets the all the cells within a row whose column output is not suppressed"
@@ -39,11 +39,11 @@
     (cond
       ;;if the datatype's id annotation is not null, then its value MUST be used as the RDF datatype IRI;
       (some? id)
-      (rdf/literal (xml-canonical/canonical-value value base) id)
+      (gproto/literal (xml-canonical/canonical-value value base) id)
 
       ;; if a cell has any datatype other than string, the value of lang MUST be ignored
       (and (= "string" base) (some? lang))
-      (rdf/language value (keyword lang))
+      (gproto/language value (keyword lang))
 
       :else
       (let [;;NOTE: XML Duration type normalises the parsed value when outputting as strings, which the test cases do not
@@ -51,7 +51,7 @@
             rdf-value (if (xml-datatype/is-duration-type? base)
                         stringValue
                         (xml-canonical/canonical-value value base))]
-        (rdf/literal rdf-value (xml-datatype/datatype->iri base))))))
+        (gproto/literal rdf-value (xml-datatype/datatype->iri base))))))
 
 (defn rdf-list [ordered-value-elements lang]
   (reduce (fn [[tail-subject tail-statements] value-element]

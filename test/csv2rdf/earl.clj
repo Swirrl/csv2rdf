@@ -1,8 +1,8 @@
 (ns csv2rdf.earl
   (:require [clojure.test :as ct]
-            [grafter.rdf :refer [add statements]]
-            [grafter.rdf.templater :refer [triplify]]
-            [grafter.rdf.io :refer [rdf-serializer]]
+            [grafter-2.rdf.protocols :refer [add]]
+            [grafter-2.rdf4j.io :refer [statements rdf-writer]]
+            [grafter-2.rdf4j.templater :refer [triplify]]
             [csv2rdf.csvw-test]
             [clojure.java.io :as io])
   (:import [java.net URI]
@@ -94,7 +94,7 @@
   [output-file]
   (with-open [w (io/writer output-file)]
     (binding [ct/report report-earl
-              *report-dest* (rdf-serializer w :format :ttl :prefixes nil)]
+              *report-dest* (rdf-writer w :format :ttl :prefixes nil)]
       (add *report-dest* (statements (io/resource "earl-report.ttl") :format :ttl))
       (add *report-dest* (project-statements))
       (ct/run-tests 'csv2rdf.csvw-test))))

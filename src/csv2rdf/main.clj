@@ -3,11 +3,11 @@
   (:require [clojure.tools.cli :as cli]
             [csv2rdf.csvw :as csvw]
             [clojure.java.io :as io]
-            [grafter.rdf.io :as gio]
-            [grafter.rdf.formats :as formats]
+            [grafter-2.rdf4j.io :as gio]
+            [grafter-2.rdf4j.formats :as formats]
             [clojure.tools.logging :as log])
   (:import [java.net URI URISyntaxException]
-           [org.openrdf.rio RDFFormat]))
+           [org.eclipse.rdf4j.rio RDFFormat]))
 
 (def options-spec
   [["-t" "--tabular TABULAR" "Location of the tabular file"]
@@ -58,7 +58,7 @@
             rdf-format (or (some-> output-file formats/->rdf-format) RDFFormat/TURTLE)]
         (with-open [w (io/writer (or output-file *out*))]
           (try
-            (let [dest (gio/rdf-serializer w :format rdf-format :prefixes nil)]
+            (let [dest (gio/rdf-writer w :format rdf-format :prefixes nil)]
               (csvw/csv->rdf->destination tabular-source metadata-source dest {:mode mode}))
             (catch Exception ex
               (log/error ex))))))))

@@ -1,16 +1,15 @@
 (ns csv2rdf.csvw-test.impl
-  (:require [grafter.rdf.io :as gio]
-            [grafter.rdf :as rdf]
-            [grafter.rdf.repository :as repo]
+  (:require [grafter-2.rdf4j.io :as gio]            
+            [grafter-2.rdf4j.repository :as repo]
             [csv2rdf.http :as http]
             [csv2rdf.logging :as logging]
             [csv2rdf.csvw :refer [csv->rdf->destination]])
-  (:import [org.openrdf.model.util Models]))
+  (:import [org.eclipse.rdf4j.model.util Models]))
 
 (defn is-isomorphic? [expected-statements actual-statements]
   (Models/isomorphic
-    (map gio/IStatement->sesame-statement expected-statements)
-    (map gio/IStatement->sesame-statement actual-statements)))
+    (map gio/quad->backend-quad expected-statements)
+    (map gio/quad->backend-quad actual-statements)))
 
 (defrecord TestHttpClient [request-map]
   http/HttpClient
@@ -26,6 +25,6 @@
       (with-open [destination (repo/->connection repo)]
         (try
           (csv->rdf->destination tabular-source metadata-source destination options)
-          {:errors [] :warnings @(:warnings logger) :result (into [] (rdf/statements destination))}
+          {:errors [] :warnings @(:warnings logger) :result (into [] (gio/statements destination))}
           (catch Exception ex
             {:errors [(.getMessage ex)] :warnings @(:warnings logger) :result nil}))))))

@@ -8,7 +8,7 @@
             [csv2rdf.xml.datatype.compare :refer [lt? lte? gt? gte?]]
             [csv2rdf.xml.datatype.canonical :as canonical]
             [csv2rdf.metadata.properties :as properties]
-            [grafter.rdf.io :refer [language]]
+            [grafter-2.rdf.protocols :refer [language]]
             [csv2rdf.vocabulary :refer :all])
   (:import [java.util.regex Pattern]
            [java.time.temporal Temporal]

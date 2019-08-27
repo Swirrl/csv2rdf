@@ -4,7 +4,7 @@
             [csv2rdf.csvw-test.impl :refer :all]
             [csv2rdf.csvw :as csvw]
             [csv2rdf.http :as http]
-            [grafter.rdf :as rdf])
+            [grafter-2.rdf4j.io :as gio])
   (:import [java.net URI URL]))
 
 (deftest
@@ -20,7 +20,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test001.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test001.csv"))]
@@ -42,7 +42,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test005.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test005.csv"))]
@@ -64,7 +64,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test006.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test006.csv"))]
@@ -85,7 +85,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test007.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test007.csv"))]
@@ -107,7 +107,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test008.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test008.csv"))]
@@ -128,7 +128,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test009.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test009.csv"))]
@@ -149,7 +149,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test010.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test010.csv"))]
@@ -175,7 +175,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test011/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test011/tree-ops.csv"))]
@@ -201,7 +201,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test012/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test012/tree-ops.csv"))]
@@ -227,7 +227,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test013.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/tree-ops.csv"))]
@@ -255,7 +255,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test014/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test014/tree-ops.csv"))]
@@ -284,7 +284,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test015/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test015/tree-ops.csv"))]
@@ -315,7 +315,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test016/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test016/tree-ops.csv"))]
@@ -344,7 +344,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test017/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test017/tree-ops.csv"))]
@@ -376,7 +376,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test018/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test018/tree-ops.csv"))]
@@ -402,7 +402,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test023.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/tree-ops.csv"))]
@@ -428,7 +428,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :minimal}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test027.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/tree-ops.csv"))]
@@ -450,7 +450,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test028.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/countries.csv"))]
@@ -472,7 +472,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :minimal}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test029.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/countries.csv"))]
@@ -496,7 +496,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test030.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/countries.json"))]
@@ -520,7 +520,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :minimal}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test031.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/countries.json"))]
@@ -544,7 +544,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test032/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test032/csv-metadata.json"))]
@@ -568,7 +568,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :minimal}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test033/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test033/csv-metadata.json"))]
@@ -614,7 +614,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test034/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test034/csv-metadata.json"))]
@@ -660,7 +660,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :minimal}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test035/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test035/csv-metadata.json"))]
@@ -684,7 +684,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test036/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test036/tree-ops-ext.csv"))]
@@ -708,7 +708,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :minimal}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test037/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test037/tree-ops-ext.csv"))]
@@ -731,7 +731,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test038.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test038-metadata.json"))]
@@ -753,7 +753,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test039.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test039-metadata.json"))]
@@ -777,7 +777,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test040.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test040-metadata.json"))]
@@ -801,7 +801,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test041.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test041-metadata.json"))]
@@ -825,7 +825,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test042.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test042-metadata.json"))]
@@ -849,7 +849,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test043.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test043-metadata.json"))]
@@ -873,7 +873,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test044.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test044-metadata.json"))]
@@ -897,7 +897,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test045.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test045-metadata.json"))]
@@ -921,7 +921,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test046.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test046-metadata.json"))]
@@ -945,7 +945,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test047.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test047-metadata.json"))]
@@ -969,7 +969,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test048.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test048-metadata.json"))]
@@ -993,7 +993,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test049.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test049-metadata.json"))]
@@ -1017,7 +1017,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test059.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test059-metadata.json"))]
@@ -1041,7 +1041,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test060.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test060-metadata.json"))]
@@ -1065,7 +1065,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test061.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test061-metadata.json"))]
@@ -1089,7 +1089,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test062.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test062-metadata.json"))]
@@ -1113,7 +1113,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test063.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test063-metadata.json"))]
@@ -1137,7 +1137,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test065.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test065-metadata.json"))]
@@ -1161,7 +1161,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test066.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test066-metadata.json"))]
@@ -1185,7 +1185,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test067.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test067-metadata.json"))]
@@ -1209,7 +1209,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test068.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test068-metadata.json"))]
@@ -1233,7 +1233,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test069.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test069-metadata.json"))]
@@ -1257,7 +1257,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test070.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test070-metadata.json"))]
@@ -1281,7 +1281,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test071.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test071-metadata.json"))]
@@ -1305,7 +1305,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test072.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test072-metadata.json"))]
@@ -1327,7 +1327,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test073.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test073-metadata.json"))]
@@ -1370,7 +1370,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test075.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test075-metadata.json"))]
@@ -1393,7 +1393,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test076.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test076-metadata.json"))]
@@ -1689,7 +1689,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test093.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test093-metadata.json"))]
@@ -1712,7 +1712,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test095.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test095-metadata.json"))]
@@ -1737,7 +1737,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test097.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test097-metadata.json"))]
@@ -1781,7 +1781,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test099.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test099-metadata.json"))]
@@ -1805,7 +1805,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test100.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test100-metadata.json"))]
@@ -1831,7 +1831,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test101.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test101-metadata.json"))]
@@ -1855,7 +1855,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test102.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test102-metadata.json"))]
@@ -1917,7 +1917,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test105.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test105-metadata.json"))]
@@ -1941,7 +1941,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test106.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test106-metadata.json"))]
@@ -1965,7 +1965,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test107.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test107-metadata.json"))]
@@ -2011,7 +2011,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test109.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test109-metadata.json"))]
@@ -2035,7 +2035,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test110.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test110-metadata.json"))]
@@ -2059,7 +2059,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test111.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test111-metadata.json"))]
@@ -2082,7 +2082,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test112.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test112-metadata.json"))]
@@ -2105,7 +2105,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test113.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test113-metadata.json"))]
@@ -2128,7 +2128,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test114.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test114-metadata.json"))]
@@ -2151,7 +2151,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test115.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test115-metadata.json"))]
@@ -2176,7 +2176,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test116.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test116.csv?query"))]
@@ -2202,7 +2202,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test117.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test117.csv"))]
@@ -2227,7 +2227,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test118/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test118/action.csv?query"))]
@@ -2253,7 +2253,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test119/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test119/action.csv"))]
@@ -2282,7 +2282,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test120.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test120.csv"))]
@@ -2309,7 +2309,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test121.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test121.csv"))]
@@ -2341,7 +2341,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test122.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test122.csv"))]
@@ -2370,7 +2370,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test123/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test123/action.csv"))]
@@ -2396,7 +2396,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test124.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/tree-ops.csv"))]
@@ -2419,7 +2419,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test125.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test125-metadata.json"))]
@@ -2443,7 +2443,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test126.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test126-metadata.json"))]
@@ -2467,7 +2467,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test127.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test127-metadata.json"))]
@@ -2510,7 +2510,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test129.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test129-metadata.json"))]
@@ -2532,7 +2532,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test130.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test130-metadata.json"))]
@@ -2556,7 +2556,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test131.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test131-metadata.json"))]
@@ -2580,7 +2580,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test132.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test132-metadata.json"))]
@@ -2853,7 +2853,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test147.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test147-metadata.json"))]
@@ -2877,7 +2877,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test148.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test148-metadata.json"))]
@@ -2901,7 +2901,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test149.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test149-metadata.json"))]
@@ -2925,7 +2925,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test150.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test150-metadata.json"))]
@@ -2948,7 +2948,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test151.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test151-metadata.json"))]
@@ -2972,7 +2972,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test152.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test152-metadata.json"))]
@@ -2996,7 +2996,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test153.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test153-metadata.json"))]
@@ -3020,7 +3020,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test154.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test154-metadata.json"))]
@@ -3044,7 +3044,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test155.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test155-metadata.json"))]
@@ -3068,7 +3068,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test156.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test156-metadata.json"))]
@@ -3092,7 +3092,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test157.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test157-metadata.json"))]
@@ -3114,7 +3114,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test158.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test158-metadata.json"))]
@@ -3138,7 +3138,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test159.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test159-metadata.json"))]
@@ -3162,7 +3162,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test160.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test160-metadata.json"))]
@@ -3186,7 +3186,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test161.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test161-metadata.json"))]
@@ -3210,7 +3210,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test162.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test162-metadata.json"))]
@@ -3234,7 +3234,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test163.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test163-metadata.json"))]
@@ -3258,7 +3258,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test164.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test164-metadata.json"))]
@@ -3282,7 +3282,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test165.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test165-metadata.json"))]
@@ -3306,7 +3306,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test166.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test166-metadata.json"))]
@@ -3330,7 +3330,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test167.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test167-metadata.json"))]
@@ -3354,7 +3354,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test168.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test168-metadata.json"))]
@@ -3378,7 +3378,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test169.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test169-metadata.json"))]
@@ -3402,7 +3402,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test170.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test170-metadata.json"))]
@@ -3426,7 +3426,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test171.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test171-metadata.json"))]
@@ -3450,7 +3450,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test172.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test172-metadata.json"))]
@@ -3474,7 +3474,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test173.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test173-metadata.json"))]
@@ -3498,7 +3498,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test174.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test174-metadata.json"))]
@@ -3522,7 +3522,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test175.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test175-metadata.json"))]
@@ -3546,7 +3546,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test176.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test176-metadata.json"))]
@@ -3570,7 +3570,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test177.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test177-metadata.json"))]
@@ -3594,7 +3594,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test178.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test178-metadata.json"))]
@@ -3618,7 +3618,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test179.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test179-metadata.json"))]
@@ -3642,7 +3642,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test180.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test180-metadata.json"))]
@@ -3666,7 +3666,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test181.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test181-metadata.json"))]
@@ -3690,7 +3690,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test182.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test182-metadata.json"))]
@@ -3714,7 +3714,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test183.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test183-metadata.json"))]
@@ -3738,7 +3738,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test184.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test184-metadata.json"))]
@@ -3762,7 +3762,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test185.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test185-metadata.json"))]
@@ -3786,7 +3786,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test186.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test186-metadata.json"))]
@@ -3810,7 +3810,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test187.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test187-metadata.json"))]
@@ -3834,7 +3834,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test188.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test188-metadata.json"))]
@@ -3858,7 +3858,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test189.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test189-metadata.json"))]
@@ -3882,7 +3882,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test190.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test190-metadata.json"))]
@@ -3906,7 +3906,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test191.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test191-metadata.json"))]
@@ -3930,7 +3930,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test192.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test192-metadata.json"))]
@@ -3954,7 +3954,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test193.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test193-metadata.json"))]
@@ -3978,7 +3978,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test194.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test194-metadata.json"))]
@@ -4002,7 +4002,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test195.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test195-metadata.json"))]
@@ -4026,7 +4026,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test196.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test196-metadata.json"))]
@@ -4050,7 +4050,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test197.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test197-metadata.json"))]
@@ -4074,7 +4074,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test198.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test198-metadata.json"))]
@@ -4158,7 +4158,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test202.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test202-metadata.json"))]
@@ -4182,7 +4182,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test203.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test203-metadata.json"))]
@@ -4206,7 +4206,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test204.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test204-metadata.json"))]
@@ -4230,7 +4230,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test205.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test205-metadata.json"))]
@@ -4254,7 +4254,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test206.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test206-metadata.json"))]
@@ -4278,7 +4278,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test207.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test207-metadata.json"))]
@@ -4302,7 +4302,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test208.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test208-metadata.json"))]
@@ -4326,7 +4326,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test209.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test209-metadata.json"))]
@@ -4350,7 +4350,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test210.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test210-metadata.json"))]
@@ -4374,7 +4374,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test211.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test211-metadata.json"))]
@@ -4398,7 +4398,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test212.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test212-metadata.json"))]
@@ -4422,7 +4422,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test213.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test213-metadata.json"))]
@@ -4446,7 +4446,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test214.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test214-metadata.json"))]
@@ -4470,7 +4470,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test215.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test215-metadata.json"))]
@@ -4733,7 +4733,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test228.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test228-metadata.json"))]
@@ -4756,7 +4756,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test229.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test229-metadata.json"))]
@@ -4779,7 +4779,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test230.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test230-metadata.json"))]
@@ -4803,7 +4803,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test231.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test231-metadata.json"))]
@@ -4826,7 +4826,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test232.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test232-metadata.json"))]
@@ -4850,7 +4850,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test233.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test233-metadata.json"))]
@@ -4873,7 +4873,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test234.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test234-metadata.json"))]
@@ -4899,7 +4899,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test235.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test235-metadata.json"))]
@@ -4925,7 +4925,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test236.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test236-metadata.json"))]
@@ -4951,7 +4951,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :minimal}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test237.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test237-metadata.json"))]
@@ -4974,7 +4974,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test238.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test238-metadata.json"))]
@@ -4998,7 +4998,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test242.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test242-metadata.json"))]
@@ -5058,7 +5058,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test245.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test245-metadata.json"))]
@@ -5082,7 +5082,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test246.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test246-metadata.json"))]
@@ -5106,7 +5106,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test247.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test247-metadata.json"))]
@@ -5129,7 +5129,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test248.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test248-metadata.json"))]
@@ -5223,7 +5223,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test259/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test259/tree-ops.csv"))]
@@ -5251,7 +5251,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test260/result.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test260/tree-ops.csv"))]
@@ -5295,7 +5295,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test263.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test263-metadata.json"))]
@@ -5319,7 +5319,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test264.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test264-metadata.json"))]
@@ -5342,7 +5342,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test266.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test266-metadata.json"))]
@@ -5385,7 +5385,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test268.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test268-metadata.json"))]
@@ -5409,7 +5409,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test269.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test269-metadata.json"))]
@@ -5433,7 +5433,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test270.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test270-metadata.json"))]
@@ -5499,7 +5499,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test273.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test273-metadata.json"))]
@@ -5542,7 +5542,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test275.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test275-metadata.json"))]
@@ -5564,7 +5564,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test276.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test276-metadata.json"))]
@@ -5586,7 +5586,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test277.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test277-metadata.json"))]
@@ -5610,7 +5610,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test278.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test278-metadata.json"))]
@@ -5632,7 +5632,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test279.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test279-metadata.json"))]
@@ -5654,7 +5654,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test280.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test280-metadata.json"))]
@@ -5676,7 +5676,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test281.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test281-metadata.json"))]
@@ -5700,7 +5700,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test282.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test282-metadata.json"))]
@@ -5724,7 +5724,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test283.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test283-metadata.json"))]
@@ -5748,7 +5748,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test284.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test284-metadata.json"))]
@@ -5772,7 +5772,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test285.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test285-metadata.json"))]
@@ -5796,7 +5796,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test286.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test286-metadata.json"))]
@@ -5820,7 +5820,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test287.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test287-metadata.json"))]
@@ -5844,7 +5844,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test288.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test288-metadata.json"))]
@@ -5868,7 +5868,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test289.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test289-metadata.json"))]
@@ -5892,7 +5892,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test290.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test290-metadata.json"))]
@@ -5916,7 +5916,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test291.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test291-metadata.json"))]
@@ -5940,7 +5940,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test292.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test292-metadata.json"))]
@@ -5964,7 +5964,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test293.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test293-metadata.json"))]
@@ -5988,7 +5988,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test294.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test294-metadata.json"))]
@@ -6012,7 +6012,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test295.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test295-metadata.json"))]
@@ -6036,7 +6036,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test296.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test296-metadata.json"))]
@@ -6060,7 +6060,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test297.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test297-metadata.json"))]
@@ -6084,7 +6084,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test298.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test298-metadata.json"))]
@@ -6108,7 +6108,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test299.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test299-metadata.json"))]
@@ -6132,7 +6132,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test300.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test300-metadata.json"))]
@@ -6156,7 +6156,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test301.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test301-metadata.json"))]
@@ -6180,7 +6180,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test302.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test302-metadata.json"))]
@@ -6204,7 +6204,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test303.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test303-metadata.json"))]
@@ -6228,7 +6228,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test304.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test304-metadata.json"))]
@@ -6251,7 +6251,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test305.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test305-metadata.json"))]
@@ -6274,7 +6274,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test306.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test306-metadata.json"))]
@@ -6297,7 +6297,7 @@
         {:keys [warnings errors result]} (http/with-http-client
                                            http-client
                                            (test-csv->rdf csv-uri metadata-uri {:mode :standard}))]
-    (let [expected-statements (rdf/statements
+    (let [expected-statements (gio/statements
                                 (io/file "w3c-csvw/tests/test307.ttl")
                                 :base-uri
                                 (URI. "http://www.w3.org/2013/csvw/tests/test307-metadata.json"))]

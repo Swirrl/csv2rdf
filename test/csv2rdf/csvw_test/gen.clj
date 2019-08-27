@@ -2,7 +2,6 @@
   (:require [clojure.data.csv :as csv]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [grafter.rdf :as rdf]
             [csv2rdf.http :as http]
             [csv2rdf.csvw-test.impl :refer :all]
             [clojure.pprint :as pp])
@@ -253,7 +252,7 @@
                ~'metadata-uri ~(escape-read metadata-uri)
                ~'{:keys [warnings errors result]} (~'http/with-http-client ~'http-client (~'test-csv->rdf ~'csv-uri ~'metadata-uri {:mode ~mode}))]
          ~(if (some? result-file)
-            `(~'let [~'expected-statements (~'rdf/statements ~(escape-read result-file) :base-uri ~(escape-read action-uri))]
+            `(~'let [~'expected-statements (~'gio/statements ~(escape-read result-file) :base-uri ~(escape-read action-uri))]
               (~'is (~'= true (~'is-isomorphic? ~'expected-statements ~'result)))))
 
          ~(if expect-warnings?
@@ -271,7 +270,7 @@
                [csv2rdf.csvw-test.impl :refer :all]
                [csv2rdf.csvw :as csvw]
                [csv2rdf.http :as http]
-               [grafter.rdf :as rdf])
+               [grafter-2.rdf4j.io :as gio])
      (:import [java.net URI URL])))
 
 (defn write-tests-file []

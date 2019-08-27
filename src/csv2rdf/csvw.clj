@@ -1,13 +1,13 @@
 (ns csv2rdf.csvw
   (:require [csv2rdf.tabular.processing :as processing]
-            [grafter.rdf :as rdf]
+            [grafter-2.rdf.protocols :as gproto]
             [csv2rdf.csvw.common :refer [table-group-context table-statements]]
             [csv2rdf.csvw.minimal]
             [csv2rdf.csvw.standard]
             [csv2rdf.csvw.annotated]
             [clojure.java.io :as io]
             [csv2rdf.tabular.csv :as csv]
-            [grafter.rdf.io :as gio]
+            [grafter-2.rdf4j.io :as gio]
             [csv2rdf.metadata.properties :as properties]
             [csv2rdf.util :as util]))
 
@@ -37,14 +37,14 @@
 (defn csv->rdf->destination
   "Run csv->rdf for the given tabular/metadata sources and options then write the resulting
    statements to the given destination. destination must implement
-   grafter.tabular.protocols/ITripleWriteable."
+   grafter-2.rdf.protocols/ITripleWriteable."
   [tabular-source metadata-source destination options]
-  (rdf/add destination (csv->rdf tabular-source metadata-source options)))
+  (gproto/add destination (csv->rdf tabular-source metadata-source options)))
 
 (defn csv->rdf->file
   "Run csv->rdf for the given tabular/metadata source and options then write the resulting
    statements to dest-file."
   [tabular-source metadata-source dest-file options]
   (with-open [os (io/output-stream dest-file)]
-    (let [writer (gio/rdf-serializer os :format :ttl :prefixes nil)]
+    (let [writer (gio/rdf-writer os :format :ttl :prefixes nil)]
       (csv->rdf->destination tabular-source metadata-source writer options))))
