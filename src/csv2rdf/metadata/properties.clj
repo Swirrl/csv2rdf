@@ -1,6 +1,7 @@
 (ns csv2rdf.metadata.properties
   (:require [csv2rdf.metadata.column :as column]
-            [csv2rdf.metadata.datatype :as datatype])
+            [csv2rdf.metadata.datatype :as datatype]
+            [clojure.pprint :as pprint])
   (:import [clojure.lang IDeref]
            [java.io Writer]))
 
@@ -16,7 +17,16 @@
 (defmethod print-method ParentRef [x ^Writer writer]
   (.write writer "Parent reference"))
 
-(defn- child
+(defmethod pprint/simple-dispatch ParentRef [pr]
+  (print-method pr *out*))
+
+(defn parent
+  "Returns the parent record for the given item or nil if none exists."
+  [child]
+  (when-let [parent-ref (::parent child)]
+    @parent-ref))
+
+(defn child
   "Returns a function which takes a parent metadata record and associates in the child item at the given
    key a reference to its parent. If child-fn is provided it is used to recursively set parent references
    under the child record."
@@ -24,10 +34,12 @@
    (child child-key identity))
   ([child-key child-fn]
     (fn [parent]
-      (update parent child-key (fn [child]
-                                 (child-fn (assoc child ::parent (->ParentRef parent))))))))
+      (if (contains? parent child-key)
+        (update parent child-key (fn [child]
+                                   (child-fn (assoc child ::parent (->ParentRef parent)))))
+        parent))))
 
-(defn- children
+(defn children
   "Returns a function which takes a parent metadata record and associates a reference to the parent in each child
   item contained in the collection at the given key. If child-fn is provided it is used to recursively set parent
   references under the child record"
@@ -35,8 +47,10 @@
    (children children-key identity))
   ([children-key child-fn]
     (fn [parent]
-      (update parent children-key (fn [cs]
-                                    (mapv (fn [c] (child-fn (assoc c ::parent (->ParentRef parent)))) cs))))))
+      (if (contains? parent children-key)
+        (update parent children-key (fn [cs]
+                                      (mapv (fn [c] (child-fn (assoc c ::parent (->ParentRef parent)))) cs)))
+        parent))))
 
 (def set-table-parent-references
   (child :tableSchema
@@ -65,8 +79,8 @@
 (defn- find-inherited-property [obj key default]
   (if-let [value (get obj key)]
     value
-    (if-let [parent-ref (::parent obj)]
-      (recur @parent-ref key default)
+    (if-let [p (parent obj)]
+      (recur p key default)
       default)))
 
 (defn- inherited

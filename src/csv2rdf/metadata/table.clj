@@ -5,6 +5,7 @@
             [csv2rdf.metadata.schema :as schema]
             [csv2rdf.metadata.transformation :as transformation]
             [csv2rdf.metadata.dialect :as dialect]
+            [csv2rdf.metadata.properties :as properties]
             [csv2rdf.logging :as logging])
   (:import [java.net URI]))
 
@@ -48,7 +49,7 @@
 
 (defn compatibility-merge [user-table embedded-table]
   (let [notes (vec (concat (:notes user-table) (:notes embedded-table)))
-        schema (schema/compatibility-merge (:tableSchema user-table) (:tableSchema embedded-table))]
+        schema (schema/compatibility-merge (properties/table-schema user-table) (:tableSchema embedded-table))]
     (-> (merge embedded-table user-table)
         (assoc :notes notes)
         (assoc :tableSchema schema))))

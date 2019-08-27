@@ -11,8 +11,8 @@
 (defn ^{:tabular-spec "6.1"} from-tabular-source [file-source]
   (set-table-group-parents (tmeta/get-metadata file-source)))
 
-(defn validate-merge-table [validating? dialect {:keys [url] :as user-table}]
-  (let [embedded-metadata (csv/extract-embedded-metadata url dialect (properties/lang user-table))
+(defn- validate-merge-table [validating? {:keys [url] :as user-table}]
+  (let [embedded-metadata (csv/extract-embedded-metadata url (properties/dialect user-table) (properties/lang user-table))
         table-metadata (get-in embedded-metadata [:tables 0])]
     (table/validate-compatible validating? user-table table-metadata)
     (table/compatibility-merge user-table table-metadata)))
@@ -23,11 +23,11 @@
   [tabular-source metadata-source]
   (cond
     (some? metadata-source)
-    (let [{:keys [dialect tables] :as user-table-group} (meta/parse-table-group-from-source metadata-source)
+    (let [{:keys [tables] :as user-table-group} (meta/parse-table-group-from-source metadata-source)
           validating? false
-          merged-tables (mapv (fn [table] (validate-merge-table validating? dialect table)) tables)
-          user-table-group (assoc user-table-group :tables merged-tables)]
-      (set-table-group-parents user-table-group))
+          merged-tables (mapv (fn [table] (validate-merge-table validating? table)) tables)
+          merged-table-group (assoc user-table-group :tables merged-tables)]
+      (set-table-group-parents merged-table-group))
 
     (some? tabular-source)
     (from-tabular-source tabular-source)

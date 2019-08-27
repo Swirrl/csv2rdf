@@ -15,4 +15,5 @@
            :test
            {:extra-deps
             {org.clojure/test.check {:mvn/version "0.9.0"}
-             org.clojure/data.csv {:mvn/version "0.1.4"}}}}}
+             org.clojure/data.csv {:mvn/version "0.1.4"}}
+            :extra-paths ["test"]}}}

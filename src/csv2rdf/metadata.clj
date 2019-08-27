@@ -3,6 +3,7 @@
             [csv2rdf.metadata.table :as table]
             [csv2rdf.metadata.table-group :as table-group]
             [csv2rdf.metadata.validator :refer [make-error]]
+            [csv2rdf.metadata.properties :as properties]
             [csv2rdf.source :as source]
             [clojure.spec.alpha :as s]))
 
@@ -10,10 +11,10 @@
   (let [context (make-context base-uri)]
     (cond
       (table-group/looks-like-table-group-json? json)
-      (table-group/parse-table-group-json context json)
+      (properties/set-table-group-parent-references (table-group/parse-table-group-json context json))
 
       (table/looks-like-table-json? json)
-      (table/parse-table-json context json)
+      (properties/set-table-group-parent-references (table/parse-table-json context json))
 
       :else (make-error context "Expected top-level of metadata document to describe a table or table group"))))
 
