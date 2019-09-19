@@ -58,11 +58,11 @@
             num-columns (max 0 (- (count cells) skipColumns))]
         [rows {:columns (mapv column/from-index (range num-columns))}])
       [rows {:columns []}])
-    (let [[header-rows data-rows] (split-at num-header-rows rows)]
+    (let [[header-rows data-rows] (util/eager-split-at num-header-rows rows)]
       [data-rows (get-header-row-columns header-rows lang)])))
 
 (defn rows->embedded-metadata [csv-uri {:keys [skipRows] :as options} rows]
-  (let [[skipped-rows remaining-rows] (split-at skipRows rows)
+  (let [[skipped-rows remaining-rows] (util/eager-split-at skipRows rows)
         skipped-row-comments (get-skipped-rows-comments skipped-rows)
         [data-rows {:keys [columns] :as header}] (get-header remaining-rows options)
         {:keys [invalid-row-numbers] :as data-validation} (validate-data-rows data-rows)]

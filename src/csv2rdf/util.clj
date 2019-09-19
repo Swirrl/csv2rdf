@@ -312,3 +312,17 @@
 (defmethod normalise-uri :default [^URI uri]
   (.normalize uri))
 
+(defn eager-split-at
+  "Version of split-at that eagerly consumes the first n items of the source sequence. split-at returns two lazy
+  sequences which means the head of the input sequence must be retained if. Usually the prefix is the shorter sequence
+  so this function eagerly constructs the prefix sequence and leaves the remainder to be lazily evaluated."
+  [n xs]
+  {:pre [(>= n 0)]}
+  (loop [c 0
+         acc []
+         xs xs]
+    (if (= c n)
+      [acc xs]
+      (if (seq xs)
+        (recur (inc c) (conj acc (first xs)) (next xs))
+        [acc nil]))))

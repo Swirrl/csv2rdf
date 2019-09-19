@@ -43,3 +43,15 @@
       "https://example.com/" "https://example.com:"
       "https://example.com:4433/" "https://example.com:4433"
       "https://example.com/some/path" "https://example.com/some/path")))
+
+(def split-gen (gen/let [xs (gen/list gen/int)
+                         n (gen/choose 0 (count xs))]
+                 [n xs]))
+
+(defspec eager-split-at-test 100
+  (prop/for-all
+    [[n xs] split-gen]
+    (let [[expected-prefix expected-suffix] (split-at n xs)
+          [prefix suffix] (eager-split-at n xs)]
+      (and (= expected-prefix prefix)
+           (= (seq expected-suffix) (seq suffix))))))
