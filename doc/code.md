@@ -1,21 +1,27 @@
 # Overview of the code
 
-csv2rdf is an implementation of the [Generating RDF from Tabular Data on the Web](https://www.w3.org/TR/2015/REC-csv2rdf-20151217/) specification. This specification
-in turn directly depends on two main specifications: [Model for Tabular Data and Metadata on the Web](https://www.w3.org/TR/2015/REC-tabular-data-model-20151217/)
-and [Metadata Vocabulary for Tabular Data](https://www.w3.org/TR/2015/REC-tabular-metadata-20151217/). These specifications themselves also rely on other specifications -
-all specifications required for the implementation of csv2rdf are listed in the External Specifications section.
+csv2rdf is an implementation of the [Generating RDF from Tabular Data on the Web](https://www.w3.org/TR/2015/REC-csv2rdf-20151217/) specification. This specification in turn directly depends on two main specifications: 
 
-The majority of the code implements [Metadata Vocabulary for Tabular Data](https://www.w3.org/TR/2015/REC-tabular-metadata-20151217/),
-[Model for Tabular Data and Metadata on the Web](https://www.w3.org/TR/2015/REC-tabular-data-model-20151217/) and
-[Generating RDF from Tabular Data on the Web](https://www.w3.org/TR/2015/REC-csv2rdf-20151217/) within the `csv2rdf.metadata`, `csv2rdf.tabular` and
- `csv2rdf.csvw` namespaces respectively. An overview of the main concepts within the implementations of those namespaces follows.
+1. [Model for Tabular Data and Metadata on the Web](https://www.w3.org/TR/2015/REC-tabular-data-model-20151217/)
+2. [Metadata Vocabulary for Tabular Data](https://www.w3.org/TR/2015/REC-tabular-metadata-20151217/). 
+
+These specifications themselves also rely on other specifications - all specifications required for the implementation of csv2rdf are listed in the External Specifications section.
+
+The majority of the code implements the above 3 specifications.  The code for each can be found in an acompanying namespace:
+
+- `csv2rdf.metadata` implements [Metadata Vocabulary for Tabular Data](https://www.w3.org/TR/2015/REC-tabular-metadata-20151217/) 
+- `csv2rdf.tabular` implements [Model for Tabular Data and Metadata on the Web](https://www.w3.org/TR/2015/REC-tabular-data-model-20151217/) and
+- `csv2rdf.csvw` implements [Generating RDF from Tabular Data on the Web](https://www.w3.org/TR/2015/REC-csv2rdf-20151217/)
+
+An overview of the main concepts within the implementations of those namespaces follows.
 
 ## Metadata
 
+`csv2rdf.metadata`
+
 The [Metadata Vocabulary for Tabular Data](https://www.w3.org/TR/2015/REC-tabular-metadata-20151217/) specification defines the structure of metadata JSON files along
 with how they should be processed and validated. Metadata documents are traversed from the root document down to the leaves (i.e. primitive JSON values: strings,
-numbers and booleans) and then validated and normalised from the leaves back up to the root. Each part of the document is processed by a 'validator' function
-responsible for validating the input and normalising the output.
+numbers and booleans) and then validated and normalised from the leaves back up to the root. Each part of the document is processed by a 'validator' function responsible for validating the input and normalising the output.
 
 ### Validators
 
@@ -48,6 +54,8 @@ or raise an exception if the error is fatal.
 
 ## Tabular data
 
+`csv2rdf.tabular`
+
 The [Model for Tabular Data and Metadata on the Web](https://www.w3.org/TR/2015/REC-tabular-data-model-20151217/) specification defines how metadata documents
 should be located and loaded before being used to parse and validate tabular data files. The metadata location process is implemented in `csv2rdf.tabular.metadata`.
 Tabular data is parsed into a lazy sequence of maps representing a single data record within the input file according to the structure defined in the metadata file.
@@ -79,6 +87,8 @@ The `csv2rdf.tabular.csv` namespace transforms each row record from the reader a
 cell values and deriving cell URIs from property templates.
 
 ## CSVW
+
+`csv2rdf.csvw`
 
 The [Generating RDF from Tabular Data on the Web](https://www.w3.org/TR/2015/REC-csv2rdf-20151217/) specification defines how to create RDF from a tabular data file
 and associated metadata. This is implemented within the `csv2rdf.csvw` namespaces - the minimal and standard modes are implemented by the `csv2rdf.csvw.minimal` and
