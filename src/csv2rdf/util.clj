@@ -37,12 +37,6 @@
        (or (zero? x)
            (pos? x))))
 
-(defn read-json
-  "Reads a JSON map from an underlying source."
-  [source]
-  (with-open [r (io/reader source)]
-    (json/read r)))
-
 (defn select-keys-as
   "Selects keys from the source map m, renaming them to the mapped keys in the result map e.g.
 

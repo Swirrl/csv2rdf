@@ -13,7 +13,8 @@
             [clojure.set :as set]
             [csv2rdf.vocabulary :refer [csvw]]
             [csv2rdf.xml.datatype :as xml-datatype]
-            [csv2rdf.logging :as logging])
+            [csv2rdf.logging :as logging]
+            [csv2rdf.source :as source])
   (:import [java.util Locale$Builder IllformedLocaleException]
            [java.net URI URISyntaxException]))
 
@@ -376,7 +377,7 @@
 
 (defn resolve-linked-object-property-object [context object-uri]
   (try
-    (util/read-json object-uri)
+    (source/get-json object-uri)
     (catch Exception ex
       (make-error context (format "Failed to resolve linked object property at URI %s: %s" object-uri (.getMessage ex))))))
 

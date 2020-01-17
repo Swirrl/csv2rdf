@@ -23,12 +23,23 @@
   "Protocol for loading a JSON map from a given source"
   (get-json [this]))
 
-(def ^{:doc "Implementation of JSONSouce for types which implement the IOFactory protocol"} io-json-source
-  {:get-json util/read-json})
+(defn- read-json
+  "Reads a JSON map from an implementation of io/IOFactory."
+  [source]
+  (with-open [r (io/reader source)]
+    (json/read r)))
 
-(extend URI JSONSource io-json-source)
-(extend File JSONSource io-json-source)
-(extend String JSONSource {:get-json json/read-str})
+(extend-protocol JSONSource
+  URI
+  (get-json [uri]
+    (let [{:keys [body]} (http/get-uri uri)]
+      (read-json body)))
+
+  File
+  (get-json [f] (read-json f))
+
+  String
+  (get-json [s] (json/read-str s)))
 
 (defrecord MapMetadataSource [uri json]
   URIable
