@@ -12,8 +12,10 @@
             {org.apache.logging.log4j/log4j-api {:mvn/version "2.11.0"}
              org.apache.logging.log4j/log4j-core {:mvn/version "2.11.0"}
              org.apache.logging.log4j/log4j-slf4j-impl {:mvn/version "2.11.0"}}}
+           :dev {}
            :test
            {:extra-deps
-            {org.clojure/test.check {:mvn/version "0.9.0"}
+            {lambdaisland/kaocha {:mvn/version "0.0-573"}
+             org.clojure/test.check {:mvn/version "0.9.0"}
              org.clojure/data.csv {:mvn/version "0.1.4"}}
             :extra-paths ["test" "test/resources"]}}}
