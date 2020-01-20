@@ -46,19 +46,24 @@
   (println summary)
   (System/exit 1))
 
+(defn- write-output [writer {:keys [rdf-format tabular-source metadata-source mode]}]
+  (try
+    (let [dest (gio/rdf-writer writer :format rdf-format :prefixes nil)]
+      (csvw/csv->rdf->destination tabular-source metadata-source dest {:mode mode}))
+    (catch Exception ex
+      (log/error ex))))
+
 (defn -main [& args]
   (let [{:keys [summary options] :as parse-result} (cli/parse-opts args options-spec)
         errors (get-errors parse-result)]
     (if (seq errors)
       (usage-error errors summary)
       (let [{:keys [mode tabular user-metadata output-file]} options
-            tabular-source (some-> tabular parse-source)
-            metadata-source (some-> user-metadata parse-source)
-            output-file (some-> output-file io/file)
-            rdf-format (or (some-> output-file formats/->rdf-format) RDFFormat/TURTLE)]
-        (with-open [w (io/writer (or output-file *out*))]
-          (try
-            (let [dest (gio/rdf-writer w :format rdf-format :prefixes nil)]
-              (csvw/csv->rdf->destination tabular-source metadata-source dest {:mode mode}))
-            (catch Exception ex
-              (log/error ex))))))))
+            opts {:tabular-source (some-> tabular parse-source)
+                  :metadata-source (some-> user-metadata parse-source)
+                  :rdf-format (or (some-> output-file formats/->rdf-format) RDFFormat/TURTLE)}
+            output-file (some-> output-file io/file)]
+        (if output-file
+          (with-open [w (io/writer output-file)]
+            (write-output w opts))
+          (write-output (io/writer *out*) opts))))))
