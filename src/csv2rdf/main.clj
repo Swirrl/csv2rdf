@@ -42,8 +42,8 @@
   [errors summary]
   (doseq [e errors]
     (log/error e))
-  (log/info "Usage:")
-  (log/info summary)
+  (println "Usage:")
+  (println summary)
   (System/exit 1))
 
 (defn -main [& args]
