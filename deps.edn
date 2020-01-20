@@ -7,7 +7,8 @@
         org.clojure/tools.cli              {:mvn/version "0.3.7"}
         org.clojure/tools.logging          {:mvn/version "0.4.1"}
         org.slf4j/slf4j-api                {:mvn/version "1.7.25"}}
- :aliases {:with-logging
+ :aliases {:cli {:main-opts ["-m" "csv2rdf.main"]}
+           :with-logging
            {:extra-deps
             {org.apache.logging.log4j/log4j-api {:mvn/version "2.11.0"}
              org.apache.logging.log4j/log4j-core {:mvn/version "2.11.0"}
