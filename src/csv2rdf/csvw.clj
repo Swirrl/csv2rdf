@@ -13,6 +13,8 @@
             [csv2rdf.util :as util])
   (:import [org.eclipse.rdf4j.rio RDFFormat]))
 
+(set! *warn-on-reflection* true)
+
 (defn- get-table-statements [context {:keys [url dialect] :as table} table-group-dialect]
   (let [dialect (or dialect table-group-dialect)
         annotated-rows (csv/annotated-rows url table dialect)]
