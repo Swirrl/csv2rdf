@@ -3,7 +3,9 @@
 
   RFC 5988: https://tools.ietf.org/html/rfc5988"
   (:require [clojure.spec.alpha :as s]
-            [clj-http.client :as client]
+            ;;[clj-http.client :as client]
+            [clj-http.lite.client :as client]
+
             [csv2rdf.util :as util])
   (:import [org.apache.http.message BasicHeader]
            [java.net URI URISyntaxException]

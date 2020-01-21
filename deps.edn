@@ -3,7 +3,8 @@
         grafter                            {:mvn/version "2.1.7"}
         com.github.java-json-tools/uri-template {:mvn/version "0.10"}
         org.apache.httpcomponents/httpcore {:mvn/version "4.4.9"}
-        clj-http                           {:mvn/version "3.7.0"}
+        ;;clj-http                           {:mvn/version "3.7.0"}
+        org.martinklepsch/clj-http-lite {:mvn/version "0.4.1"}
         org.clojure/tools.cli              {:mvn/version "0.3.7"}
         org.clojure/tools.logging          {:mvn/version "0.4.1"}
         org.slf4j/slf4j-api                {:mvn/version "1.7.25"}}
