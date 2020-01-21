@@ -5,9 +5,11 @@
             [clojure.java.io :as io]
             [grafter-2.rdf4j.io :as gio]
             [grafter-2.rdf4j.formats :as formats]
-            [clojure.tools.logging :as log])
+            [csv2rdf.println-logger :as log])
   (:import [java.net URI URISyntaxException]
            [org.eclipse.rdf4j.rio RDFFormat]))
+
+(set! *warn-on-reflection* true)
 
 (def options-spec
   [["-t" "--tabular TABULAR" "Location of the tabular file"]
