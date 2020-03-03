@@ -61,7 +61,8 @@
       (let [{:keys [mode tabular user-metadata output-file]} options
             opts {:tabular-source (some-> tabular parse-source)
                   :metadata-source (some-> user-metadata parse-source)
-                  :rdf-format (or (some-> output-file formats/->rdf-format) RDFFormat/TURTLE)}
+                  :rdf-format (or (some-> output-file formats/->rdf-format) RDFFormat/TURTLE)
+                  :mode mode}
             output-file (some-> output-file io/file)]
         (if output-file
           (with-open [w (io/writer output-file)]
