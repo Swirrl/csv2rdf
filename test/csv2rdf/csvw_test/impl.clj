@@ -1,7 +1,6 @@
 (ns csv2rdf.csvw-test.impl
   (:require [grafter-2.rdf4j.io :as gio]            
             [grafter-2.rdf4j.repository :as repo]
-            [csv2rdf.http :as http]
             [csv2rdf.logging :as logging]
             [csv2rdf.csvw :refer [csv->rdf->destination]])
   (:import [org.eclipse.rdf4j.model.util Models]))
@@ -10,13 +9,6 @@
   (Models/isomorphic
     (map gio/quad->backend-quad expected-statements)
     (map gio/quad->backend-quad actual-statements)))
-
-(defrecord TestHttpClient [request-map]
-  http/HttpClient
-  (http-get [_this uri]
-    (if-let [response (get request-map uri)]
-      (assoc response :status 200)
-      {:status 404 :headers {} :body ""})))
 
 (defn test-csv->rdf [tabular-source metadata-source options]
   (let [repo (repo/sail-repo)

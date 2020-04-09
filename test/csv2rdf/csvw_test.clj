@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [clojure.java.io :as io]
             [csv2rdf.csvw-test.impl :refer :all]
+            [csv2rdf.test-common :refer [->TestHttpClient]]
             [csv2rdf.csvw :as csvw]
             [csv2rdf.http :as http]
             [grafter-2.rdf4j.io :as gio])

@@ -33,7 +33,7 @@
   URI
   (get-json [uri]
     (let [{:keys [body]} (http/get-uri uri)]
-      (read-json body)))
+      (get-json body)))
 
   File
   (get-json [f] (read-json f))
