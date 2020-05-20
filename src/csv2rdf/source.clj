@@ -32,8 +32,10 @@
 (extend-protocol JSONSource
   URI
   (get-json [uri]
-    (let [{:keys [body]} (http/get-uri uri)]
-      (get-json body)))
+    (if (= (keyword (.getScheme uri)) :file)
+      (read-json uri)
+      (let [{:keys [body]} (http/get-uri uri)]
+        (get-json body))))
 
   File
   (get-json [f] (read-json f))
