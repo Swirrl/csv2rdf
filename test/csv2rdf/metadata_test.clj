@@ -3,7 +3,8 @@
             [csv2rdf.metadata :refer :all]
             [csv2rdf.source :as source]
             [csv2rdf.metadata.properties :as properties]
-            [csv2rdf.test-common :refer [remove-ns-kws]])
+            [csv2rdf.test-common :refer [remove-ns-kws]]
+            [clojure.java.io :as io])
   (:import [java.net URI]))
 
 (deftest parse-metadata-json-test
@@ -33,3 +34,20 @@
             schema (properties/table-schema table)]
         (is (= {:quoteChar \{} dialect))
         (is (= {:columns [{:name "col1"} {:name "col2"}]} (remove-ns-kws schema)))))))
+
+(deftest overriding-metadata-test
+  (let [test-dir (io/file "w3c-csvw/tests/")]
+    (testing "table group"
+      (let [tabular-source (io/file test-dir "test007.csv")
+            metadata-source (io/file test-dir "test008.json")
+            m (overriding-metadata tabular-source metadata-source)
+            doc (source/get-json m)]
+        (is (= (source/get-json metadata-source) doc))))
+
+    (testing "table"
+      (let [tabular-source (io/file test-dir "test007.csv")
+            metadata-source (io/file test-dir "test022-metadata.json")
+            m (overriding-metadata tabular-source metadata-source)
+            doc (source/get-json m)]
+        (println m)
+        (is (= (get doc "url") (str (source/->uri tabular-source))))))))
