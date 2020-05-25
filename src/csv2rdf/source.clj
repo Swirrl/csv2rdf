@@ -4,7 +4,8 @@
             [csv2rdf.util :as util]
             [clojure.spec.alpha :as s]
             [csv2rdf.http :as http]
-            [clojure.data.json :as json])
+            [clojure.data.json :as json]
+            [clojure.string :as string])
   (:import [java.net URI]
            [java.io File InputStream ByteArrayInputStream]))
 
@@ -29,13 +30,29 @@
   (with-open [r (io/reader source)]
     (json/read r)))
 
+(defn- http-get-json [uri]
+  (let [{:keys [body]} (http/get-uri uri)]
+    (get-json body)))
+
+(defmulti read-uri-json
+          "Reads a JSON document from a URI"
+          (fn [^URI uri] (keyword (.getScheme uri))))
+
+(defmethod read-uri-json :file [uri] (read-json uri))
+(defmethod read-uri-json :http [uri] (http-get-json uri))
+(defmethod read-uri-json :https [uri] (http-get-json uri))
+(defmethod read-uri-json :default [uri]
+  (let [supported-schemes (keys (dissoc (methods read-uri-json) :default))]
+    (throw (ex-info
+             (format "Unable to read JSON from URI %s: unsupported scheme.%nSupported schemes: %s"
+                     uri
+                     (string/join ", " (map name supported-schemes)))
+             {:type ::unsupported-uri-scheme-error
+              :uri  uri}))))
+
 (extend-protocol JSONSource
   URI
-  (get-json [uri]
-    (if (= (keyword (.getScheme uri)) :file)
-      (read-json uri)
-      (let [{:keys [body]} (http/get-uri uri)]
-        (get-json body))))
+  (get-json [uri] (read-uri-json uri))
 
   File
   (get-json [f] (read-json f))
