@@ -24,3 +24,14 @@
 
 (s/fdef parse-table-group-from-source
   :args (s/cat :source (s/and ::source/uriable ::source/json-source)))
+
+(defn ^{:tabular-spec "5.1"} overriding-metadata
+  "Construct an 'overriding metadata' document if the user provides both tabular and
+   user metadata. If the metadata contains a table definition, set the URI to that for
+   the tabular file."
+  [tabular-source metadata-source]
+  (let [json (source/get-json metadata-source)
+        overridden (if (table-group/looks-like-table-group-json? json)
+                     json
+                     (table/override-table-json-uri json (source/->uri tabular-source)))]
+    (source/->MapMetadataSource (source/->uri metadata-source) overridden)))

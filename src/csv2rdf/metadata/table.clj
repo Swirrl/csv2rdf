@@ -34,6 +34,9 @@
 (defn looks-like-table-json? [doc]
   (contains? doc "url"))
 
+(defn override-table-json-uri [doc tabular-uri]
+  (assoc doc "url" (str tabular-uri)))
+
 (defn parse-table-json [context doc]
   (let [t ((contextual-object true table) context doc)]
     (into-table-group t)))
