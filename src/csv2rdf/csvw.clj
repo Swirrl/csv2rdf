@@ -8,8 +8,10 @@
             [clojure.java.io :as io]
             [csv2rdf.tabular.csv :as csv]
             [grafter-2.rdf4j.io :as gio]
+            [grafter-2.rdf4j.formats :as formats]
             [csv2rdf.metadata.properties :as properties]
-            [csv2rdf.util :as util]))
+            [csv2rdf.util :as util])
+  (:import [org.eclipse.rdf4j.rio RDFFormat]))
 
 (defn- get-table-statements [context {:keys [url dialect] :as table} table-group-dialect]
   (let [dialect (or dialect table-group-dialect)]
@@ -46,5 +48,6 @@
    statements to dest-file."
   [tabular-source metadata-source dest-file options]
   (with-open [os (io/output-stream dest-file)]
-    (let [writer (gio/rdf-writer os :format :ttl :prefixes nil)]
+    (let [rdf-format (or (formats/->rdf-format dest-file) RDFFormat/TURTLE)
+          writer (gio/rdf-writer os :format rdf-format :prefixes nil)]
       (csv->rdf->destination tabular-source metadata-source writer options))))
