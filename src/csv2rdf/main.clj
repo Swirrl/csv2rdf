@@ -7,7 +7,9 @@
             [grafter-2.rdf4j.formats :as formats]
             [clojure.tools.logging :as log])
   (:import [java.net URI URISyntaxException]
-           [org.eclipse.rdf4j.rio RDFFormat]))
+           [org.eclipse.rdf4j.rio RDFFormat]
+           [java.util.concurrent Executors TimeUnit]
+           [java.lang AutoCloseable]))
 
 (def options-spec
   [["-t" "--tabular TABULAR" "Location of the tabular file"]
@@ -16,7 +18,8 @@
    ["-m" "--mode MODE" "CSVW mode to run"
     :validate [#(contains? #{:minimal :standard :annotated} %)]
     :default :standard
-    :parse-fn keyword]])
+    :parse-fn keyword]
+   [nil "--progress-bar" "Writes a progress indicator to stderr during processing"]])
 
 (defn parse-source
   "Converts a string into a tabular or metadata source. If the string is a valid absolute URI, a URI is returned
@@ -49,6 +52,30 @@
                                                         :summary summary}))
       options)))
 
+(defn- write-progress []
+  (binding [*out* *err*]
+    (print ".")
+    (flush)))
+
+(defn- simple-progress-writer
+  "Starts a progress bar that writes a '.' to stderr every 2 seconds"
+  []
+  (let [e (Executors/newScheduledThreadPool 1)
+        pf (.scheduleAtFixedRate e write-progress 2 2 TimeUnit/SECONDS)]
+    (reify AutoCloseable
+      (close [_]
+        (.cancel pf false)
+        (.shutdown e)))))
+
+(defn- get-progress-writer
+  "Starts a progress bar according to the requested options. Returns an AutoCloseable
+   instance that stops the progress bar on close."
+  [{:keys [progress-bar] :as opts}]
+  (if progress-bar
+    (simple-progress-writer)
+    (reify AutoCloseable
+      (close [_]))))
+
 (defn- write-output [writer {:keys [rdf-format tabular-source metadata-source mode]}]
   (let [dest (gio/rdf-writer writer :format rdf-format :prefixes nil)]
     (csvw/csv->rdf->destination tabular-source metadata-source dest {:mode mode})))
@@ -75,10 +102,11 @@
               :rdf-format (or (some-> output-file formats/->rdf-format) RDFFormat/TURTLE)
               :mode mode}
         output-file (some-> output-file io/file)]
-    (if output-file
-      (with-open [w (io/writer output-file)]
-        (write-output w opts))
-      (write-output (io/writer *out*) opts))))
+    (with-open [progress-monitor (get-progress-writer options)]
+      (if output-file
+        (with-open [w (io/writer output-file)]
+          (write-output w opts))
+        (write-output (io/writer *out*) opts)))))
 
 (defn- -main [& args]
   (try
@@ -87,7 +115,6 @@
     (catch Throwable ex
       (display-error ex)
       (System/exit 1))))
-
 
 (comment
 
