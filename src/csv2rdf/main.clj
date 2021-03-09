@@ -51,7 +51,8 @@
     (let [dest (gio/rdf-writer writer :format rdf-format :prefixes nil)]
       (csvw/csv->rdf->destination tabular-source metadata-source dest {:mode mode}))
     (catch Exception ex
-      (log/error ex))))
+      (log/error ex)
+      (System/exit 1))))
 
 (defn -main [& args]
   (let [{:keys [summary options] :as parse-result} (cli/parse-opts args options-spec)
