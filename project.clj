@@ -9,7 +9,8 @@
 
   :profiles
   {:uberjar {:main csv2rdf.main
-             :lein-tools-deps/config {:resolve-aliases [:with-logging]}}
+             :lein-tools-deps/config {:resolve-aliases [:with-logging]}
+             :resource-paths ["profiles/with-logging/resources"]}
    :dev
    {:lein-tools-deps/config {:resolve-aliases [:with-logging :test]}
-    :resource-paths ["test/resources"]}})
+    :resource-paths ["test/resources" "profiles/with-logging/resources"]}})
