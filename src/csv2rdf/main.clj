@@ -37,34 +37,50 @@
     errors
     (cons "User metadata or tabular data file required" errors)))
 
-(defn usage-error
-  "Displays the given invocation errors followed by the usage summary before exiting."
-  [errors summary]
-  (doseq [e errors]
-    (log/error e))
-  (println "Usage:")
-  (println summary)
-  (System/exit 1))
-
-(defn- write-output [writer {:keys [rdf-format tabular-source metadata-source mode]}]
-  (try
-    (let [dest (gio/rdf-writer writer :format rdf-format :prefixes nil)]
-      (csvw/csv->rdf->destination tabular-source metadata-source dest {:mode mode}))
-    (catch Exception ex
-      (log/error ex))))
-
-(defn -main [& args]
+(defn- parse-cli-options
+  "Parses a sequence of command-line arguments into an options map. Throws an exception if
+   the arguments are invalid."
+  [args]
   (let [{:keys [summary options] :as parse-result} (cli/parse-opts args options-spec)
         errors (get-errors parse-result)]
     (if (seq errors)
-      (usage-error errors summary)
-      (let [{:keys [mode tabular user-metadata output-file]} options
-            opts {:tabular-source (some-> tabular parse-source)
-                  :metadata-source (some-> user-metadata parse-source)
-                  :rdf-format (or (some-> output-file formats/->rdf-format) RDFFormat/TURTLE)
-                  :mode mode}
-            output-file (some-> output-file io/file)]
-        (if output-file
-          (with-open [w (io/writer output-file)]
-            (write-output w opts))
-          (write-output (io/writer *out*) opts))))))
+      (throw (ex-info "Invalid command-line arguments" {:type ::invalid-cli-arguments
+                                                        :errors errors
+                                                        :summary summary}))
+      options)))
+
+(defn- write-output [writer {:keys [rdf-format tabular-source metadata-source mode]}]
+  (let [dest (gio/rdf-writer writer :format rdf-format :prefixes nil)]
+    (csvw/csv->rdf->destination tabular-source metadata-source dest {:mode mode})))
+
+(defmulti display-error
+          "Displays an exception in the UI"
+          (fn [ex] (:type (ex-data ex))))
+
+(defmethod display-error :default [ex]
+  (log/error ex))
+
+(defmethod display-error ::invalid-cli-arguments [ex]
+  (let [{:keys [errors summary]} (ex-data ex)]
+    (doseq [e errors]
+      (log/error e))
+    (println "Usage:")
+    (println summary)))
+
+(defn- -main [& args]
+  (try
+    (let [options (parse-cli-options args)
+          {:keys [mode tabular user-metadata output-file]} options
+          opts {:tabular-source (some-> tabular parse-source)
+                :metadata-source (some-> user-metadata parse-source)
+                :rdf-format (or (some-> output-file formats/->rdf-format) RDFFormat/TURTLE)
+                :mode mode}
+          output-file (some-> output-file io/file)]
+      (if output-file
+        (with-open [w (io/writer output-file)]
+          (write-output w opts))
+        (write-output (io/writer *out*) opts))
+      (System/exit 0))
+    (catch Throwable ex
+      (display-error ex)
+      (System/exit 1))))
