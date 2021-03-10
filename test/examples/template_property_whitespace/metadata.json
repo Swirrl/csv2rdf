@@ -1,0 +1,23 @@
+{
+  "@context": [
+    "http://www.w3.org/ns/csvw",
+    {
+      "@language": "en"
+    }
+  ],
+  "tables": [
+    {
+      "url": "whitespace.csv",
+      "tableSchema": {
+        "columns": [
+          {
+            "name": "a",
+            "titles": ["Column A"],
+            "propertyUrl": "rdfs:label"
+          }
+        ],
+        "aboutUrl": "http://example.net/{a}"
+      }
+    }
+  ]
+}

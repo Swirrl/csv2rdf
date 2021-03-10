@@ -15,8 +15,7 @@
 (s/def ::column-bindings (s/keys :req-un [::_column ::_sourceColumn ::_row ::_name]))
 
 (defn ^{:metadata-spec "5.1.3"} resolve-uri-template-property [uri-template column-bindings {:keys [^URI url] :as table}]
-  ;;TODO: expanded template strings are percent encoded. See if there's a way to avoid the immediate decoding
-  (let [resolved-uri-string (util/percent-decode (template/expand-template-to-string uri-template column-bindings))
+  (let [resolved-uri-string (template/expand-template-to-string uri-template column-bindings)
         expanded-uri-string (json-ld/expand-uri-string resolved-uri-string)]
     (if (nil? url)
       (URI. expanded-uri-string)
