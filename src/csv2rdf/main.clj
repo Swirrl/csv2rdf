@@ -7,7 +7,8 @@
             [grafter-2.rdf4j.formats :as formats]
             [clojure.tools.logging :as log])
   (:import [java.net URI URISyntaxException]
-           [org.eclipse.rdf4j.rio RDFFormat]))
+           [org.eclipse.rdf4j.rio RDFFormat]
+           [java.io File]))
 
 (def options-spec
   [["-t" "--tabular TABULAR" "Location of the tabular file"]
@@ -77,8 +78,11 @@
                 :mode mode}
           output-file (some-> output-file io/file)]
       (if output-file
-        (with-open [w (io/writer output-file)]
-          (write-output w opts))
+        (do
+          (when-let [^File parent (.getParentFile output-file)]
+            (.mkdirs parent))
+          (with-open [w (io/writer output-file)]
+            (write-output w opts)))
         (write-output (io/writer *out*) opts))
       (System/exit 0))
     (catch Throwable ex
