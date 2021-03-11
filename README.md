@@ -4,6 +4,14 @@
 
 Clojure library for converting [CSV to RDF](https://www.w3.org/TR/2015/REC-csv2rdf-20151217/) according to the specifications for [CSV on the web](https://w3c.github.io/csvw/)
 
+## Building
+
+Standalone JARs can be built using [leiningen](https://leiningen.org/). After installing leiningen an uberjar can be built by running the following in the project root directory:
+
+    lein uberjar
+    
+This will create a `target/csv2rdf-VERSION-standalone.jar` which can be run.
+
 ## Running
 
 csv2rdf can be run from the command line given the location of either a tabular data file or metadata file referencing the described tabular file. The location
