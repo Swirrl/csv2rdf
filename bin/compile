@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+if [ -z "$GRAALVM_HOME" ]; then
+    echo 'Please set GRAALVM_HOME'
+    exit 1
+fi
+
+# Ensure Graal native-image program is installed
+"$GRAALVM_HOME/bin/gu" install native-image
+
+"$GRAALVM_HOME/bin/native-image" \
+    -cp "$(clojure -Spath):classes" \
+    -H:Name=csv2rdf \
+    -H:+ReportExceptionStackTraces \
+    -H:EnableURLProtocols=http,https \
+    --initialize-at-build-time  \
+    --verbose \
+    --no-fallback \
+    --no-server \
+    --allow-incomplete-classpath \
+    --report-unsupported-elements-at-runtime \
+    -H:ReflectionConfigurationFiles=nativecfg/reflect-config.json \
+    "-J-Xmx3g" \
+    csv2rdf.main
