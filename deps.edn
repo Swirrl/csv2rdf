@@ -1,6 +1,6 @@
 {:deps {org.clojure/clojure                {:mvn/version "1.9.0"}
         org.clojure/data.json              {:mvn/version "0.2.6"}
-        grafter                            {:mvn/version "2.1.7"}
+        grafter/grafter                    {:mvn/version "2.1.7"}
         com.github.java-json-tools/uri-template {:mvn/version "0.10"}
         org.apache.httpcomponents/httpcore {:mvn/version "4.4.9"}
         ;;clj-http                           {:mvn/version "3.7.0"}
@@ -37,7 +37,7 @@
                          "--enable-url-protocols=http,https"]
             :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
             :extra-deps
-            {clj.native-image
+            {clj.native-image/clj.native-image
              {:git/url "https://github.com/taylorwood/clj.native-image.git"
               :sha "7708e7fd4572459c81f6a6b8e44c96f41cdd92d4"}}}
 
