@@ -23,18 +23,7 @@
              org.clojure/data.csv {:mvn/version "0.1.4"}}
             :extra-paths ["test" "test/resources"]}
 
-           :native-image
-           {:main-opts ["-m clj.native-image csv2rdf.main"
-                        "--report-unsupported-elements-at-runtime"
-                        "--initialize-at-build-time"
-                        ;; optional native image name override
-                        "-H:Name=csv2rdf"
-                         "--enable-url-protocols=http,https"]
-            :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
-            :extra-deps
-            {clj.native-image/clj.native-image
-             {:git/url "https://github.com/taylorwood/clj.native-image.git"
-              :sha "7708e7fd4572459c81f6a6b8e44c96f41cdd92d4"}}}
+
 
            }
 
