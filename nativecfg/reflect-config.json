@@ -1,0 +1,1118 @@
+[
+{
+  "name":"boolean[]"
+},
+{
+  "name":"byte[]"
+},
+{
+  "name":"char[]"
+},
+{
+  "name":"clj_http.lite.client__init"
+},
+{
+  "name":"clj_http.lite.core__init"
+},
+{
+  "name":"clj_http.lite.util__init"
+},
+{
+  "name":"clojure.asm.ClassVisitor"
+},
+{
+  "name":"clojure.asm.ClassWriter"
+},
+{
+  "name":"clojure.asm.Opcodes"
+},
+{
+  "name":"clojure.asm.Type"
+},
+{
+  "name":"clojure.asm.commons.GeneratorAdapter"
+},
+{
+  "name":"clojure.asm.commons.Method"
+},
+{
+  "name":"clojure.core$eval1",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"clojure.core$eval3",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"clojure.core$eval5",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"clojure.core$eval7",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"clojure.core.ArrayChunk"
+},
+{
+  "name":"clojure.core.ArrayManager"
+},
+{
+  "name":"clojure.core.Eduction"
+},
+{
+  "name":"clojure.core.IVecImpl"
+},
+{
+  "name":"clojure.core.Inst"
+},
+{
+  "name":"clojure.core.Vec"
+},
+{
+  "name":"clojure.core.VecNode"
+},
+{
+  "name":"clojure.core.VecSeq"
+},
+{
+  "name":"clojure.core.protocols.CollReduce"
+},
+{
+  "name":"clojure.core.protocols.IKVReduce"
+},
+{
+  "name":"clojure.core.protocols.InternalReduce"
+},
+{
+  "name":"clojure.core.protocols__init"
+},
+{
+  "name":"clojure.core.server__init"
+},
+{
+  "name":"clojure.core__init"
+},
+{
+  "name":"clojure.core_deftype__init"
+},
+{
+  "name":"clojure.core_print__init"
+},
+{
+  "name":"clojure.core_proxy__init"
+},
+{
+  "name":"clojure.data.json.JSONWriter"
+},
+{
+  "name":"clojure.data.json__init"
+},
+{
+  "name":"clojure.data.json_compat_0_1__init"
+},
+{
+  "name":"clojure.edn__init"
+},
+{
+  "name":"clojure.genclass__init"
+},
+{
+  "name":"clojure.gvec__init"
+},
+{
+  "name":"clojure.instant__init"
+},
+{
+  "name":"clojure.java.io.Coercions"
+},
+{
+  "name":"clojure.java.io.IOFactory"
+},
+{
+  "name":"clojure.java.io__init"
+},
+{
+  "name":"clojure.lang.APersistentMap$KeySeq"
+},
+{
+  "name":"clojure.lang.APersistentMap$ValSeq"
+},
+{
+  "name":"clojure.lang.ASeq"
+},
+{
+  "name":"clojure.lang.BigInt"
+},
+{
+  "name":"clojure.lang.ChunkBuffer"
+},
+{
+  "name":"clojure.lang.Compiler"
+},
+{
+  "name":"clojure.lang.Compiler$CompilerException"
+},
+{
+  "name":"clojure.lang.DynamicClassLoader"
+},
+{
+  "name":"clojure.lang.ExceptionInfo"
+},
+{
+  "name":"clojure.lang.Fn"
+},
+{
+  "name":"clojure.lang.IChunk"
+},
+{
+  "name":"clojure.lang.IChunkedSeq"
+},
+{
+  "name":"clojure.lang.IDeref"
+},
+{
+  "name":"clojure.lang.IExceptionInfo"
+},
+{
+  "name":"clojure.lang.IFn"
+},
+{
+  "name":"clojure.lang.IKVReduce"
+},
+{
+  "name":"clojure.lang.IPersistentCollection"
+},
+{
+  "name":"clojure.lang.IPersistentList"
+},
+{
+  "name":"clojure.lang.IPersistentMap"
+},
+{
+  "name":"clojure.lang.IPersistentSet"
+},
+{
+  "name":"clojure.lang.IPersistentVector"
+},
+{
+  "name":"clojure.lang.IProxy"
+},
+{
+  "name":"clojure.lang.IRecord"
+},
+{
+  "name":"clojure.lang.IReduceInit"
+},
+{
+  "name":"clojure.lang.ISeq"
+},
+{
+  "name":"clojure.lang.Keyword"
+},
+{
+  "name":"clojure.lang.LazilyPersistentVector"
+},
+{
+  "name":"clojure.lang.LazySeq"
+},
+{
+  "name":"clojure.lang.LineNumberingPushbackReader"
+},
+{
+  "name":"clojure.lang.Murmur3"
+},
+{
+  "name":"clojure.lang.Named"
+},
+{
+  "name":"clojure.lang.Namespace"
+},
+{
+  "name":"clojure.lang.PersistentHashMap"
+},
+{
+  "name":"clojure.lang.PersistentHashSet"
+},
+{
+  "name":"clojure.lang.PersistentQueue"
+},
+{
+  "name":"clojure.lang.PersistentVector"
+},
+{
+  "name":"clojure.lang.RT"
+},
+{
+  "name":"clojure.lang.Ratio"
+},
+{
+  "name":"clojure.lang.ReaderConditional"
+},
+{
+  "name":"clojure.lang.Reflector"
+},
+{
+  "name":"clojure.lang.Sequential"
+},
+{
+  "name":"clojure.lang.StringSeq"
+},
+{
+  "name":"clojure.lang.Symbol"
+},
+{
+  "name":"clojure.lang.TaggedLiteral"
+},
+{
+  "name":"clojure.lang.Util"
+},
+{
+  "name":"clojure.lang.Var"
+},
+{
+  "name":"clojure.lang.Volatile"
+},
+{
+  "name":"clojure.main__init"
+},
+{
+  "name":"clojure.pprint.PrettyFlush"
+},
+{
+  "name":"clojure.pprint.cl_format__init"
+},
+{
+  "name":"clojure.pprint.column_writer__init"
+},
+{
+  "name":"clojure.pprint.dispatch__init"
+},
+{
+  "name":"clojure.pprint.pprint_base__init"
+},
+{
+  "name":"clojure.pprint.pretty_writer__init"
+},
+{
+  "name":"clojure.pprint.print_table__init"
+},
+{
+  "name":"clojure.pprint.utilities__init"
+},
+{
+  "name":"clojure.pprint__init"
+},
+{
+  "name":"clojure.set__init"
+},
+{
+  "name":"clojure.spec.alpha.Spec"
+},
+{
+  "name":"clojure.spec.alpha.Specize"
+},
+{
+  "name":"clojure.spec.alpha__init"
+},
+{
+  "name":"clojure.spec.gen.alpha__init"
+},
+{
+  "name":"clojure.string__init"
+},
+{
+  "name":"clojure.tools.cli__init"
+},
+{
+  "name":"clojure.uuid__init"
+},
+{
+  "name":"clojure.walk__init"
+},
+{
+  "name":"com.fasterxml.jackson.databind.ext.Java7SupportImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.github.fge.uritemplate.URITemplate"
+},
+{
+  "name":"com.github.fge.uritemplate.URITemplateMessageBundle",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.github.fge.uritemplate.URITemplateParseException"
+},
+{
+  "name":"com.github.fge.uritemplate.parse.VariableSpecParser",
+  "methods":[{"name":"parseFullName","parameterTypes":["java.nio.CharBuffer"] }]
+},
+{
+  "name":"com.github.fge.uritemplate.vars.VariableMap"
+},
+{
+  "name":"com.github.fge.uritemplate.vars.VariableMapBuilder"
+},
+{
+  "name":"com.google.common.collect.ImmutableMapEntry$TerminalEntry[]"
+},
+{
+  "name":"com.sun.org.apache.xerces.internal.jaxp.datatype.DatatypeFactoryImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"csv2rdf.bcp47__init"
+},
+{
+  "name":"csv2rdf.csvw.annotated__init"
+},
+{
+  "name":"csv2rdf.csvw.common__init"
+},
+{
+  "name":"csv2rdf.csvw.minimal__init"
+},
+{
+  "name":"csv2rdf.csvw.standard__init"
+},
+{
+  "name":"csv2rdf.csvw__init"
+},
+{
+  "name":"csv2rdf.http.CljHttpClient"
+},
+{
+  "name":"csv2rdf.http.HttpClient"
+},
+{
+  "name":"csv2rdf.http__init"
+},
+{
+  "name":"csv2rdf.json__init"
+},
+{
+  "name":"csv2rdf.json_ld__init"
+},
+{
+  "name":"csv2rdf.logging.ForwardingLogger"
+},
+{
+  "name":"csv2rdf.logging.Logger"
+},
+{
+  "name":"csv2rdf.logging.MemoryLogger"
+},
+{
+  "name":"csv2rdf.logging.NullLogger"
+},
+{
+  "name":"csv2rdf.logging__init"
+},
+{
+  "name":"csv2rdf.main__init"
+},
+{
+  "name":"csv2rdf.metadata.column__init"
+},
+{
+  "name":"csv2rdf.metadata.context__init"
+},
+{
+  "name":"csv2rdf.metadata.datatype__init"
+},
+{
+  "name":"csv2rdf.metadata.dialect__init"
+},
+{
+  "name":"csv2rdf.metadata.inherited__init"
+},
+{
+  "name":"csv2rdf.metadata.properties.ParentRef"
+},
+{
+  "name":"csv2rdf.metadata.properties__init"
+},
+{
+  "name":"csv2rdf.metadata.row__init"
+},
+{
+  "name":"csv2rdf.metadata.schema__init"
+},
+{
+  "name":"csv2rdf.metadata.table__init"
+},
+{
+  "name":"csv2rdf.metadata.table_group__init"
+},
+{
+  "name":"csv2rdf.metadata.transformation__init"
+},
+{
+  "name":"csv2rdf.metadata.types__init"
+},
+{
+  "name":"csv2rdf.metadata.uri_template_property__init"
+},
+{
+  "name":"csv2rdf.metadata.validator__init"
+},
+{
+  "name":"csv2rdf.metadata__init"
+},
+{
+  "name":"csv2rdf.println_logger__init"
+},
+{
+  "name":"csv2rdf.source.InputStreamRequestable"
+},
+{
+  "name":"csv2rdf.source.IntoInputStream"
+},
+{
+  "name":"csv2rdf.source.JSONSource"
+},
+{
+  "name":"csv2rdf.source.MapMetadataSource"
+},
+{
+  "name":"csv2rdf.source.URIable"
+},
+{
+  "name":"csv2rdf.source__init"
+},
+{
+  "name":"csv2rdf.tabular.cell__init"
+},
+{
+  "name":"csv2rdf.tabular.csv.reader__init"
+},
+{
+  "name":"csv2rdf.tabular.csv__init"
+},
+{
+  "name":"csv2rdf.tabular.metadata.MetadataLocator"
+},
+{
+  "name":"csv2rdf.tabular.metadata__init"
+},
+{
+  "name":"csv2rdf.tabular.processing__init"
+},
+{
+  "name":"csv2rdf.uax35__init"
+},
+{
+  "name":"csv2rdf.uri_template__init"
+},
+{
+  "name":"csv2rdf.util__init"
+},
+{
+  "name":"csv2rdf.vocabulary__init"
+},
+{
+  "name":"csv2rdf.xml.datatype.canonical.ToXmlRepresentation"
+},
+{
+  "name":"csv2rdf.xml.datatype.canonical__init"
+},
+{
+  "name":"csv2rdf.xml.datatype.compare.Comp"
+},
+{
+  "name":"csv2rdf.xml.datatype.compare__init"
+},
+{
+  "name":"csv2rdf.xml.datatype.parsing__init"
+},
+{
+  "name":"csv2rdf.xml.datatype__init"
+},
+{
+  "name":"double[]"
+},
+{
+  "name":"float[]"
+},
+{
+  "name":"grafter.url.GrafterURL"
+},
+{
+  "name":"grafter.url.IURIable"
+},
+{
+  "name":"grafter.url.IURL"
+},
+{
+  "name":"grafter.url.ToGrafterURL"
+},
+{
+  "name":"grafter.url__init"
+},
+{
+  "name":"grafter.vocabularies.core__init"
+},
+{
+  "name":"grafter.vocabularies.rdf__init"
+},
+{
+  "name":"grafter.vocabularies.xsd__init"
+},
+{
+  "name":"grafter_2.rdf.protocols.BNode"
+},
+{
+  "name":"grafter_2.rdf.protocols.IDatatypeURI"
+},
+{
+  "name":"grafter_2.rdf.protocols.IGrafterRDFType"
+},
+{
+  "name":"grafter_2.rdf.protocols.IRDFString"
+},
+{
+  "name":"grafter_2.rdf.protocols.IRawValue"
+},
+{
+  "name":"grafter_2.rdf.protocols.ISPARQLUpdateable"
+},
+{
+  "name":"grafter_2.rdf.protocols.ISPARQLable"
+},
+{
+  "name":"grafter_2.rdf.protocols.IStatement"
+},
+{
+  "name":"grafter_2.rdf.protocols.ITransactable"
+},
+{
+  "name":"grafter_2.rdf.protocols.ITripleDeleteable"
+},
+{
+  "name":"grafter_2.rdf.protocols.ITripleReadable"
+},
+{
+  "name":"grafter_2.rdf.protocols.ITripleWriteable"
+},
+{
+  "name":"grafter_2.rdf.protocols.LangString"
+},
+{
+  "name":"grafter_2.rdf.protocols.OffsetDate"
+},
+{
+  "name":"grafter_2.rdf.protocols.Quad"
+},
+{
+  "name":"grafter_2.rdf.protocols.RDFLiteral"
+},
+{
+  "name":"grafter_2.rdf.protocols__init"
+},
+{
+  "name":"grafter_2.rdf4j.formats__init"
+},
+{
+  "name":"grafter_2.rdf4j.io.IRDF4jConverter"
+},
+{
+  "name":"grafter_2.rdf4j.io.ToRDF4JURI"
+},
+{
+  "name":"grafter_2.rdf4j.io__init"
+},
+{
+  "name":"int[]"
+},
+{
+  "name":"java.io.BufferedInputStream"
+},
+{
+  "name":"java.io.BufferedOutputStream"
+},
+{
+  "name":"java.io.BufferedReader"
+},
+{
+  "name":"java.io.BufferedWriter"
+},
+{
+  "name":"java.io.ByteArrayInputStream"
+},
+{
+  "name":"java.io.ByteArrayOutputStream"
+},
+{
+  "name":"java.io.CharArrayReader"
+},
+{
+  "name":"java.io.Closeable"
+},
+{
+  "name":"java.io.EOFException"
+},
+{
+  "name":"java.io.File"
+},
+{
+  "name":"java.io.FileInputStream"
+},
+{
+  "name":"java.io.FileOutputStream"
+},
+{
+  "name":"java.io.IOException"
+},
+{
+  "name":"java.io.InputStream"
+},
+{
+  "name":"java.io.InputStreamReader"
+},
+{
+  "name":"java.io.NotSerializableException"
+},
+{
+  "name":"java.io.OutputStream"
+},
+{
+  "name":"java.io.OutputStreamWriter"
+},
+{
+  "name":"java.io.PrintWriter"
+},
+{
+  "name":"java.io.PushbackReader"
+},
+{
+  "name":"java.io.Reader"
+},
+{
+  "name":"java.io.Serializable"
+},
+{
+  "name":"java.io.StringReader"
+},
+{
+  "name":"java.io.StringWriter"
+},
+{
+  "name":"java.io.Writer"
+},
+{
+  "name":"java.lang.AutoCloseable"
+},
+{
+  "name":"java.lang.Boolean"
+},
+{
+  "name":"java.lang.Byte"
+},
+{
+  "name":"java.lang.CharSequence"
+},
+{
+  "name":"java.lang.Character"
+},
+{
+  "name":"java.lang.Class"
+},
+{
+  "name":"java.lang.Class[]"
+},
+{
+  "name":"java.lang.Double"
+},
+{
+  "name":"java.lang.Float"
+},
+{
+  "name":"java.lang.Integer"
+},
+{
+  "name":"java.lang.Iterable"
+},
+{
+  "name":"java.lang.Long"
+},
+{
+  "name":"java.lang.Number"
+},
+{
+  "name":"java.lang.Object"
+},
+{
+  "name":"java.lang.Object[]"
+},
+{
+  "name":"java.lang.Short"
+},
+{
+  "name":"java.lang.StackTraceElement"
+},
+{
+  "name":"java.lang.String",
+  "allPublicMethods":true
+},
+{
+  "name":"java.lang.ThreadLocal"
+},
+{
+  "name":"java.lang.Throwable"
+},
+{
+  "name":"java.lang.UnsupportedOperationException"
+},
+{
+  "name":"java.lang.annotation.Annotation"
+},
+{
+  "name":"java.lang.annotation.Retention"
+},
+{
+  "name":"java.lang.reflect.Array"
+},
+{
+  "name":"java.lang.reflect.Constructor"
+},
+{
+  "name":"java.lang.reflect.Field"
+},
+{
+  "name":"java.lang.reflect.InvocationTargetException"
+},
+{
+  "name":"java.lang.reflect.Method"
+},
+{
+  "name":"java.lang.reflect.Modifier"
+},
+{
+  "name":"java.math.BigDecimal"
+},
+{
+  "name":"java.math.BigInteger"
+},
+{
+  "name":"java.net.HttpURLConnection"
+},
+{
+  "name":"java.net.InetAddress"
+},
+{
+  "name":"java.net.MalformedURLException"
+},
+{
+  "name":"java.net.ServerSocket"
+},
+{
+  "name":"java.net.Socket"
+},
+{
+  "name":"java.net.SocketException"
+},
+{
+  "name":"java.net.URI"
+},
+{
+  "name":"java.net.URISyntaxException"
+},
+{
+  "name":"java.net.URL"
+},
+{
+  "name":"java.net.URLDecoder"
+},
+{
+  "name":"java.net.URLEncoder"
+},
+{
+  "name":"java.net.UnknownHostException"
+},
+{
+  "name":"java.nio.CharBuffer"
+},
+{
+  "name":"java.nio.charset.Charset"
+},
+{
+  "name":"java.nio.charset.IllegalCharsetNameException"
+},
+{
+  "name":"java.security.MessageDigestSpi"
+},
+{
+  "name":"java.security.SecureRandomParameters"
+},
+{
+  "name":"java.sql.Timestamp"
+},
+{
+  "name":"java.time.Instant",
+  "allPublicMethods":true
+},
+{
+  "name":"java.time.LocalDate"
+},
+{
+  "name":"java.time.LocalDateTime"
+},
+{
+  "name":"java.time.LocalTime"
+},
+{
+  "name":"java.time.OffsetDateTime"
+},
+{
+  "name":"java.time.OffsetTime"
+},
+{
+  "name":"java.time.ZoneOffset"
+},
+{
+  "name":"java.time.ZonedDateTime"
+},
+{
+  "name":"java.time.format.DateTimeFormatter"
+},
+{
+  "name":"java.time.format.DateTimeParseException"
+},
+{
+  "name":"java.time.temporal.ChronoField"
+},
+{
+  "name":"java.time.temporal.Temporal"
+},
+{
+  "name":"java.time.temporal.TemporalField"
+},
+{
+  "name":"java.util.Base64"
+},
+{
+  "name":"java.util.Calendar"
+},
+{
+  "name":"java.util.Collection"
+},
+{
+  "name":"java.util.Date"
+},
+{
+  "name":"java.util.GregorianCalendar"
+},
+{
+  "name":"java.util.IllformedLocaleException"
+},
+{
+  "name":"java.util.Iterator"
+},
+{
+  "name":"java.util.List"
+},
+{
+  "name":"java.util.Locale$Builder"
+},
+{
+  "name":"java.util.Map"
+},
+{
+  "name":"java.util.Properties",
+  "allPublicMethods":true
+},
+{
+  "name":"java.util.RandomAccess"
+},
+{
+  "name":"java.util.Set"
+},
+{
+  "name":"java.util.TimeZone"
+},
+{
+  "name":"java.util.UUID"
+},
+{
+  "name":"java.util.concurrent.BlockingQueue"
+},
+{
+  "name":"java.util.concurrent.LinkedBlockingQueue"
+},
+{
+  "name":"java.util.concurrent.atomic.AtomicInteger"
+},
+{
+  "name":"java.util.concurrent.atomic.AtomicLong"
+},
+{
+  "name":"java.util.concurrent.locks.ReentrantLock"
+},
+{
+  "name":"java.util.regex.Matcher"
+},
+{
+  "name":"java.util.regex.Pattern"
+},
+{
+  "name":"java.util.zip.DeflaterInputStream"
+},
+{
+  "name":"java.util.zip.GZIPInputStream"
+},
+{
+  "name":"java.util.zip.GZIPOutputStream"
+},
+{
+  "name":"java.util.zip.InflaterInputStream"
+},
+{
+  "name":"javax.xml.datatype.DatatypeConstants"
+},
+{
+  "name":"javax.xml.datatype.DatatypeFactory"
+},
+{
+  "name":"javax.xml.datatype.Duration"
+},
+{
+  "name":"javax.xml.datatype.XMLGregorianCalendar"
+},
+{
+  "name":"long[]"
+},
+{
+  "name":"org.apache.http.HeaderElement"
+},
+{
+  "name":"org.apache.http.NameValuePair"
+},
+{
+  "name":"org.apache.http.message.BasicHeader"
+},
+{
+  "name":"org.eclipse.rdf4j.model.BNode"
+},
+{
+  "name":"org.eclipse.rdf4j.model.Literal"
+},
+{
+  "name":"org.eclipse.rdf4j.model.Model"
+},
+{
+  "name":"org.eclipse.rdf4j.model.Statement"
+},
+{
+  "name":"org.eclipse.rdf4j.model.URI"
+},
+{
+  "name":"org.eclipse.rdf4j.model.impl.BNodeImpl"
+},
+{
+  "name":"org.eclipse.rdf4j.model.impl.ContextStatementImpl"
+},
+{
+  "name":"org.eclipse.rdf4j.model.impl.LiteralImpl"
+},
+{
+  "name":"org.eclipse.rdf4j.model.impl.SimpleValueFactory"
+},
+{
+  "name":"org.eclipse.rdf4j.model.impl.StatementImpl"
+},
+{
+  "name":"org.eclipse.rdf4j.model.impl.URIImpl"
+},
+{
+  "name":"org.eclipse.rdf4j.rio.RDFFormat"
+},
+{
+  "name":"org.eclipse.rdf4j.rio.RDFHandler"
+},
+{
+  "name":"org.eclipse.rdf4j.rio.RDFParser"
+},
+{
+  "name":"org.eclipse.rdf4j.rio.RDFParserFactory"
+},
+{
+  "name":"org.eclipse.rdf4j.rio.RDFWriter",
+  "allPublicMethods":true
+},
+{
+  "name":"org.eclipse.rdf4j.rio.Rio",
+  "allPublicMethods":true
+},
+{
+  "name":"org.eclipse.rdf4j.rio.binary.BinaryRDFParserFactory"
+},
+{
+  "name":"org.eclipse.rdf4j.rio.jsonld.JSONLDParserFactory"
+},
+{
+  "name":"org.eclipse.rdf4j.rio.jsonld.JSONLDWriter",
+  "allPublicMethods":true
+},
+{
+  "name":"org.eclipse.rdf4j.rio.n3.N3ParserFactory"
+},
+{
+  "name":"org.eclipse.rdf4j.rio.nquads.NQuadsParserFactory"
+},
+{
+  "name":"org.eclipse.rdf4j.rio.nquads.NQuadsWriter",
+  "allPublicMethods":true
+},
+{
+  "name":"org.eclipse.rdf4j.rio.ntriples.NTriplesParserFactory"
+},
+{
+  "name":"org.eclipse.rdf4j.rio.ntriples.NTriplesWriter",
+  "allPublicMethods":true
+},
+{
+  "name":"org.eclipse.rdf4j.rio.rdfjson.RDFJSONParserFactory"
+},
+{
+  "name":"org.eclipse.rdf4j.rio.rdfxml.RDFXMLParserFactory"
+},
+{
+  "name":"org.eclipse.rdf4j.rio.rdfxml.RDFXMLWriter",
+  "allPublicMethods":true
+},
+{
+  "name":"org.eclipse.rdf4j.rio.trig.TriGParserFactory"
+},
+{
+  "name":"org.eclipse.rdf4j.rio.trig.TriGWriter",
+  "allPublicMethods":true
+},
+{
+  "name":"org.eclipse.rdf4j.rio.trix.TriXParserFactory"
+},
+{
+  "name":"org.eclipse.rdf4j.rio.turtle.ArrangedWriter",
+  "allPublicMethods":true
+},
+{
+  "name":"org.eclipse.rdf4j.rio.turtle.TurtleParserFactory"
+},
+{
+  "name":"short[]"
+},
+{
+  "name":"slingshot.slingshot__init"
+},
+{
+  "name":"slingshot.support__init"
+},
+{
+  "name":"sun.security.provider.NativePRNG",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.SHA",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+}
+]
