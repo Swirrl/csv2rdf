@@ -8,6 +8,13 @@ fi
 # Ensure Graal native-image program is installed
 "$GRAALVM_HOME/bin/gu" install native-image
 
+mkdir -p classes
+
+echo "AOT compiling clojure"
+clojure -M -e "(compile 'csv2rdf.main)"
+"Clojure compilation completed"
+
+echo "Compiling native-image"
 "$GRAALVM_HOME/bin/native-image" \
     -cp "$(clojure -Spath):classes" \
     -H:Name=csv2rdf \
