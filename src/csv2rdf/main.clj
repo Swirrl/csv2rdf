@@ -87,3 +87,20 @@
     (catch Throwable ex
       (display-error ex)
       (System/exit 1))))
+
+
+(comment
+
+  (time (inner-main ["-t" "out/hmrc-rts-small-area.csv" "-u" "out/hmrc-rts-small-area.csv-metadata.json" "-m" "annotated" "-o" "cube.nt"]))
+
+  (require '[clj-async-profiler.core :as prof])
+
+;; Profile the following expression:
+  (prof/profile (inner-main ["-t" "out/hmrc-rts-small-area.csv" "-u" "out/hmrc-rts-small-area.csv-metadata.json" "-m" "annotated" "-o" "cube.nt"]))
+
+;; The resulting flamegraph will be stored in /tmp/clj-async-profiler/results/
+;; You can view the SVG directly from there or start a local webserver:
+
+(prof/serve-files 8080) ; Serve on port 8080
+
+  )
