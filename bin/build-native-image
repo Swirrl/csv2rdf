@@ -1,5 +1,3 @@
 #!/bin/bash
 
-~/.jabba/bin/jabba use graalvm-ce-java11@21.0.0
-
 env GRAALVM_HOME=$JAVA_HOME clj -M:native-image --verbose --no-fallback

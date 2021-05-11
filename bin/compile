@@ -5,14 +5,11 @@ if [ -z "$GRAALVM_HOME" ]; then
     exit 1
 fi
 
-# Ensure Graal native-image program is installed
-"$GRAALVM_HOME/bin/gu" install native-image
-
 mkdir -p classes
 
 echo "AOT compiling clojure"
 clojure -M -e "(compile 'csv2rdf.main)"
-"Clojure compilation completed"
+echo "Clojure compilation completed"
 
 echo "Compiling native-image"
 "$GRAALVM_HOME/bin/native-image" \
