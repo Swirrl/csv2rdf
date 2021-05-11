@@ -3,8 +3,7 @@ sudo: required
 lein: 2.8.1
 
 env:
-  - PATH=/opt/graal/graalvm-ce-java8-21.1.0/bin:$PATH
-  - JAVA_HOME=/opt/graal/graalvm-ce-java8-21.1.0
+  - PATH=/opt/graal/graalvm-ce-java8-21.1.0/bin:$PATH JAVA_HOME=/opt/graal/graalvm-ce-java8-21.1.0
 
 before_install:
   - sudo apt-get install -y curl rlwrap
