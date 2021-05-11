@@ -67,20 +67,23 @@
     (println "Usage:")
     (println summary)))
 
+(defn- inner-main [args]
+  (let [options (parse-cli-options args)
+        {:keys [mode tabular user-metadata output-file]} options
+        opts {:tabular-source (some-> tabular parse-source)
+              :metadata-source (some-> user-metadata parse-source)
+              :rdf-format (or (some-> output-file formats/->rdf-format) RDFFormat/TURTLE)
+              :mode mode}
+        output-file (some-> output-file io/file)]
+    (if output-file
+      (with-open [w (io/writer output-file)]
+        (write-output w opts))
+      (write-output (io/writer *out*) opts))))
+
 (defn- -main [& args]
   (try
-    (let [options (parse-cli-options args)
-          {:keys [mode tabular user-metadata output-file]} options
-          opts {:tabular-source (some-> tabular parse-source)
-                :metadata-source (some-> user-metadata parse-source)
-                :rdf-format (or (some-> output-file formats/->rdf-format) RDFFormat/TURTLE)
-                :mode mode}
-          output-file (some-> output-file io/file)]
-      (if output-file
-        (with-open [w (io/writer output-file)]
-          (write-output w opts))
-        (write-output (io/writer *out*) opts))
-      (System/exit 0))
+    (inner-main args)
+    (System/exit 0)
     (catch Throwable ex
       (display-error ex)
       (System/exit 1))))
