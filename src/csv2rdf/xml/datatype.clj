@@ -113,11 +113,11 @@
   (if-let [root (find-root type-name)]
     (node-subtypes root)))
 
-(defn is-subtype?
+(def is-subtype?
   "Returns whether type b is a subtype of type a"
-  [a b]
-  (let [type-name (resolve-type-name b)]
-    (boolean (some #(= type-name %) (subtypes a)))))
+  (memoize (fn [a b]
+             (let [type-name (resolve-type-name b)]
+               (boolean (some #(= type-name %) (subtypes a)))))))
 
 (defn is-binary-type? [type-name]
   (contains? #{"hexBinary" "base64Binary"} (resolve-type-name type-name)))
