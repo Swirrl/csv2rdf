@@ -7,3 +7,5 @@ before_install:
   - "travis/install_clojure.sh"
   - "travis/install_graal.sh"
 
+after_success:
+  - env GRAALVM_HOME=$JAVA_HOME bin/compile
