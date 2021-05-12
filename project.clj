@@ -1,4 +1,4 @@
-(defproject swirrl/csv2rdf "0.4.6"
+(defproject swirrl/csv2rdf "0.4.7-SNAPSHOT"
   :description "Library for converting CSV to RDF"
   :url "https://github.com/Swirrl/csv2rdf"
   :license {:name "Eclipse Public License"
