@@ -67,12 +67,15 @@
 (defn ^{:tabular-spec "6.4.9"} validate-length
   "Validates the length of the cell value is valid for the constraints on the column metadata"
   [{:keys [value datatype] :as cell-element}]
-  (if-let [len (xml-datatype/get-length value datatype)]
-    (let [len-errors (->> length-relations
-                          (map (fn [[k sym]] (get-length-error cell-element sym len (get datatype k))))
-                          (remove nil?))]
-      (add-cell-errors cell-element len-errors))
-    cell-element))
+  (let [{:keys [length minLength maxLength]} datatype]
+    (if (or length minLength maxLength)
+      (if-let [len (xml-datatype/get-length value datatype)]
+        (let [len-errors (->> length-relations
+                              (map (fn [[k sym]] (get-length-error cell-element sym len (get datatype k))))
+                              (remove nil?))]
+          (add-cell-errors cell-element len-errors))
+        cell-element)
+      cell-element)))
 
 (defn ^{:tabular-spec "6.4.9"} validate-value-bounds
   "Validates the cell value is valid for any bounds specified on its datatype"

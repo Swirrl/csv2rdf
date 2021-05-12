@@ -14,9 +14,9 @@
   (:import [org.eclipse.rdf4j.rio RDFFormat]))
 
 (defn- get-table-statements [context {:keys [url dialect] :as table} table-group-dialect]
-  (let [dialect (or dialect table-group-dialect)]
-    (let [annotated-rows (csv/annotated-rows url table dialect)]
-      (table-statements context table annotated-rows))))
+  (let [dialect (or dialect table-group-dialect)
+        annotated-rows (csv/annotated-rows url table dialect)]
+    (table-statements context table annotated-rows)))
 
 (defn csv->rdf
   "Runs the CSVW process for the given tabular or metadata data sources and options. If metadata-source

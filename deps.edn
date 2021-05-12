@@ -14,7 +14,12 @@
             {org.apache.logging.log4j/log4j-api {:mvn/version "2.11.0"}
              org.apache.logging.log4j/log4j-core {:mvn/version "2.11.0"}
              org.apache.logging.log4j/log4j-slf4j-impl {:mvn/version "2.11.0"}}}
-           :dev {}
+           :dev {
+                 :extra-deps {com.clojure-goes-fast/clj-async-profiler {:mvn/version "0.5.0"}}
+
+                 :jvm-opts ["-Djdk.attach.allowAttachSelf" ;; for jdk9+
+                            ]
+                 }
            :test
            {:extra-deps
             {lambdaisland/kaocha {:mvn/version "0.0-573"}

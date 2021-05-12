@@ -8,10 +8,12 @@
   (:import [java.net URI]
            [org.eclipse.rdf4j.model.impl URIImpl]))
 
+(def bnode-id-counter (atom 0))
+
 (defn gen-blank-node
   "Generates a grafter representation of a new blank node"
   ([] (gen-blank-node "bnode"))
-  ([prefix] (gproto/make-blank-node (str prefix (gensym)))))
+  ([prefix] (gproto/make-blank-node (str prefix "__" (swap! bnode-id-counter inc)))))
 
 (defn row-unsuppressed-cells
   "Gets the all the cells within a row whose column output is not suppressed"

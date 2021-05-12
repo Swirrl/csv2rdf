@@ -286,30 +286,30 @@
   to the dialect trim mode."
   [^String row-content source-row-number {:keys [^Character escapeChar ^Character quoteChar ^Character delimiter trim-mode] :as options}]
   (if (zero? (.length row-content))
-      []
-      (let [;;NOTE: cells are parsed slightly differently depending on
-            ;;whether the quote and escape characters are the same or
-            ;;different. Each parser parses the next cell contents
-            ;;from the specified starting position within the string
-            ;;and returns a map containing the parsed cell contents
-            ;;and the index within the string to continue
-            ;;parsing. This should always point to the delimiter
-            ;;character or be one passed the end of the string.
-            cell-parser (if (= escapeChar quoteChar)
-                          parse-cell-double-quote
-                          parse-cell-escape)]        
-        (loop [idx 0
-               cells []]
-          (let [{:keys [cell ^long next-index]} (cell-parser row-content source-row-number idx options)]
-            ;;if there is any remaining input, next-index should refer to the delimiter
-            ;;consume it and move to the start of the next cell
-            ;;otherwise entire row has been parsed
-            ;;TODO: move quoted cell followed by delimiter validation stuff here?
-            (if (< next-index (.length row-content))
-              (let [next-char (.charAt row-content next-index)]
-                #_(assert (= delimiter next-char "Expected delimiter after parsed cell"))
-                (recur (inc next-index) (conj cells (trim-cell cell trim-mode))))
-              (conj cells (trim-cell cell trim-mode))))))))
+    []
+    (let [ ;;NOTE: cells are parsed slightly differently depending on
+          ;;whether the quote and escape characters are the same or
+          ;;different. Each parser parses the next cell contents
+          ;;from the specified starting position within the string
+          ;;and returns a map containing the parsed cell contents
+          ;;and the index within the string to continue
+          ;;parsing. This should always point to the delimiter
+          ;;character or be one passed the end of the string.
+          cell-parser (if (= escapeChar quoteChar)
+                        parse-cell-double-quote
+                        parse-cell-escape)]
+      (persistent! (loop [idx 0
+                          cells (transient [])]
+                     (let [{:keys [cell ^long next-index]} (cell-parser row-content source-row-number idx options)]
+                       ;;if there is any remaining input, next-index should refer to the delimiter
+                       ;;consume it and move to the start of the next cell
+                       ;;otherwise entire row has been parsed
+                       ;;TODO: move quoted cell followed by delimiter validation stuff here?
+                       (if (< next-index (.length row-content))
+                         (let [next-char (.charAt row-content next-index)]
+                           #_(assert (= delimiter next-char "Expected delimiter after parsed cell"))
+                           (recur (inc next-index) (conj! cells (trim-cell cell trim-mode))))
+                         (conj! cells (trim-cell cell trim-mode)))))))))
 
 (s/def ::source-row-number (s/and integer? pos?))
 (s/def ::cells (s/coll-of string? :kind vector? :into []))
