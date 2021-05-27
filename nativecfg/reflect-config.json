@@ -36,22 +36,6 @@
   "name":"clojure.asm.commons.Method"
 },
 {
-  "name":"clojure.core$eval1",
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"clojure.core$eval3",
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"clojure.core$eval5",
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"clojure.core$eval7",
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
   "name":"clojure.core.ArrayChunk"
 },
 {
@@ -353,9 +337,6 @@
 },
 {
   "name":"com.github.fge.uritemplate.vars.VariableMapBuilder"
-},
-{
-  "name":"com.google.common.collect.ImmutableMapEntry$TerminalEntry[]"
 },
 {
   "name":"com.sun.org.apache.xerces.internal.jaxp.datatype.DatatypeFactoryImpl",
