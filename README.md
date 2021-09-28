@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/Swirrl/csv2rdf.svg?branch=master)](https://travis-ci.org/Swirrl/csv2rdf)
 
-Clojure library for converting [CSV to RDF](https://www.w3.org/TR/2015/REC-csv2rdf-20151217/) according to the specifications for [CSV on the web](https://w3c.github.io/csvw/)
+Command line application (and clojure library) for converting [CSV to RDF](https://www.w3.org/TR/2015/REC-csv2rdf-20151217/) according to the specifications for [CSV on the web](https://w3c.github.io/csvw/)
 
 ## Native Builds 
 
