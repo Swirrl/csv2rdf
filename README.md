@@ -4,6 +4,13 @@
 
 Clojure library for converting [CSV to RDF](https://www.w3.org/TR/2015/REC-csv2rdf-20151217/) according to the specifications for [CSV on the web](https://w3c.github.io/csvw/)
 
+## Native Builds 
+
+We have some experimental native builds of the command line app here:
+
+- For [linux x86](https://github.com/Swirrl/csv2rdf/releases/tag/graal-linux-0.4.7-SNAPSHOT-c8fe70c)
+- For [mac os](https://github.com/Swirrl/csv2rdf/releases/tag/graal-0.4.7-SNAPSHOT-8839f3f)
+
 ## Building
 
 Standalone JARs can be built using [leiningen](https://leiningen.org/). After installing leiningen an uberjar can be built by running the following in the project root directory:
