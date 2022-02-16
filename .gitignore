@@ -12,3 +12,5 @@ pom.xml.asc
 .idea/
 csv2rdf.iml
 .cpcache/
+/.lsp/
+/.clj-kondo/.cache
