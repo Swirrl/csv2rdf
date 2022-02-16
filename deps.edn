@@ -22,7 +22,7 @@
                  }
            :test
            {:extra-deps
-            {lambdaisland/kaocha {:mvn/version "0.0-573"}
+            {lambdaisland/kaocha {:mvn/version "1.63.998"}
              org.clojure/test.check {:mvn/version "0.9.0"}
              org.clojure/data.csv {:mvn/version "0.1.4"}}
             :extra-paths ["test" "test/resources"]}}}
