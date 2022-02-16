@@ -18,6 +18,6 @@ jobs:
       uses: nnichols/clojure-dependency-update-action@v3
       with:
         batch: true
-        branch: main
+        branch: master
         directories: drafter drafter-client
         github-token: ${{ secrets.github_token }}
