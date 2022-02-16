@@ -1,0 +1,23 @@
+name: Clojure Dependency Checking
+
+on: 
+  workflow_dispatch:
+  schedule: 
+  - cron: "0 2 * * 1-5"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Latest Commit
+      uses: actions/checkout@v1
+
+    - name: Check deps
+      uses: nnichols/clojure-dependency-update-action@v3
+      with:
+        batch: true
+        branch: main
+        directories: drafter drafter-client
+        github-token: ${{ secrets.github_token }}

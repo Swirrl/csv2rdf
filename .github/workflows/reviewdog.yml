@@ -1,0 +1,14 @@
+name: Lint Clojure
+on: [pull_request]
+jobs:
+  clj-kondo:
+    name: runner / clj-kondo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: clj-kondo
+        uses: nnichols/clojure-lint-action@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review # Change reporter.
+          level: warning
