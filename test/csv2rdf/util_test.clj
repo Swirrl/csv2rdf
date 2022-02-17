@@ -6,6 +6,15 @@
             [clojure.test.check.clojure-test :refer [defspec]])
   (:import [java.net URI]))
 
+
+(deftest set-fragment-test
+  (testing "transparent uri"
+    (is (= (URI. "http:8080//example.org/path?param=bar#new-fragment")
+           (set-fragment (URI. "http:8080//example.org/path?param=bar#fragment") "new-fragment"))))
+  (testing "opaque uri"
+    (is (= (URI. "jar:file:///some/path!/inside/zip/path#new-fragment")
+           (set-fragment (URI. "jar:file:///some/path!/inside/zip/path#fragment") "new-fragment")))))
+
 (defspec filter-values-test 100
   (prop/for-all
     [m (gen/map gen/keyword gen/int)]

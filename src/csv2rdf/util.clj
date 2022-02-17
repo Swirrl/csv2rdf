@@ -17,7 +17,7 @@
 (defn set-fragment
   "Sets the fragment on a URI to the given value."
   [^URI uri fragment]
-  (URI. (.getScheme uri) (.getUserInfo uri) (.getHost uri) (.getPort uri) (.getPath uri) (.getQuery uri) fragment))
+  (URI. (.getScheme uri) (.getSchemeSpecificPart uri) fragment))
 
 (defn remove-fragment
   "Sets the fragment on a URI to nil."
