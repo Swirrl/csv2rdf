@@ -19,11 +19,42 @@
     (table-statements context table annotated-rows)))
 
 (defn csv->rdf
-  "Runs the CSVW process for the given tabular or metadata data sources and options. If metadata-source
-   is non-nil then processing will start from the asscociated metadata document, otherwise it will start
-   from tabular-source. Returns a lazy sequence of statements containing the CSVW output for the specified
-   CSVW mode. Mode can be specified by the :mode key of the options map if provided, otherwise standard mode
-   will be used."
+  "Runs the CSVW process for the given tabular or metadata data sources
+  and options.
+
+  `tabular-source` and `metadata-source` can be any of the following
+  types:
+
+     - java.io.File
+     - java.lang.String
+     - java.net.URI
+     - java.nio.file.Path (including nio Paths that are inside zip filesystems)
+
+  If metadata-source is non-nil then processing will start from the
+  asscociated metadata document, otherwise it will start from
+  tabular-source. Returns a lazy sequence of statements containing the
+  CSVW output for the specified CSVW mode.
+
+  The processing mode can be specified by the :mode key of the options
+  map if provided, otherwise `:standard` mode will be used. Valid
+  `:mode` options are:
+
+  - `:standard` this mode corresponds to the standard mode specified
+    in the \"Generating RDF from Tabular Data on the Web\" specification.
+
+    It outputs triples for all information gleaned from the cells of the
+    tabular data with details of the rows, tables, and table groups.
+
+    This mode yields the most data.
+
+  - `:minimal` this mode corresponds to the minimal mode specified in
+    the \"Generating RDF from Tabular Data on the Web\" specification.
+
+    It essentially yields the salient RDF; but omits the tabular structure.
+
+  - `:annotated` a custom mode, not part of the standard, which is
+    like `:minimal`, but it also includes RDF data from the CSVW metadata
+    json file."
   ([tabular-source metadata-source] (csv->rdf tabular-source metadata-source {}))
   ([tabular-source metadata-source {:keys [mode] :as options}]
    (let [mode (or mode :standard)
