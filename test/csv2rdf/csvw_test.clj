@@ -1,4 +1,10 @@
 (ns csv2rdf.csvw-test
+  "WARNING THIS FILE IS GENERATED DO NOT EDIT BY HAND.
+
+  Generated test cases from the official W3C CSV Working Group's
+  test suite.
+
+  See csv2rdf.csvw-test.gen/write-tests-file for more details"
   (:require [clojure.test :refer :all]
             [clojure.java.io :as io]
             [csv2rdf.csvw-test.impl :refer :all]
