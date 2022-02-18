@@ -1,9 +1,9 @@
-(ns csv2rdf.csvw-test.gen
+(ns csv2rdf.w3c-csvw-suite-test.gen
   (:require [clojure.data.csv :as csv]
             [clojure.java.io :as io]
             [clojure.string :as string]
             [csv2rdf.http :as http]
-            [csv2rdf.csvw-test.impl :refer :all]
+            [csv2rdf.w3c-csvw-suite-test.impl :refer :all]
             [clojure.pprint :as pp])
   (:import [java.io File]
            [java.net URI URL]))
@@ -264,7 +264,7 @@
             `(~'is (~'= 0 (~'count ~'errors)) "Received errors but none was expected"))))))
 
 (def ns-decl
-  '(ns csv2rdf.csvw-test
+  '(ns csv2rdf.w3c-csvw-suite-test
      "WARNING THIS FILE IS GENERATED DO NOT EDIT BY HAND.
 
   Generated test cases from the official W3C CSV Working Group's
@@ -273,14 +273,14 @@
   See csv2rdf.csvw-test.gen/write-tests-file for more details"
      (:require [clojure.test :refer [deftest is]]
                [clojure.java.io :as io]
-               [csv2rdf.csvw-test.impl :refer [is-isomorphic? test-csv->rdf]]
+               [csv2rdf.w3c-csvw-suite-test.impl :refer [is-isomorphic? test-csv->rdf]]
                [csv2rdf.test-common :refer [->TestHttpClient]]
                [csv2rdf.csvw :as csvw]
                [csv2rdf.http :as http]
                [grafter-2.rdf4j.io :as gio])
      (:import [java.net URI URL])))
 
-(defn write-tests-file [{:keys [test-file] :or {test-file "test/csv2rdf/csvw_test.clj"}}]
+(defn write-tests-file [{:keys [test-file] :or {test-file "test/csv2rdf/w3c_csvw_suite_test.clj"}}]
   (with-open [writer (io/writer (io/file test-file))]
     (binding [pp/*print-right-margin* 120
               pp/*print-pprint-dispatch* pp/code-dispatch]

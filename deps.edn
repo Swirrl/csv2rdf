@@ -35,4 +35,4 @@
 
            :gen-test-suite {:extra-deps {org.clojure/data.csv {:mvn/version "1.0.0"}}
                             :extra-paths ["test" "test/resources"]
-                            :exec-fn csv2rdf.csvw-test.gen/write-tests-file}}}
+                            :exec-fn csv2rdf.w3c-csvw-suite-test.gen/write-tests-file}}}

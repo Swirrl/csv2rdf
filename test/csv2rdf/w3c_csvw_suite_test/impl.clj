@@ -1,5 +1,5 @@
-(ns csv2rdf.csvw-test.impl
-  (:require [grafter-2.rdf4j.io :as gio]            
+(ns csv2rdf.w3c-csvw-suite-test.impl
+  (:require [grafter-2.rdf4j.io :as gio]
             [grafter-2.rdf4j.repository :as repo]
             [csv2rdf.logging :as logging]
             [csv2rdf.csvw :refer [csv->rdf->destination]])
