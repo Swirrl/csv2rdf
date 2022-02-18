@@ -1,6 +1,6 @@
 # csv2rdf
 
-[![Build Status](https://travis-ci.org/Swirrl/csv2rdf.svg?branch=master)](https://travis-ci.org/Swirrl/csv2rdf)
+[![CircleCI](https://circleci.com/gh/Swirrl/csv2rdf/tree/master.svg?style=svg)](https://circleci.com/gh/Swirrl/csv2rdf/tree/master)
 
 Command line application (and clojure library) for converting [CSV to RDF](https://www.w3.org/TR/2015/REC-csv2rdf-20151217/) according to the specifications for [CSV on the web](https://w3c.github.io/csvw/).
 
