@@ -16,14 +16,33 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Test"
+          name: Test
           command: "clojure -T:build test"
       - store_test_results:
           path: test-results
 
+  deploy:
+    docker:
+      - image: cimg/clojure:1.10
+        auth:
+          username: $DOCKERHUB_USERNAME # can specify string literal values
+          password: $DOCKERHUB_PASSWORD # or project environment variable reference
+    # Add steps to the job
+    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+    steps:
+      - checkout
       - run:
           name: Build
           command: clojure -T:build build
+      - run:
+          name: Deploy
+          command: |
+            if [ -n "${CIRCLE_TAG}" ]; then
+               clojure -T:build deploy
+            else
+               /bin/echo "Not deploying, not a tagged commit"
+            fi
+
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
@@ -32,3 +51,15 @@ workflows:
       - test:
           context:
             - swirrl-dockerhub-consumer
+          filters:
+            tags:
+              only: /^v.*/
+      - deploy:
+          context:
+            - swirrl-dockerhub-consumer
+            - swirrl-clojars-publisher
+          requires:
+            - test
+          filters:
+            tags:
+              only: /^v.*/
