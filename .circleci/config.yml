@@ -24,6 +24,15 @@ jobs:
       - run:
           name: Build
           command: clojure -T:build build
+      - run:
+          name: Deploy
+          command: |
+            if [ -n "${CIRCLE_TAG}" ]; then
+               clojure -T:build deploy
+            else
+               /bin/echo "Not deploying, not a tagged commit
+            fi
+
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
