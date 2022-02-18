@@ -33,7 +33,7 @@ jobs:
       - checkout
       - run:
           name: Build
-          command: clojure -T:build build
+          command: clojure -T:build build-lib
       - run:
           name: Deploy
           command: |
