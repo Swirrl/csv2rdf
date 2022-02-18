@@ -31,4 +31,8 @@
 
            :build {:deps {io.github.seancorfield/build-clj
                           {:git/tag "v0.6.3" :git/sha "9b8e09b"}}
-                   :ns-default build}}}
+                   :ns-default build}
+
+           :gen-test-suite {:extra-deps {org.clojure/data.csv {:mvn/version "1.0.0"}}
+                            :extra-paths ["test" "test/resources"]
+                            :exec-fn csv2rdf.csvw-test.gen/write-tests-file}}}

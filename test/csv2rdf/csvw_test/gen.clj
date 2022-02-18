@@ -274,8 +274,8 @@
                [grafter-2.rdf4j.io :as gio])
      (:import [java.net URI URL])))
 
-(defn write-tests-file []
-  (with-open [writer (io/writer (io/file "test/csv2rdf/csvw_test.clj"))]
+(defn write-tests-file [{:keys [test-file] :or {test-file "test/csv2rdf/csvw_test.clj"}}]
+  (with-open [writer (io/writer (io/file test-file))]
     (binding [pp/*print-right-margin* 120
               pp/*print-pprint-dispatch* pp/code-dispatch]
       (pp/pprint ns-decl writer)
