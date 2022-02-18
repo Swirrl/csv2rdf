@@ -12,3 +12,4 @@ csv2rdf.iml
 .cpcache/
 /.lsp/
 /.clj-kondo/.cache
+/test-results/
