@@ -2,22 +2,14 @@
 
 [![Build Status](https://travis-ci.org/Swirrl/csv2rdf.svg?branch=master)](https://travis-ci.org/Swirrl/csv2rdf)
 
-Command line application (and clojure library) for converting [CSV to RDF](https://www.w3.org/TR/2015/REC-csv2rdf-20151217/) according to the specifications for [CSV on the web](https://w3c.github.io/csvw/)
+Command line application (and clojure library) for converting [CSV to RDF](https://www.w3.org/TR/2015/REC-csv2rdf-20151217/) according to the specifications for [CSV on the web](https://w3c.github.io/csvw/).
 
-## Native Builds 
+## Native Builds
 
 We have some experimental native builds of the command line app here:
 
 - For [linux x86](https://github.com/Swirrl/csv2rdf/releases/tag/graal-linux-0.4.7-SNAPSHOT-c8fe70c)
 - For [mac os](https://github.com/Swirrl/csv2rdf/releases/tag/graal-0.4.7-SNAPSHOT-8839f3f)
-
-## Building
-
-Standalone JARs can be built using [leiningen](https://leiningen.org/). After installing leiningen an uberjar can be built by running the following in the project root directory:
-
-    lein uberjar
-    
-This will create a `target/csv2rdf-VERSION-standalone.jar` which can be run.
 
 ## Running
 
@@ -62,9 +54,8 @@ need to be provided when processing from a metadata file since the metadata shou
 
 csv2rdf also exposes its functionality as a library - please see [the csv2rdf library](doc/library.md) for a description of the library and its interface.
 
-## Overview of the code
-
-See [overview of the code](doc/code.md) for an overview of the codebase.
+- See [overview of the code](doc/code.md) for an overview of the codebase.
+- See [Developing csv2rdf itself](doc/developing.md) for a quickstart guide on how to work on the library and application itself.
 
 ## License
 
