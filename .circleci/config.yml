@@ -1,0 +1,65 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+# See: https://circleci.com/docs/2.0/configuration-reference
+version: 2.1
+
+# Define a job to be invoked later in a workflow.
+# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
+jobs:
+  test:
+    docker:
+      - image: cimg/clojure:1.10
+        auth:
+          username: $DOCKERHUB_USERNAME # can specify string literal values
+          password: $DOCKERHUB_PASSWORD # or project environment variable reference
+    # Add steps to the job
+    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+    steps:
+      - checkout
+      - run:
+          name: Test
+          command: "clojure -T:build test"
+      - store_test_results:
+          path: test-results
+
+  deploy:
+    docker:
+      - image: cimg/clojure:1.10
+        auth:
+          username: $DOCKERHUB_USERNAME # can specify string literal values
+          password: $DOCKERHUB_PASSWORD # or project environment variable reference
+    # Add steps to the job
+    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+    steps:
+      - checkout
+      - run:
+          name: Build
+          command: clojure -T:build build-lib
+      - run:
+          name: Deploy
+          command: |
+            if [ -n "${CIRCLE_TAG}" ]; then
+               clojure -T:build deploy
+            else
+               /bin/echo "Not deploying, not a tagged commit"
+            fi
+
+# Invoke jobs via workflows
+# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
+workflows:
+  build-workflow:
+    jobs:
+      - test:
+          context:
+            - swirrl-dockerhub-consumer
+          filters:
+            tags:
+              only: /^v.*/
+      - deploy:
+          context:
+            - swirrl-dockerhub-consumer
+            - swirrl-clojars-publisher
+          requires:
+            - test
+          filters:
+            tags:
+              only: /^v.*/

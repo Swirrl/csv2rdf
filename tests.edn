@@ -1,0 +1,6 @@
+#kaocha/v1
+{:plugins [:kaocha.plugin/profiling :kaocha.plugin/junit-xml]
+ :kaocha.plugin.junit-xml/target-file "test-results/kaocha/results.xml"
+ :reporter kaocha.report.progress/progress
+ ;; :plugins [kaocha.plugin/profiling]
+ }
