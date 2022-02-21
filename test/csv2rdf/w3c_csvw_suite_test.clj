@@ -9,10 +9,9 @@
             [clojure.java.io :as io]
             [csv2rdf.w3c-csvw-suite-test.impl :refer [is-isomorphic? test-csv->rdf]]
             [csv2rdf.test-common :refer [->TestHttpClient]]
-            [csv2rdf.csvw :as csvw]
             [csv2rdf.http :as http]
             [grafter-2.rdf4j.io :as gio])
-  (:import [java.net URI URL]))
+  (:import [java.net URI]))
 
 (deftest
   ^

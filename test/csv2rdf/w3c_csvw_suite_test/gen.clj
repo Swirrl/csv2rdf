@@ -2,8 +2,10 @@
   (:require [clojure.data.csv :as csv]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [csv2rdf.http :as http]
-            [csv2rdf.w3c-csvw-suite-test.impl :refer :all]
+            #_:clj-kondo/ignore [csv2rdf.http :as http]
+            #_:clj-kondo/ignore [csv2rdf.w3c-csvw-suite-test.impl
+                                 :refer
+                                 [is-isomorphic? test-csv->rdf]]
             [clojure.pprint :as pp])
   (:import [java.io File]
            [java.net URI URL]))
@@ -275,10 +277,9 @@
                [clojure.java.io :as io]
                [csv2rdf.w3c-csvw-suite-test.impl :refer [is-isomorphic? test-csv->rdf]]
                [csv2rdf.test-common :refer [->TestHttpClient]]
-               [csv2rdf.csvw :as csvw]
                [csv2rdf.http :as http]
                [grafter-2.rdf4j.io :as gio])
-     (:import [java.net URI URL])))
+     (:import [java.net URI])))
 
 (defn write-tests-file [{:keys [test-file] :or {test-file "test/csv2rdf/w3c_csvw_suite_test.clj"}}]
   (with-open [writer (io/writer (io/file test-file))]
