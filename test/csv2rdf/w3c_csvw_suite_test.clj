@@ -1,12 +1,17 @@
-(ns csv2rdf.csvw-test
-  (:require [clojure.test :refer :all]
+(ns csv2rdf.w3c-csvw-suite-test
+  "WARNING THIS FILE IS GENERATED DO NOT EDIT BY HAND.
+
+  Generated test cases from the official W3C CSV Working Group's
+  test suite.
+
+  See csv2rdf.csvw-test.gen/write-tests-file for more details"
+  (:require [clojure.test :refer [deftest is]]
             [clojure.java.io :as io]
-            [csv2rdf.csvw-test.impl :refer :all]
+            [csv2rdf.w3c-csvw-suite-test.impl :refer [is-isomorphic? test-csv->rdf]]
             [csv2rdf.test-common :refer [->TestHttpClient]]
-            [csv2rdf.csvw :as csvw]
             [csv2rdf.http :as http]
             [grafter-2.rdf4j.io :as gio])
-  (:import [java.net URI URL]))
+  (:import [java.net URI]))
 
 (deftest
   ^

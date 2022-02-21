@@ -1,7 +1,7 @@
 (ns csv2rdf.examples-test
   (:require [clojure.test :as t]
             [clojure.java.io :as io]
-            [csv2rdf.csvw-test.impl :as impl]))
+            [csv2rdf.w3c-csvw-suite-test.impl :as impl]))
 
 ;; See issue 47
 ;; Resolving template property URIs with values containing spaces should work
