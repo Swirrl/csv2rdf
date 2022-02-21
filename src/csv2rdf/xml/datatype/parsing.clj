@@ -110,7 +110,7 @@
 
 (defn parse-integer [^String s]
   (BigInteger. s))
-(def parse-long #(Long/parseLong %))
+
 (def parse-int #(Integer/parseInt %))
 (def parse-short #(Short/parseShort %))
 
