@@ -7,7 +7,8 @@
             [clojure.data.json :as json]
             [clojure.string :as string])
   (:import [java.net URI]
-           [java.io File InputStream ByteArrayInputStream]))
+           [java.io File InputStream ByteArrayInputStream]
+           [java.nio.file Files Path OpenOption StandardOpenOption]))
 
 (defprotocol URIable
   "Represents an object with an associated URI."
@@ -18,7 +19,11 @@
   (->uri [file] (.toURI file))
 
   URI
-  (->uri [uri] uri))
+  (->uri [uri] uri)
+
+  Path
+  (->uri [p]
+    (.toUri p)))
 
 (defprotocol JSONSource
   "Protocol for loading a JSON map from a given source"
@@ -58,7 +63,11 @@
   (get-json [f] (read-json f))
 
   String
-  (get-json [s] (json/read-str s)))
+  (get-json [s] (json/read-str s))
+
+  Path
+  (get-json [p]
+    (read-json (Files/newInputStream p (into-array OpenOption [StandardOpenOption/READ])))))
 
 (defrecord MapMetadataSource [uri json]
   URIable
@@ -109,6 +118,10 @@
   (get-uri-input-stream uri))
 
 (defmethod request-uri-input-stream :file [uri]
+  {:headers {} :stream (io/input-stream uri)})
+
+;; support reading files in a zip (via API) via the jar protocol
+(defmethod request-uri-input-stream :jar [uri]
   {:headers {} :stream (io/input-stream uri)})
 
 (extend-protocol InputStreamRequestable
