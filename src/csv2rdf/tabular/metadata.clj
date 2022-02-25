@@ -1,6 +1,5 @@
 (ns csv2rdf.tabular.metadata
   (:require [csv2rdf.http :as http]
-            [clojure.data.json :as json]
             [csv2rdf.util :as util]
             [csv2rdf.uri-template :as template]
             [clojure.string :as string]
@@ -31,7 +30,7 @@
     (last (filter is-metadata-link? links))))
 
 (defn ^{:tabular-spec "5.2"} get-metadata-link-uri [^URI csv-uri csv-headers]
-  (if-let [link-header (get-metadata-link csv-headers)]
+  (when-let [link-header (get-metadata-link csv-headers)]
     (let [^URI link-uri (::http/link-uri link-header)]
       (.resolve csv-uri link-uri))))
 
@@ -39,7 +38,7 @@
   "Tries to fetch the linked metadata from the given URI. Returns nil on any errors or if the request fails."
   [metadata-uri]
   (let [{:keys [body] :as response} (http/get-uri metadata-uri)]
-    (if (http/is-ok-response? response)
+    (when (http/is-ok-response? response)
       (source/get-json body))))
 
 
@@ -66,9 +65,9 @@
     has-reference?))
 
 (defn ^{:tabular-spec "5.2"} try-resolve-linked-metadata [csv-uri metadata-uri]
-  (if (some? metadata-uri)
-    (if-let [metadata (try-get-linked-metadata metadata-uri)]
-      (if (linked-metadata-references-data-file? csv-uri metadata-uri metadata)
+  (when (some? metadata-uri)
+    (when-let [metadata (try-get-linked-metadata metadata-uri)]
+      (when (linked-metadata-references-data-file? csv-uri metadata-uri metadata)
         metadata))))
 
 (def ^{:tabular-spec "5.3"} ^URI well-known-site-wide-configuration-uri (URI. "/.well-known/csvm"))
@@ -104,15 +103,15 @@
       default-location-templates))
 
 (defn ^{:tabular-spec "5.3"} ^URI try-expand-location-template [csv-uri template-string]
-  (if-let [template (template/try-parse-template template-string)]
+  (when-let [template (template/try-parse-template template-string)]
     (template/expand-template template {:url (util/remove-fragment csv-uri)})))
 
 (defn try-resolve-template-uri [^URI csv-uri template]
-  (if-let [template-uri (try-expand-location-template csv-uri template)]
+  (when-let [template-uri (try-expand-location-template csv-uri template)]
     (.resolve csv-uri template-uri)))
 
 (defn try-resolve-template-metadata [csv-uri template-uris]
-  (if (seq template-uris)
+  (when (seq template-uris)
     (if-let [metadata (try-resolve-linked-metadata csv-uri (first template-uris))]
       metadata
       (recur csv-uri (rest template-uris)))))
