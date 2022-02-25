@@ -82,8 +82,13 @@
     (string/split-lines body)))
 
 (defn ^{:tabular-spec "5.3"} try-get-location-templates [uri]
-  (let [{:keys [body] :as response} (http/get-uri uri)]
-    (if-not (http/is-not-found-response? response)
+  (let [{:keys [body] :as response}
+        (try
+          (http/get-uri uri)
+          (catch clojure.lang.ExceptionInfo exi
+            (select-keys (ex-data exi)
+                         [:status :body])))]
+    (when-not (http/is-not-found-response? response)
       (parse-response-location-templates body))))
 
 (defn try-get-site-wide-configuration-templates [^URI csv-uri]
