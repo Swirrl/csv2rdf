@@ -135,7 +135,7 @@
 (defmethod get-uri-metadata :file [uri]
   (io-source->embedded-metadata uri))
 
-(defmethod get-uri-metadata :http [uri]
+(defn- fetch-web [uri]
   (let [{:keys [headers ^InputStream stream]} (source/request-input-stream uri)
         metadata-link (get-metadata-link-uri uri headers)]
     (if-let [metadata-doc (resolve-associated-metadata uri metadata-link)]
@@ -146,6 +146,12 @@
             options (dialect/dialect->options dialect)
             rows (reader/make-row-seq stream options)]
         (csv/rows->embedded-metadata uri options rows)))))
+
+(defmethod get-uri-metadata :http [uri]
+  (fetch-web uri))
+
+(defmethod get-uri-metadata :https [uri]
+  (fetch-web uri))
 
 (defprotocol MetadataLocator
   (get-metadata [tabular-source]))
