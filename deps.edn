@@ -11,7 +11,7 @@
            :with-logging
            {:extra-paths ["profiles/with-logging/resources"]
             :extra-deps
-            {org.apache.logging.log4j/log4j-api {:mvn/version "2.17.1"}
+            {org.apache.logging.log4j/log4j-api {:mvn/version "2.17.2"}
              org.apache.logging.log4j/log4j-core {:mvn/version "2.17.1"}
              org.apache.logging.log4j/log4j-slf4j-impl {:mvn/version "2.17.1"}}}
            :dev {
