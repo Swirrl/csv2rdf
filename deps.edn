@@ -25,7 +25,7 @@
             {lambdaisland/kaocha {:mvn/version "1.67.1055"}
              lambdaisland/kaocha-junit-xml {:mvn/version "0.0.76"}
              org.clojure/test.check {:mvn/version "1.1.1"}
-             org.clojure/data.csv {:mvn/version "1.0.0"}}
+             org.clojure/data.csv {:mvn/version "1.0.1"}}
             :extra-paths ["test" "test/resources"]
             :main-opts ["-m" "kaocha.runner"]}
 
@@ -33,6 +33,6 @@
                           {:git/tag "v0.6.3" :git/sha "9b8e09b"}}
                    :ns-default build}
 
-           :gen-test-suite {:extra-deps {org.clojure/data.csv {:mvn/version "1.0.0"}}
+           :gen-test-suite {:extra-deps {org.clojure/data.csv {:mvn/version "1.0.1"}}
                             :extra-paths ["test" "test/resources"]
                             :exec-fn csv2rdf.w3c-csvw-suite-test.gen/write-tests-file}}}
