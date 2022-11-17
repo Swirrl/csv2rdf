@@ -4,7 +4,7 @@
         com.github.java-json-tools/uri-template {:mvn/version "0.10"}
         org.apache.httpcomponents/httpcore {:mvn/version "4.4.15"}
         clj-http/clj-http                  {:mvn/version "3.12.3"}
-        org.clojure/tools.cli              {:mvn/version "1.0.206"}
+        org.clojure/tools.cli              {:mvn/version "1.0.214"}
         org.clojure/tools.logging          {:mvn/version "1.2.4"}
         org.slf4j/slf4j-api                {:mvn/version "1.7.36"}}
  :aliases {:cli {:main-opts ["-m" "csv2rdf.main"]}
