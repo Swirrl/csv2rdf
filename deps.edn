@@ -22,7 +22,7 @@
                  }
            :test
            {:extra-deps
-            {lambdaisland/kaocha {:mvn/version "1.76.1230"}
+            {lambdaisland/kaocha {:mvn/version "1.77.1236"}
              lambdaisland/kaocha-junit-xml {:mvn/version "1.17.101"}
              org.clojure/test.check {:mvn/version "1.1.1"}
              org.clojure/data.csv {:mvn/version "1.0.1"}}
