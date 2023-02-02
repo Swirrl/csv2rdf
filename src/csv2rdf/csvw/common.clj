@@ -6,7 +6,7 @@
             [csv2rdf.xml.datatype.canonical :as xml-canonical]
             [csv2rdf.metadata.properties :as properties])
   (:import [java.net URI]
-           [org.eclipse.rdf4j.model.impl URIImpl]))
+           [org.eclipse.rdf4j.model.impl SimpleValueFactory]))
 
 (def bnode-id-counter (atom 0))
 
@@ -22,13 +22,15 @@
             (properties/suppress-output? column))
           cells))
 
+(def ^:private value-factory (SimpleValueFactory/getInstance))
+
 (defn set-encoded-fragment
   "Returns a sesame URI containing for the given URI whose fragment is replaced with the encoded string. The java URI
    constructor encodes only % character within fragements, so cannot be used to encode an unencoded fragment. When
    given an encoded fragment, it encodes the % character which leads to a double-encoding. The sesame URIImpl does
    not process the constructed string so can be used when output."
   [^URI uri encoded-fragment]
-  (URIImpl. (str (.getScheme uri) ":" (.getRawSchemeSpecificPart uri) "#" encoded-fragment)))
+  (.createIRI value-factory (str (.getScheme uri) ":" (.getRawSchemeSpecificPart uri) "#" encoded-fragment)))
 
 (defn column-about-url [tabular-data-file-url column]
   (set-encoded-fragment tabular-data-file-url (properties/column-name column)))
