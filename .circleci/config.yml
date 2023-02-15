@@ -48,6 +48,9 @@ jobs:
       - image: cimg/clojure:1.10
     steps:
       - checkout
+      # This doesn't change between deploys, so we could speed this up by
+      # using a custom image based on cimg/clojure which includes graalvm.
+      # However it doesn't take long, so this is probably fine for now.
       - run:
           name: Install graalvm
           command: |
@@ -59,6 +62,15 @@ jobs:
           command: bin/compile
           environment:
             GRAALVM_HOME: graalvm-ce-java17-22.3.1
+      # Based on https://circleci.com/blog/publishing-to-github-releases-via-circleci/
+      # Installing ghr is also a candidate for inclusion in a custom image.
+      - run:
+          name: Publish
+          command: |
+            wget https://github.com/tcnksm/ghr/releases/download/v0.16.0/ghr_v0.16.0_linux_amd64.tar.gz
+            tar -xzf ghr_v0.16.0_linux_amd64.tar.gz
+            ghr_v0.16.0_linux_amd64/ghr -u swirrl -r csv2rdf -generatenotes \
+              -c "${CIRCLE_TAG}" "${CIRCLE_TAG}" csv2rdf
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -70,7 +82,7 @@ workflows:
             - swirrl-dockerhub-consumer
           filters:
             tags:
-              only: /^v.*/
+              only: /.*/
       - deploy-jar:
           context:
             - swirrl-dockerhub-consumer
@@ -79,13 +91,15 @@ workflows:
             - test
           filters:
             tags:
-              only: /^v.*/
+              only: /.*/
       - deploy-graal-binary:
           context:
             - swirrl-dockerhub-consumer
+            - github-publish-releases
           requires:
             - test
-          # TODO uncomment
-          # filters:
-          #   tags:
-          #     only: /^v.*/
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
