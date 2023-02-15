@@ -20,8 +20,6 @@ echo "Compiling native-image"
     --initialize-at-build-time  \
     --verbose \
     --no-fallback \
-    --no-server \
-    --allow-incomplete-classpath \
     --report-unsupported-elements-at-runtime \
     --initialize-at-run-time=org.apache.http.impl.auth.NTLMEngineImpl \
     -H:ReflectionConfigurationFiles=nativecfg/reflect-config.json \
