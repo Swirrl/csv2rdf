@@ -67,7 +67,9 @@ jobs:
             tar -xzf ghr_v0.16.0_linux_amd64.tar.gz
       - run:
           name: Build
-          command: bin/compile
+          command: |
+            bin/compile
+            mv csv2rdf csv2rdf-linux
           environment:
             GRAALVM_HOME: graalvm-ce-java17-22.3.1
       # Based on https://circleci.com/blog/publishing-to-github-releases-via-circleci/
@@ -80,7 +82,48 @@ jobs:
               -c "${CIRCLE_SHA1}" \
               -generatenotes \
               "${CIRCLE_TAG}" \
-              csv2rdf
+              csv2rdf-linux
+
+  deploy-darwin-binary:
+    macos:
+      xcode: 14.2.0
+    steps:
+      - checkout
+      - run:
+          name: Install clojure
+          command: brew install clojure
+          environment:
+            HOMEBREW_NO_AUTO_UPDATE: 1
+      - run:
+          name: Install graalvm
+          command: |
+            wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.1/graalvm-ce-java17-darwin-amd64-22.3.1.tar.gz
+            tar -xzf graalvm-ce-java17-darwin-amd64-22.3.1.tar.gz
+            ls graalvm-ce-java17-22.3.1
+            graalvm-ce-java17-22.3.1/bin/gu install native-image
+      - run:
+          name: Install ghr
+          command: |
+            wget https://github.com/tcnksm/ghr/releases/download/v0.16.0/ghr_v0.16.0_darwin_amd64.tar.gz
+            tar -xzf ghr_v0.16.0_darwin_amd64.tar.gz
+      - run:
+          name: Build
+          command: |
+            bin/compile
+            mv csv2rdf csv2rdf-darwin
+          environment:
+            GRAALVM_HOME: graalvm-ce-java17-22.3.1
+      # Based on https://circleci.com/blog/publishing-to-github-releases-via-circleci/
+      - run:
+          name: Publish
+          command: |
+            ghr_v0.16.0_darwin_amd64/ghr \
+              -u "${CIRCLE_PROJECT_USERNAME}" \
+              -r "${CIRCLE_PROJECT_REPONAME}" \
+              -c "${CIRCLE_SHA1}" \
+              -generatenotes \
+              "${CIRCLE_TAG}" \
+              csv2rdf-darwin
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -103,6 +146,16 @@ workflows:
             tags:
               only: /.*/
       - deploy-linux-binary:
+          context:
+            - github-publish-releases
+          requires:
+            - test
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
+      - deploy-darwin-binary:
           context:
             - github-publish-releases
           requires:
