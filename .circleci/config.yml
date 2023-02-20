@@ -43,9 +43,9 @@ jobs:
                /bin/echo "Not deploying, not a tagged commit"
             fi
 
-  deploy-graal-binary:
-    docker:
-      - image: cimg/clojure:1.10
+  deploy-linux-binary:
+    machine:
+      image: ubuntu-2204:2022.10.2
     steps:
       - checkout
       # This doesn't change between deploys, so we could speed this up by
@@ -100,7 +100,7 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - deploy-graal-binary:
+      - deploy-linux-binary:
           context:
             - swirrl-dockerhub-consumer
             - github-publish-releases
