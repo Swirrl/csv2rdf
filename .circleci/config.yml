@@ -43,21 +43,23 @@ jobs:
                /bin/echo "Not deploying, not a tagged commit"
             fi
 
-  deploy-graal-binary:
-    docker:
-      - image: cimg/clojure:1.10
+  deploy-linux-binary:
+    machine:
+      image: ubuntu-2204:2022.10.2
     steps:
       - checkout
-      # This doesn't change between deploys, so we could speed this up by
-      # using a custom image based on cimg/clojure which includes graalvm.
-      # However it doesn't take long, so this is probably fine for now.
+      - run:
+          name: Install clojure
+          command: |
+            wget https://download.clojure.org/install/linux-install-1.11.1.1224.sh
+            chmod +x linux-install-1.11.1.1224.sh
+            sudo ./linux-install-1.11.1.1224.sh
       - run:
           name: Install graalvm
           command: |
             wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.1/graalvm-ce-java17-linux-amd64-22.3.1.tar.gz
             tar -xzf graalvm-ce-java17-linux-amd64-22.3.1.tar.gz
             graalvm-ce-java17-22.3.1/bin/gu install native-image
-      # This is also a candidate for inclusion in a custom image
       - run:
           name: Install ghr
           command: |
@@ -100,9 +102,8 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - deploy-graal-binary:
+      - deploy-linux-binary:
           context:
-            - swirrl-dockerhub-consumer
             - github-publish-releases
           requires:
             - test
