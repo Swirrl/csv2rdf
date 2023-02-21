@@ -6,10 +6,8 @@ Command line application (and clojure library) for converting [CSV to RDF](https
 
 ## Native Builds
 
-We have some experimental native builds of the command line app here:
-
-- For [linux x86](https://github.com/Swirrl/csv2rdf/releases/tag/graal-linux-0.4.7-SNAPSHOT-c8fe70c)
-- For [mac os](https://github.com/Swirrl/csv2rdf/releases/tag/graal-0.4.7-SNAPSHOT-8839f3f)
+We have some experimental native builds of the command line app attached to
+[releases](https://github.com/Swirrl/csv2rdf/releases).
 
 ## Running
 
