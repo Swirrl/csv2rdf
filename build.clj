@@ -52,7 +52,7 @@
   "Build an uberjar for the command line app"
   [_]
   (clean nil)
-  (b/copy-dir {:src-dirs ["resources"]
+  (b/copy-dir {:src-dirs ["resources" "profiles/with-logging/resources"]
                :target-dir class-dir})
   (let [basis (b/create-basis {:aliases [:cli :with-logging]})]
     (b/compile-clj {:basis basis
