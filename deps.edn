@@ -22,7 +22,7 @@
                  }
            :test
            {:extra-deps
-            {lambdaisland/kaocha {:mvn/version "1.76.1230"}
+            {lambdaisland/kaocha {:mvn/version "1.80.1274"}
              io.github.swirrl/grafter.repository {:mvn/version "3.0.0"}
              lambdaisland/kaocha-junit-xml {:mvn/version "1.17.101"}
              org.clojure/test.check {:mvn/version "1.1.1"}
