@@ -3,7 +3,7 @@ name: Clojure Dependency Checking
 on: 
   workflow_dispatch:
   schedule: 
-  - cron: "0 2 * * 1-5"
+  - cron: "0 0 1 * *"
 
 jobs:
   build:
