@@ -2,7 +2,22 @@
   "resources":{
   "includes":[
     {
+      "pattern":"\\QMETA-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat\\E"
+    }, 
+    {
+      "pattern":"\\QMETA-INF/services/org.apache.logging.log4j.core.util.ContextDataProvider\\E"
+    }, 
+    {
+      "pattern":"\\QMETA-INF/services/org.apache.logging.log4j.spi.Provider\\E"
+    }, 
+    {
+      "pattern":"\\QMETA-INF/services/org.apache.logging.log4j.util.PropertySource\\E"
+    }, 
+    {
       "pattern":"\\QMETA-INF/services/org.eclipse.rdf4j.rio.RDFWriterFactory\\E"
+    }, 
+    {
+      "pattern":"\\QMETA-INF/services/org.slf4j.spi.SLF4JServiceProvider\\E"
     }, 
     {
       "pattern":"\\Qclj_http/lite/client.clj\\E"
@@ -36,6 +51,9 @@
     }, 
     {
       "pattern":"\\Qclojure/core/server__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/core/specs/alpha.clj\\E"
     }, 
     {
       "pattern":"\\Qclojure/core__init.class\\E"
@@ -177,6 +195,18 @@
     }, 
     {
       "pattern":"\\Qclojure/tools/cli__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/logging.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/logging/impl.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/logging/impl__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/logging__init.class\\E"
     }, 
     {
       "pattern":"\\Qclojure/uuid.clj\\E"
@@ -350,12 +380,6 @@
       "pattern":"\\Qcsv2rdf/metadata__init.class\\E"
     }, 
     {
-      "pattern":"\\Qcsv2rdf/println_logger.clj\\E"
-    }, 
-    {
-      "pattern":"\\Qcsv2rdf/println_logger__init.class\\E"
-    }, 
-    {
       "pattern":"\\Qcsv2rdf/source.clj\\E"
     }, 
     {
@@ -482,7 +506,7 @@
       "pattern":"\\Qgrafter_2/rdf4j/io__init.class\\E"
     }, 
     {
-      "pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"
+      "pattern":"\\Qlog4j2.xml\\E"
     }, 
     {
       "pattern":"\\Qslingshot/slingshot.clj\\E"

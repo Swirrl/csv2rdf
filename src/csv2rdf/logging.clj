@@ -1,11 +1,18 @@
 (ns csv2rdf.logging
   "Entry point for logging messages during the CSVW process. Components should call log-warning and log-error
    instead of writing log messages directly. The sink for log messages can be configured by setting *logger*."
-  (:require [csv2rdf.println-logger :as log]))
+  (:require [clojure.tools.logging :as log]))
 
 (defprotocol Logger
   (warn [this msg])
   (error [this msg]))
+
+;; For use with GraalVM since clojure.tools.logging relies on a lot of
+;; reflection that doesn't seem to work properly in native images.
+(defrecord PrintlnLogger []
+  Logger
+  (warn [_ msg] (println msg))
+  (error [_ msg] (println msg)))
 
 (defrecord MemoryLogger [warnings errors]
   Logger

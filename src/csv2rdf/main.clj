@@ -5,7 +5,7 @@
             [clojure.java.io :as io]
             [grafter-2.rdf4j.io :as gio]
             [grafter-2.rdf4j.formats :as formats]
-            [csv2rdf.println-logger :as log])
+            [csv2rdf.logging :as log])
   (:import [java.net URI URISyntaxException]
            [org.eclipse.rdf4j.rio RDFFormat]))
 
@@ -60,12 +60,12 @@
           (fn [ex] (:type (ex-data ex))))
 
 (defmethod display-error :default [ex]
-  (log/error ex))
+  (log/log-error ex))
 
 (defmethod display-error ::invalid-cli-arguments [ex]
   (let [{:keys [errors summary]} (ex-data ex)]
     (doseq [e errors]
-      (log/error e))
+      (log/log-error e))
     (println "Usage:")
     (println summary)))
 
@@ -84,7 +84,12 @@
 
 (defn- -main [& args]
   (try
-    (inner-main args)
+    ;; Check if we're running on GraalVM
+    ;; https://github.com/oracle/graal/blob/39c80292e2f92822a3882c1350226706abd78917/sdk/src/org.graalvm.nativeimage/src/org/graalvm/nativeimage/ImageInfo.java#L132
+    (if (System/getProperty "org.graalvm.nativeimage.imagecode")
+      (log/with-logger (log/->PrintlnLogger)
+        (inner-main args))
+      (inner-main args))
     (System/exit 0)
     (catch Throwable ex
       (display-error ex)
