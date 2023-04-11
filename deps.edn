@@ -6,7 +6,7 @@
         org.martinklepsch/clj-http-lite    {:mvn/version "0.4.1"}
         org.clojure/tools.cli              {:mvn/version "1.0.214"}
         org.clojure/tools.logging          {:mvn/version "1.2.4"}
-        org.slf4j/slf4j-api                {:mvn/version "2.0.6"}}
+        org.slf4j/slf4j-api                {:mvn/version "2.0.7"}}
  :aliases {:cli {:main-opts ["-m" "csv2rdf.main"]}
            :with-logging
            {:extra-paths ["profiles/with-logging/resources"]
@@ -22,7 +22,7 @@
                  }
            :test
            {:extra-deps
-            {lambdaisland/kaocha {:mvn/version "1.80.1274"}
+            {lambdaisland/kaocha {:mvn/version "1.82.1306"}
              io.github.swirrl/grafter.repository {:mvn/version "3.0.0"}
              lambdaisland/kaocha-junit-xml {:mvn/version "1.17.101"}
              org.clojure/test.check {:mvn/version "1.1.1"}
