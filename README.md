@@ -54,6 +54,10 @@ csv2rdf also exposes its functionality as a library - please see [the csv2rdf li
 - See [overview of the code](doc/code.md) for an overview of the codebase.
 - See [Developing csv2rdf itself](doc/developing.md) for a quickstart guide on how to work on the library and application itself.
 
+## Deploying new builds
+
+In order to compile and deploy new native image builds for all our supported architectures, just create a release in the Github UI tagged to a commit.
+
 ## License
 
 Copyright © 2018 Swirrl IT Ltd.
