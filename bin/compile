@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+if [ -z "$GRAALVM_HOME" ]; then
+    echo 'Please set GRAALVM_HOME'
+    exit 1
+fi
+
+mkdir -p classes
+
+echo "AOT compiling clojure"
+clojure -M -e "(compile 'csv2rdf.main)"
+echo "Clojure compilation completed"
+
+echo "Compiling native-image"
+"$GRAALVM_HOME/bin/native-image" \
+    -cp "$(clojure -Spath):classes" \
+    -H:Name=csv2rdf \
+    -H:+ReportExceptionStackTraces \
+    -H:EnableURLProtocols=http,https \
+    --initialize-at-build-time  \
+    --verbose \
+    --no-fallback \
+    --report-unsupported-elements-at-runtime \
+    --initialize-at-run-time=org.apache.http.impl.auth.NTLMEngineImpl \
+    -H:ReflectionConfigurationFiles=nativecfg/reflect-config.json \
+    "-J-Xmx3g" \
+    csv2rdf.main

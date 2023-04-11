@@ -1,0 +1,23 @@
+#! /usr/bin/env bash
+
+# see https://www.graalvm.org/22.1/reference-manual/native-image/Agent/
+
+set -euo pipefail
+
+csv2rdf() {
+    "${GRAALVM_HOME}"/bin/java \
+        -agentlib:native-image-agent=config-merge-dir=nativecfg \
+        -jar target/csv2rdf-app.jar "$@"
+}
+
+clojure -T:build build-app
+
+for f in w3c-csvw/tests/*.csv; do
+    echo "tracing with $f"
+    csv2rdf -t "$f" &>/dev/null || true
+done
+
+for f in w3c-csvw/tests/*-metadata.json; do
+    echo "tracing with $f"
+    csv2rdf -u "$f" &>/dev/null || true
+done

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+~/.jabba/bin/jabba install graalvm-ce-java11@21.0.0

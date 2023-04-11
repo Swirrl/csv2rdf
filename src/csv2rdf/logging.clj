@@ -7,6 +7,13 @@
   (warn [this msg])
   (error [this msg]))
 
+;; For use with GraalVM since clojure.tools.logging relies on a lot of
+;; reflection that doesn't seem to work properly in native images.
+(defrecord PrintlnLogger []
+  Logger
+  (warn [_ msg] (println msg))
+  (error [_ msg] (println msg)))
+
 (defrecord MemoryLogger [warnings errors]
   Logger
   (warn [_this msg] (swap! warnings conj msg))
