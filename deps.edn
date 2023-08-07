@@ -30,9 +30,17 @@
             :extra-paths ["test" "test/resources"]
             :main-opts ["-m" "kaocha.runner"]}
 
-           :build {:deps {io.github.seancorfield/build-clj
-                          {:git/tag "v0.6.3" :git/sha "9b8e09b"}}
+           :build {:deps {io.github.seancorfield/build-clj {:git/tag "v0.6.3" :git/sha "9b8e09b"}
+                          io.github.juxt/pack.alpha {:git/sha "802b3d6347376db51093d122eb4b8cf8a7bbd7cf"}
+                          com.google.cloud.tools/jib-core {:mvn/version "0.23.0"}}
+                   
                    :ns-default build}
+
+           :docker {:jvm-opts ["-Xmx4g"
+                               "-Dcom.sun.management.jmxremote.ssl=false"
+                               "-Dcom.sun.management.jmxremote.authenticate=false"
+                               "-Dcom.sun.management.jmxremote.port=3007"]
+                    :main-opts ["-m" "csv2rdf.main"]}
 
            :gen-test-suite {:extra-deps {org.clojure/data.csv {:mvn/version "1.0.1"}}
                             :extra-paths ["test" "test/resources"]
