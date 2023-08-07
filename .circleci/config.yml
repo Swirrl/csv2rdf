@@ -124,6 +124,18 @@ jobs:
               "${CIRCLE_TAG}" \
               csv2rdf-darwin.tar.gz
 
+  deploy-docker:
+    docker:
+      - image: cimg/clojure:1.11.1
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run:
+          name: "Deploy csv2rdf docker to public image repository"
+          command: clojure -T:build docker :image-type :registry :to :remote
+
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
@@ -164,3 +176,9 @@ workflows:
               only: /.*/
             branches:
               ignore: /.*/
+      - deploy-docker:
+          context:
+            - gcp-artifact-registry
+            - swirrl-dockerhub-consumer
+          requires:
+            - test
