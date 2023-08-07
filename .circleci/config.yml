@@ -182,6 +182,3 @@ workflows:
             - swirrl-dockerhub-consumer
           requires:
             - test
-          filters:
-            tags:
-              only: /.*/
