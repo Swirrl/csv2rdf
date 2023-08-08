@@ -47,6 +47,16 @@ need to be provided when processing from a metadata file since the metadata shou
 
     java -jar csv2rdf-standalone.jar -u /path/to/metadata/file.json -o output.ttl
 
+### Running with docker
+
+Docker images are published to the public repository `europe-west2-docker.pkg.dev/swirrl-devops-infrastructure-1/public/csv2rdf`.
+These can be run by specifying the image version to run, and mapping volumes into the container to make local files available within
+the container e.g.
+
+    docker run --rm -v .:/data europe-west2-docker.pkg.dev/swirrl-devops-infrastructure-1/public/csv2rdf:v0.7 -t /data/input.csv -o /data/output.ttl
+
+Note that file paths should be specified relative to the container, not the local system.
+
 ## Using as a library
 
 csv2rdf also exposes its functionality as a library - please see [the csv2rdf library](doc/library.md) for a description of the library and its interface.
