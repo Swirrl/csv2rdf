@@ -54,6 +54,8 @@ need to be provided when processing from a metadata file since the metadata shou
 
     csv2rdf -u /path/to/metadata/file.json -o output.ttl
 
+The RDFization mode will validate the data, and report any errors to the console.  Currently by default validation errors are ignored, if you want to fail on a validation error then you should run a pass over the data with the `--validate-data` flag set.
+
 ### Validation
 
 You can also use `csv2rdf` to validate data against a CSVW TableSchema, by using the `--validate-data` flag.  In this mode `csv2rdf` will only perform validation, reporting errors to stdout.  Additionally it will return a non-zero exit code of `2` if any validation failures are found.
