@@ -20,6 +20,53 @@
         annotated-rows (csv/annotated-rows url table dialect)]
     (table-statements context table annotated-rows)))
 
+(defn annotate-tables [tabular-source metadata-source]
+  (processing/get-metadata tabular-source metadata-source))
+
+(defn- validate-rows
+  "Validates the CSVW schema for the given tabular file, metadata and options.
+
+  `tabular-source` and `metadata-source` can be any of the following
+  types:
+
+     - java.io.File
+     - java.lang.String
+     - java.net.URI
+     - java.nio.file.Path (including nio Paths that are inside zip filesystems)
+
+  If metadata-source is non-nil then processing will start from the
+  asscociated metadata document, otherwise it will start from
+  tabular-source."
+  [tabular-source metadata-source]
+  (let [{:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source)
+        table-group-dialect (:dialect metadata)
+        output-tables (remove properties/suppress-output? tables)
+        ;;ctx (table-group-context mode metadata)  ;; TODO this might be useful later when iterating over tables
+        ]
+
+    (util/liberal-mapcat (fn [{:keys [url dialect] :as table}]
+                           ;;(validated-rows ctx table table-group-dialect)
+                           (let [dialect (or dialect table-group-dialect)]
+                             (csv/annotated-rows url table dialect)))
+
+                         output-tables)))
+
+(defn only-validate-schema
+  "Only validate the data against the schemas in the metadata file, and
+  report errors.  Does not convert into RDF.
+
+  Returns a map with the key `:data-validation-errors?` set to a
+  boolean indicating whether any schema errors occurred."
+  [{:keys [tabular-source metadata-source]}]
+  (let [errors? (atom false)]
+    (doseq [{:keys [cells] row-number :source-number :as _row} (validate-rows tabular-source metadata-source)
+            {:keys [errors column-number column] :as _cell} cells
+            :when (seq errors)]
+      (reset! errors? true)
+      (doseq [error errors]
+        (println (format "Row #%d col #%d (column '%s') has error: " row-number column-number (:name column)) error)))
+    {:data-validation-errors? @errors?}))
+
 (defn csv->rdf
   "Runs the CSVW process for the given tabular or metadata data sources
   and options.

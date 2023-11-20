@@ -14,6 +14,7 @@
 (def options-spec
   [["-t" "--tabular TABULAR" "Location of the tabular file"]
    ["-u" "--user-metadata METADATA" "Location of the metadata file"]
+   ["-d" "--validate-data" "Validate the data against the schema only (no RDFization)"]
    ["-o" "--output-file OUTPUT" "Output file to write to"]
    ["-m" "--mode MODE" "CSVW mode to run"
     :validate [#(contains? #{:minimal :standard :annotated} %)]
@@ -69,18 +70,28 @@
     (println "Usage:")
     (println summary)))
 
-(defn- inner-main [args]
+
+
+(defn inner-main [args]
   (let [options (parse-cli-options args)
-        {:keys [mode tabular user-metadata output-file]} options
+        {:keys [mode tabular user-metadata output-file validate-data]} options
         opts {:tabular-source (some-> tabular parse-source)
               :metadata-source (some-> user-metadata parse-source)
               :rdf-format (or (some-> output-file formats/->rdf-format) RDFFormat/TURTLE)
               :mode mode}
         output-file (some-> output-file io/file)]
-    (if output-file
-      (with-open [w (io/writer output-file)]
-        (write-output w opts))
-      (write-output (io/writer *out*) opts))))
+
+    (cond validate-data (csvw/only-validate-schema opts)
+
+          :else (if output-file
+                  (with-open [w (io/writer output-file)]
+                    (write-output w opts))
+                  (write-output (io/writer *out*) opts)))))
+
+(defn main-with-exit! [args]
+  (if (:data-validation-errors? (inner-main args))
+    (System/exit 2)
+    (System/exit 0)))
 
 (defn- -main [& args]
   (try
@@ -88,9 +99,8 @@
     ;; https://github.com/oracle/graal/blob/39c80292e2f92822a3882c1350226706abd78917/sdk/src/org.graalvm.nativeimage/src/org/graalvm/nativeimage/ImageInfo.java#L132
     (if (System/getProperty "org.graalvm.nativeimage.imagecode")
       (log/with-logger (log/->PrintlnLogger)
-        (inner-main args))
-      (inner-main args))
-    (System/exit 0)
+        (main-with-exit! args))
+      (main-with-exit! args))
     (catch Throwable ex
       (display-error ex)
       (System/exit 1))))
@@ -98,6 +108,7 @@
 
 (comment
 
+  (inner-main ["-s" "-t" "/Users/rick/repos/dclg-epcs/resources/public/csvw/basic/certificates.csv" "-u" "/Users/rick/repos/dclg-epcs/resources/public/csvw/basic/epc_domestic.json"])
   (time (inner-main ["-t" "out/hmrc-rts-small-area.csv" "-u" "out/hmrc-rts-small-area.csv-metadata.json" "-m" "annotated" "-o" "cube.nt"]))
 
   (require '[clj-async-profiler.core :as prof])
