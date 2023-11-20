@@ -5,7 +5,8 @@
             [clojure.java.io :as io]
             [grafter-2.rdf4j.io :as gio]
             [grafter-2.rdf4j.formats :as formats]
-            [csv2rdf.logging :as log])
+            [csv2rdf.logging :as log]
+            [clojure.data.json :as json])
   (:import [java.net URI URISyntaxException]
            [org.eclipse.rdf4j.rio RDFFormat]))
 
@@ -14,7 +15,7 @@
 (def options-spec
   [["-t" "--tabular TABULAR" "Location of the tabular file"]
    ["-u" "--user-metadata METADATA" "Location of the metadata file"]
-   ["-s" "--validate-schema" "Validate the schema only"]
+   ["-a" "--annotated-table-data" "Return the Annotated Table Data as JSON"]
    ["-d" "--validate-data" "Validate the data against the schema only (no RDFization)"]
    ["-o" "--output-file OUTPUT" "Output file to write to"]
    ["-m" "--mode MODE" "CSVW mode to run"
@@ -72,10 +73,36 @@
     (println summary)))
 
 
+(defn- write-uri [^java.net.URI x ^Appendable out options]
+  (.append out \")
+  (.append out (.toString x))
+  (.append out \"))
+
+(defn- write-date-time-format [^java.time.format.DateTimeFormatter x ^Appendable out options]
+  (.append out \")
+  (.append out (.toString x))
+  (.append out \"))
+
+(extend java.net.URI json/JSONWriter {:-write write-uri})
+(extend java.time.format.DateTimeFormatter json/JSONWriter {:-write write-date-time-format})
+
+(defn- json-key-fn
+  [x]
+  (cond (instance? clojure.lang.Named x)
+        (if (namespace x)
+          (.substring (str x) 1)
+          (name x))
+        (nil? x)
+        (throw (Exception. "JSON object properties may not be nil"))
+        :else (str x)))
+
+(defn pprint-annotated-tables [{:keys [tabular-source metadata-source]}]
+  (json/pprint (csvw/annotate-tables tabular-source metadata-source)
+               {:key-fn json-key-fn}))
 
 (defn inner-main [args]
   (let [options (parse-cli-options args)
-        {:keys [mode tabular user-metadata output-file validate-data annotate-tables]} options
+        {:keys [mode tabular user-metadata output-file validate-data annotated-table-data]} options
         opts {:tabular-source (some-> tabular parse-source)
               :metadata-source (some-> user-metadata parse-source)
               :rdf-format (or (some-> output-file formats/->rdf-format) RDFFormat/TURTLE)
@@ -83,6 +110,7 @@
         output-file (some-> output-file io/file)]
 
     (cond validate-data (csvw/only-validate-schema opts)
+          annotated-table-data (pprint-annotated-tables opts)
 
           :else (if output-file
                   (with-open [w (io/writer output-file)]
@@ -109,7 +137,10 @@
 
 (comment
 
-  (inner-main ["-s" "-t" "/Users/rick/repos/dclg-epcs/resources/public/csvw/basic/certificates.csv" "-u" "/Users/rick/repos/dclg-epcs/resources/public/csvw/basic/epc_domestic.json"])
+  (inner-main ["-d" "-t" "/Users/rick/repos/dclg-epcs/resources/public/csvw/basic/certificates.csv" "-u" "/Users/rick/repos/dclg-epcs/resources/public/csvw/basic/epc_domestic.json"])
+
+  (inner-main ["-t" "out/hmrc-rts-small-area.csv" "-u" "out/hmrc-rts-small-area.csv-metadata.json" "-m" "annotated" "-o" "cube.nt"])
+
   (time (inner-main ["-t" "out/hmrc-rts-small-area.csv" "-u" "out/hmrc-rts-small-area.csv-metadata.json" "-m" "annotated" "-o" "cube.nt"]))
 
   (require '[clj-async-profiler.core :as prof])
@@ -120,6 +151,5 @@
 ;; The resulting flamegraph will be stored in /tmp/clj-async-profiler/results/
 ;; You can view the SVG directly from there or start a local webserver:
 
-(prof/serve-files 8080) ; Serve on port 8080
-
+  (prof/serve-files 8080) ; Serve on port 8080
   )
