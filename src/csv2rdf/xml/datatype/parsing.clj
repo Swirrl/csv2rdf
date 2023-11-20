@@ -7,6 +7,7 @@
             [clojure.string :as string]
             [csv2rdf.uax35 :as uax35]
             [csv2rdf.util :as util])
+  (:refer-clojure :exclude [parse-long])
   (:import [java.net URI URISyntaxException]
            [java.util Base64]
            [javax.xml.datatype DatatypeFactory]
