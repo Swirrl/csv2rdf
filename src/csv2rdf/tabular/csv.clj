@@ -1,6 +1,5 @@
 (ns csv2rdf.tabular.csv
-  (:require [clojure.string :as str]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
             [csv2rdf.metadata.dialect :as dialect]
             [csv2rdf.tabular.csv.reader :as reader]
             [csv2rdf.metadata.table :as table]
@@ -128,7 +127,7 @@
                   source-row-number
                   column-number
                   (:name column)
-                  (last (str/split (.toString url) #"/"))
+                  (last (string/split (.toString url) #"/"))
                   error))))
 
     (assoc row :parsed-cells parsed-cells)))
