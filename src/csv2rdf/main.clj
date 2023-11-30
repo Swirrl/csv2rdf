@@ -70,8 +70,6 @@
     (println "Usage:")
     (println summary)))
 
-
-
 (defn inner-main [args]
   (let [options (parse-cli-options args)
         {:keys [mode tabular user-metadata output-file validate-data]} options
