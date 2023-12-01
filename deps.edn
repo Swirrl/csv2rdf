@@ -12,7 +12,7 @@
            {:extra-paths ["profiles/with-logging/resources"]
             :extra-deps
             {org.apache.logging.log4j/log4j-api {:mvn/version "2.22.0"}
-             org.apache.logging.log4j/log4j-core {:mvn/version "2.20.0"}
+             org.apache.logging.log4j/log4j-core {:mvn/version "2.22.0"}
              org.apache.logging.log4j/log4j-slf4j2-impl {:mvn/version "2.20.0"}}}
            :dev {
                  :extra-deps {com.clojure-goes-fast/clj-async-profiler {:mvn/version "1.1.1"}}
