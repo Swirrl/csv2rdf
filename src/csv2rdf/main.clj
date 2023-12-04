@@ -15,6 +15,7 @@
   [["-t" "--tabular TABULAR" "Location of the tabular file"]
    ["-u" "--user-metadata METADATA" "Location of the metadata file"]
    ["-o" "--output-file OUTPUT" "Output file to write to"]
+   ["-s" "--table-schema TABLE-SCHEMA" "A directory containing any referenced table schema files"]
    ["-m" "--mode MODE" "CSVW mode to run"
     :validate [#(contains? #{:minimal :standard :annotated} %)]
     :default :standard
@@ -51,9 +52,14 @@
                                                         :summary summary}))
       options)))
 
-(defn- write-output [writer {:keys [rdf-format tabular-source metadata-source mode]}]
+(defn- write-output [writer {:keys [rdf-format tabular-source metadata-source mode table-schema-source]}]
   (let [dest (gio/rdf-writer writer :format rdf-format :prefixes nil)]
-    (csvw/csv->rdf->destination tabular-source metadata-source dest {:mode mode})))
+    (csvw/csv->rdf->destination
+      tabular-source
+      metadata-source
+      table-schema-source
+      dest
+      {:mode mode})))
 
 (defmulti display-error
           "Displays an exception in the UI"
@@ -71,9 +77,10 @@
 
 (defn- inner-main [args]
   (let [options (parse-cli-options args)
-        {:keys [mode tabular user-metadata output-file]} options
+        {:keys [mode tabular user-metadata output-file table-schema]} options
         opts {:tabular-source (some-> tabular parse-source)
               :metadata-source (some-> user-metadata parse-source)
+              :table-schema-source (some-> table-schema ((fn [t] (URI. (str "file://" t)))))
               :rdf-format (or (some-> output-file formats/->rdf-format) RDFFormat/TURTLE)
               :mode mode}
         output-file (some-> output-file io/file)]

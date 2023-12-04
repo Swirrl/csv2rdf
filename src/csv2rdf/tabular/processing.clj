@@ -17,8 +17,8 @@
     (table/validate-compatible validating? user-table table-metadata)
     (table/compatibility-merge user-table table-metadata)))
 
-(defn- from-metadata-source [metadata-source]
-  (let [{:keys [tables] :as user-table-group} (meta/parse-table-group-from-source metadata-source)
+(defn- from-metadata-source [metadata-source table-schema-source]
+  (let [{:keys [tables] :as user-table-group} (meta/parse-table-group-from-source metadata-source table-schema-source)
         validating? false
         merged-tables (mapv (fn [table] (validate-merge-table validating? table)) tables)
         merged-table-group (assoc user-table-group :tables merged-tables)]
@@ -27,13 +27,13 @@
 (defn ^{:tabular-spec "6.1"} get-metadata
   "Retrieves and resolves the metadata given either a tabular data source or metadata source. If user metadata
   is provided, each referenced table definition is validated against the corresponding tabular data file."
-  [tabular-source metadata-source]
+  [tabular-source metadata-source table-schema-source]
   (cond
     (and (some? tabular-source) (some? metadata-source))
-    (from-metadata-source (meta/overriding-metadata tabular-source metadata-source))
+    (from-metadata-source (meta/overriding-metadata tabular-source metadata-source) table-schema-source)
 
     (some? metadata-source)
-    (from-metadata-source metadata-source)
+    (from-metadata-source metadata-source table-schema-source)
 
     (some? tabular-source)
     (from-tabular-source tabular-source)

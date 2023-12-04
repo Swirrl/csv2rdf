@@ -1,6 +1,6 @@
 (ns csv2rdf.metadata.table
   (:require [csv2rdf.metadata.validator :refer [array-of bool type-eq strict]]
-            [csv2rdf.metadata.types :refer [link-property note table-direction object-property id contextual-object]]
+            [csv2rdf.metadata.types :refer [link-property note table-direction table-schema-object-property id contextual-object]]
             [csv2rdf.metadata.inherited :refer [metadata-of]]
             [csv2rdf.metadata.schema :as schema]
             [csv2rdf.metadata.transformation :as transformation]
@@ -20,7 +20,7 @@
                 :notes           (array-of note)
                 :suppressOutput  bool
                 :tableDirection  table-direction
-                :tableSchema     (object-property schema/schema)
+                :tableSchema     (table-schema-object-property schema/schema)
                 :transformations (array-of transformation/transformation)
                 :id              id
                 :type            (type-eq "Table")}}))
@@ -45,7 +45,12 @@
   {:url table-uri
    :tableSchema schema})
 
-(defn ^{:metadata-spec "5.4.3"} validate-compatible [validating? {^URI uri1 :url schema1 :tableSchema :as table1} {^URI uri2 :url schema2 :tableSchema :as table2}]
+(defn ^{:metadata-spec "5.4.3"} validate-compatible
+  [validating?
+   {^URI uri1 :url
+    schema1 :tableSchema}
+   {^URI uri2 :url
+    schema2 :tableSchema}]
   (when-not (= (.normalize uri1) (.normalize uri2))
     (logging/log-warning (format "Table URIs %s and %s not equal after normalisation" uri1 uri2)))
   (schema/validate-compatible validating? schema1 schema2))

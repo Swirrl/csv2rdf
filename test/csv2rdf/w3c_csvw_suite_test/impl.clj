@@ -16,7 +16,7 @@
     (logging/with-logger logger
       (with-open [destination (repo/->connection repo)]
         (try
-          (csv->rdf->destination tabular-source metadata-source destination options)
+          (csv->rdf->destination tabular-source metadata-source nil destination options)
           {:errors [] :warnings @(:warnings logger) :result (into [] (gio/statements destination))}
           (catch Exception ex
             {:errors [(.getMessage ex)] :warnings @(:warnings logger) :result nil}))))))

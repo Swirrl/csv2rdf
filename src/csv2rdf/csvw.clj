@@ -57,10 +57,13 @@
   - `:annotated` a custom mode, not part of the standard, which is
     like `:minimal`, but it also includes RDF data from the CSVW metadata
     json file."
-  ([tabular-source metadata-source] (csv->rdf tabular-source metadata-source {}))
-  ([tabular-source metadata-source {:keys [mode] :as options}]
+  ([tabular-source metadata-source] (csv->rdf tabular-source metadata-source nil {}))
+  ([tabular-source
+    metadata-source
+    table-schema-source
+    {:keys [mode] :as options}]
    (let [mode (or mode :standard)
-         {:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source)
+         {:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source table-schema-source)
          table-group-dialect (:dialect metadata)
          output-tables (remove properties/suppress-output? tables)
          {:keys [statements] :as ctx} (table-group-context mode metadata)
@@ -73,8 +76,16 @@
   "Run csv->rdf for the given tabular/metadata sources and options then write the resulting
    statements to the given destination. destination must implement
    grafter-2.rdf.protocols/ITripleWriteable."
-  [tabular-source metadata-source destination options]
-  (gproto/add destination (csv->rdf tabular-source metadata-source options)))
+  [tabular-source
+   metadata-source
+   table-schema-source
+   destination
+   options]
+  (gproto/add destination (csv->rdf
+                            tabular-source
+                            metadata-source
+                            table-schema-source
+                            options)))
 
 (defn csv->rdf->file
   "Run csv->rdf for the given tabular/metadata source and options then write the resulting
