@@ -58,7 +58,7 @@
     like `:minimal`, but it also includes RDF data from the CSVW metadata
     json file."
   ([tabular-source metadata-source] (csv->rdf tabular-source metadata-source {}))
-  ([tabular-source metadata-source {:keys [mode base-uri] :as options}]
+  ([tabular-source metadata-source {:keys [mode base-uri]}]
    (let [mode (or mode :standard)
          {:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source base-uri)
          table-group-dialect (:dialect metadata)
