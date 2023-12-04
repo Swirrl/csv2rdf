@@ -120,19 +120,23 @@
             common-indexes (set/intersection (set (keys col1-non-virtual)) (set (keys col2-non-virtual)))]
         ;;Two schemas are compatible if they have the same number of non-virtual column descriptions,
         (when-not (= (count col1-non-virtual) (count col2-non-virtual))
-          (logging/log-warning (format "Schemas have different number of non-virtual columns for schemas: %s %s"
+          (logging/log-warning (format "Schemas have different number of non-virtual columns for schemas: %s %s, non virtual columns are: %s %s"
                                        (schema-file-name schema1)
-                                       (schema-file-name schema2))))
+                                       (schema-file-name schema2)
+                                       col1-non-virtual
+                                       col2-non-virtual)))
 
         ;;and the non-virtual column descriptions at the same index within each are compatible with each other
         (doseq [idx common-indexes]
           (let [col1 (get col1-non-virtual idx)
                 col2 (get col2-non-virtual idx)]
             (when-not (column/compatible? validating? col1 col2)
-              (logging/log-warning (format "Columns at index %d not compatible for schemas: %s %s"
+              (logging/log-warning (format "Columns at index %d not compatible for schemas: %s %s and columns: %s %s"
                                            idx
                                            (schema-file-name schema1)
-                                           (schema-file-name schema2))))))))))
+                                           (schema-file-name schema2)
+                                           col1
+                                           col2)))))))))
 
 (defn compatibility-merge [user-schema embedded-schema]
   (update user-schema :columns merge-columns (:columns embedded-schema)))
