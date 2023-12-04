@@ -61,7 +61,7 @@
   ([tabular-source
     metadata-source
     table-schema-source
-    {:keys [mode] :as options}]
+    {:keys [mode]}]
    (let [mode (or mode :standard)
          {:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source table-schema-source)
          table-group-dialect (:dialect metadata)
