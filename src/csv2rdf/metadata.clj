@@ -18,12 +18,9 @@
 
       :else (make-error context "Expected top-level of metadata document to describe a table or table group"))))
 
-(defn parse-table-group-from-source [source]
+(defn parse-table-group-from-source [source base-uri]
   (let [json (source/get-json source)]
-    (parse-metadata-json (source/->uri source) json)))
-
-(s/fdef parse-table-group-from-source
-  :args (s/cat :source (s/and ::source/uriable ::source/json-source)))
+    (parse-metadata-json (or base-uri (source/->uri source)) json)))
 
 (defn ^{:tabular-spec "5.1"} overriding-metadata
   "Construct an 'overriding metadata' document if the user provides both tabular and
