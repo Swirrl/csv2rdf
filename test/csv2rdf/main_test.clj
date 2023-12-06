@@ -16,7 +16,7 @@
       (t/is (= (sut/inner-main ["-t" tabular-file
                                 "-u" metadata-file
                                 "--validate-data"])
-               {:data-validation-errors? is-valid?}))
+               {:data-validation-errors? (not is-valid?)}))
       (t/is (= @warnings failures))
       (t/is (= @errors [])))))
 

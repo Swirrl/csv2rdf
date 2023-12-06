@@ -56,7 +56,7 @@
   Returns a map with the key `:data-validation-errors?` set to a
   boolean indicating whether any schema errors occurred."
   [{:keys [tabular-source metadata-source]}]
-  {:data-validation-errors? (rows-are-valid? tabular-source metadata-source)})
+  {:data-validation-errors? (not (rows-are-valid? tabular-source metadata-source))})
 
 (defn csv->rdf
   "Runs the CSVW process for the given tabular or metadata data sources
