@@ -31,7 +31,7 @@
             :main-opts ["-m" "kaocha.runner"]}
 
            :build {:deps {io.github.seancorfield/build-clj {:git/tag "v0.6.3" :git/sha "9b8e09b"}
-                          io.github.juxt/pack.alpha {:git/sha "802b3d6347376db51093d122eb4b8cf8a7bbd7cf"}
+                          io.github.juxt/pack.alpha {:git/sha "9ae4f8ff34427d0549fd5c58c0353e54523b3dfa"}
                           com.google.cloud.tools/jib-core {:mvn/version "0.25.0"}}
                    
                    :ns-default build}
