@@ -53,7 +53,7 @@ Docker images are published to the public repository `europe-west2-docker.pkg.de
 These can be run by specifying the image version to run, and mapping volumes into the container to make local files available within
 the container e.g.
 
-    docker run --rm -v .:/data europe-west2-docker.pkg.dev/swirrl-devops-infrastructure-1/public/csv2rdf:v0.7 -t /data/input.csv -o /data/output.ttl
+    docker run --rm -v .:/data europe-west2-docker.pkg.dev/swirrl-devops-infrastructure-1/public/csv2rdf:v0.7.1 -t /data/input.csv -o /data/output.ttl
 
 Note that file paths should be specified relative to the container, not the local system.
 
