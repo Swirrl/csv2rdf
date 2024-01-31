@@ -1,9 +1,9 @@
 (ns csv2rdf.metadata.types
   (:require [csv2rdf.metadata.validator :refer [make-warning default-if-invalid variant invalid array-of kvps optional-key
-                                                required-key any map-of one-of string invalid? warn-invalid
-                                                chain try-parse-with where make-error uri ignore-invalid
+                                                required-key map-of one-of string invalid? warn-invalid
+                                                chain where make-error uri ignore-invalid
                                                 type-error-message with-error-handler]]
-            [csv2rdf.metadata.context :refer [resolve-uri append-path language-code-or-default
+            [csv2rdf.metadata.context :refer [append-path language-code-or-default
                                               base-key language-key id-key update-from-local-context with-document-uri]]
             [csv2rdf.json-ld :refer [expand-uri-string]]
             [csv2rdf.json :refer [array? object?] :as mjson]
@@ -60,16 +60,19 @@
 
 (def default-uri (URI. ""))
 
-(defn ^{:metadata-spec "6.3"} normalise-link-property
-  "Normalises a link property URI by resolving it against the current base URI."
-  [context uri]
-  (resolve-uri context uri))
-
 (defn ^{:metadata-spec "5.1.2"} link-property
   ([context x] (link-property context x warn-invalid))
   ([context x error-fn]
-    (let [v (chain (default-if-invalid (with-error-handler (variant {:string uri}) error-fn) default-uri) normalise-link-property)]
+   (let [v (chain (default-if-invalid (with-error-handler (variant {:string uri}) error-fn) default-uri)
+                  #(util/resolve-uri (:base-uri %1) %2))]
       (v context x))))
+
+(defn ^{:metadata-spec "5.1.2"} link-property-from-table-schema-source
+  ([context x] (link-property-from-table-schema-source context x warn-invalid))
+  ([context x error-fn]
+   (let [v (chain (default-if-invalid (with-error-handler (variant {:string uri}) error-fn) default-uri)
+                  #(util/resolve-uri (or (:table-schema-source %1) (:base-uri %1)) %2))]
+     (v context x))))
 
 (defn id
   "An id is a link property whose value cannot begin with _:"
@@ -123,7 +126,7 @@
 
 (defn ^{:metadata-spec "5.8.2"} expand-description-object-type-uri
   "If type is the name of a description object defined in the metadata specification (e.g. Table, Schema),
-   returns the corresponding id URI for the type. Otherwise returns nil."
+   returns the corresponding id URI for the type. Otherwise, returns nil."
   [type]
   (if (contains? description-object-types type)
     (util/set-fragment csvw type)))
@@ -164,7 +167,7 @@
                     (URI. expanded)
                     (catch URISyntaxException ex
                       (make-error context (format "Invalid URI '%s'" s))))]
-          (resolve-uri context uri))))
+          (util/resolve-uri (:base-uri context) uri))))
     (make-error context (type-error-message #{:string} (mjson/get-json-type x)))))
 
 (defn type-one-of [allowed-types]
@@ -395,5 +398,15 @@
   "Object which may be specified in line in the metadata document or referenced through a URI"
   [object-validator]
   (variant {:string (chain link-property (linked-object-property object-validator))
+            :object object-validator
+            :default {}}))
+
+(defn ^{:metadata-spec "5.1.5"} table-schema-object-property
+  "Object which may be:
+   1. specified in line in the metadata document
+   2. referenced through a URI
+   3. looked up from a file in the table-schema-source directory"
+  [object-validator]
+  (variant {:string (chain link-property-from-table-schema-source (linked-object-property object-validator))
             :object object-validator
             :default {}}))

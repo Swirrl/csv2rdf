@@ -7,8 +7,8 @@
             [csv2rdf.source :as source]
             [clojure.spec.alpha :as s]))
 
-(defn parse-metadata-json [base-uri json]
-  (let [context (make-context base-uri)]
+(defn parse-metadata-json [base-uri json table-schema-source]
+  (let [context (make-context base-uri table-schema-source)]
     (cond
       (table-group/looks-like-table-group-json? json)
       (properties/set-table-group-parent-references (table-group/parse-table-group-json context json))
@@ -18,9 +18,9 @@
 
       :else (make-error context "Expected top-level of metadata document to describe a table or table group"))))
 
-(defn parse-table-group-from-source [source]
+(defn parse-table-group-from-source [source table-schema-source]
   (let [json (source/get-json source)]
-    (parse-metadata-json (source/->uri source) json)))
+    (parse-metadata-json (source/->uri source) json table-schema-source)))
 
 (s/fdef parse-table-group-from-source
   :args (s/cat :source (s/and ::source/uriable ::source/json-source)))

@@ -15,7 +15,7 @@
                   "tableSchema" {"columns" [{"name" "col1"}
                                             {"name" "col2"}]}
                   "tables" [{"url" "http://example.com/table.csv"}]}            
-            parsed (parse-metadata-json (URI. "http://example.com/metadata.json") json)
+            parsed (parse-metadata-json (URI. "http://example.com/metadata.json") json nil)
             table (get-in parsed [:tables 0])
             dialect (properties/dialect table)
             schema (properties/table-schema table)]
@@ -28,7 +28,7 @@
                   "dialect" {"quoteChar" "{"}
                   "tableSchema" {"columns" [{"name" "col1"}
                                             {"name" "col2"}]}}
-            parsed (parse-metadata-json (URI. "http://example.com/metadata.json") json)
+            parsed (parse-metadata-json (URI. "http://example.com/metadata.json") json nil)
             table (get-in parsed [:tables 0])
             dialect (properties/dialect table)
             schema (properties/table-schema table)]

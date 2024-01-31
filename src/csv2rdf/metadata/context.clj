@@ -9,8 +9,14 @@
 (defn document-uri ^URI [context]
   (:document-uri context))
 
-(defn make-context [metadata-uri]
-  {:base-uri metadata-uri :document-uri metadata-uri :path [] :language nil})
+(defn make-context
+  ([metadata-uri] (make-context metadata-uri nil))
+  ([metadata-uri table-schema-source]
+   {:base-uri metadata-uri
+    :document-uri metadata-uri
+    :path []
+    :language nil
+    :table-schema-source table-schema-source}))
 
 (defn language-code-or-default [{:keys [language] :as context}]
   (or language "und"))
@@ -28,9 +34,6 @@
 
 (defn append-path [context path-element]
   (update context :path conj path-element))
-
-(defn resolve-uri [{:keys [^URI base-uri] :as context} ^URI uri]
-  (util/resolve-uri base-uri uri))
 
 (defn with-document-uri [context ^URI new-document-uri]
   (assoc context :document-uri new-document-uri))

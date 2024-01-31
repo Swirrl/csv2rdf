@@ -145,7 +145,7 @@
     (if-let [metadata-doc (resolve-associated-metadata uri metadata-link)]
       (do
         (.close stream)
-        (meta/parse-metadata-json uri metadata-doc))
+        (meta/parse-metadata-json uri metadata-doc nil))
       (let [dialect (dialect/get-default-dialect headers)
             options (dialect/dialect->options dialect)
             rows (reader/make-row-seq stream options)]
