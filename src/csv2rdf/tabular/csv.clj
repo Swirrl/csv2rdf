@@ -29,7 +29,7 @@
                                (column/from-titles idx titles default-lang))
                              titles)]
     {:comments (mapv :comment comment-rows)
-     :columns columns}))
+     :columns  columns}))
 
 (defn ^{:tabular-spec "8.10.3"} validate-data-rows
   "Validates the data rows in the tabular file and extracts any embedded comments. The row number of any rows
@@ -102,9 +102,13 @@
                                 cell))
                             parsed-cells)))
 
-(defn parse-row-cells [{:keys [cells] :as row} table {:keys [skipColumns] :as options}]
+(defn parse-row-cells
+  [{:keys [cells source-row-number] :as row}
+   {:keys [url] :as table}
+   {:keys [skipColumns]}]
   (let [columns (table/columns table)
-        cell-values (concat (drop skipColumns cells) (repeat "")) ;;extend cells to cover any virtual columns
+        ;;extend cells to cover any virtual columns
+        cell-values (concat (drop skipColumns cells) (repeat ""))
         cell-column-pairs (map vector cell-values columns)
         parsed-cells (map-indexed (fn [col-idx [cell column]]
                                     (let [result (cell/parse-cell cell column)
@@ -115,8 +119,16 @@
                                         :column column)))
                                   cell-column-pairs)]
     ;;log cell errors
-    (doseq [err (mapcat cell/errors parsed-cells)]
-      (logging/log-warning err))
+    (doseq [{:keys [errors column-number column]} parsed-cells
+            :when (seq errors)]
+      (doseq [error errors]
+        (logging/log-warning
+          (format "Row #%s col #%s (column '%s') in file: %s has error: %s"
+                  source-row-number
+                  column-number
+                  (:name column)
+                  (last (string/split (.toString url) #"/"))
+                  error))))
 
     (assoc row :parsed-cells parsed-cells)))
 
@@ -130,14 +142,14 @@
     (assoc column-value-bindings :_row number :_sourceRow source-row-number)))
 
 (defn get-cell-template-bindings [{:keys [column-number source-column-number column] :as cell}]
-  {:_name (util/percent-decode (properties/column-name column))
-   :_column column-number
+  {:_name         (util/percent-decode (properties/column-name column))
+   :_column       column-number
    :_sourceColumn source-column-number})
 
 (defn get-cell-urls [bindings table {:keys [column] :as cell}]
-  (let [property-urls {:aboutUrl (some-> (properties/about-url column) (template-property/resolve-uri-template-property bindings table))
+  (let [property-urls {:aboutUrl    (some-> (properties/about-url column) (template-property/resolve-uri-template-property bindings table))
                        :propertyUrl (some-> (properties/property-url column) (template-property/resolve-uri-template-property bindings table))
-                       :valueUrl (some-> (properties/value-url column) (template-property/resolve-value-uri-template-property cell column bindings table))}]
+                       :valueUrl    (some-> (properties/value-url column) (template-property/resolve-value-uri-template-property cell column bindings table))}]
     (util/filter-values some? property-urls)))
 
 (defn annotate-row [{:keys [number source-row-number parsed-cells] :as data-row} table title-column-indexes]
@@ -149,10 +161,10 @@
                         property-urls (get-cell-urls bindings table cell)]
                     (merge cell property-urls)))
                 parsed-cells)]
-    {:number number
+    {:number        number
      :source-number source-row-number
      :cells         (vec cells)
-     :titles (get-row-titles title-column-indexes parsed-cells)}))
+     :titles        (get-row-titles title-column-indexes parsed-cells)}))
 
 (defn skip-to-data-rows [rows {:keys [skipRows num-header-rows] :as options}]
   (let [row-offset (+ skipRows num-header-rows)]

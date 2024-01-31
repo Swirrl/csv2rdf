@@ -20,6 +20,44 @@
         annotated-rows (csv/annotated-rows url table dialect)]
     (table-statements context table annotated-rows)))
 
+(defn- rows-are-valid?
+  "Validates the CSVW schema for the given tabular file, metadata and options.
+
+  `tabular-source` and `metadata-source` can be any of the following
+  types:
+
+     - java.io.File
+     - java.lang.String
+     - java.net.URI
+     - java.nio.file.Path (including nio Paths that are inside zip filesystems)
+
+  If metadata-source is non-nil then processing will start from the
+  asscociated metadata document, otherwise it will start from
+  tabular-source.
+
+  Returns true if validation errors were detected"
+  [tabular-source metadata-source]
+  (let [{:keys [tables] :as metadata} (processing/get-metadata tabular-source metadata-source)
+        table-group-dialect (:dialect metadata)
+        output-tables (remove properties/suppress-output? tables)
+        results (util/liberal-mapcat (fn [{:keys [url dialect] :as table}]
+                                       (let [dialect (or dialect table-group-dialect)]
+                                         (csv/annotated-rows url table dialect)))
+                                     output-tables)]
+    (->> results
+         (mapcat :cells)
+         (mapcat :errors)
+         empty?)))
+
+(defn only-validate-schema
+  "Only validate the data against the schemas in the metadata file, and
+  report errors.  Does not convert into RDF.
+
+  Returns a map with the key `:data-validation-errors?` set to a
+  boolean indicating whether any schema errors occurred."
+  [{:keys [tabular-source metadata-source]}]
+  {:data-validation-errors? (not (rows-are-valid? tabular-source metadata-source))})
+
 (defn csv->rdf
   "Runs the CSVW process for the given tabular or metadata data sources
   and options.

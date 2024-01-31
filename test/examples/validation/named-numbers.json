@@ -1,0 +1,17 @@
+{
+ "@context": "http://www.w3.org/ns/csvw",
+ "tableSchema": {
+                 "columns": [
+                             {
+                              "name": "name",
+                              "datatype": "string",
+                              "required": true
+                              },
+                             {
+                              "name": "number",
+                              "required": true,
+                              "datatype": "int"
+                              }
+                             ]
+                 }
+ }

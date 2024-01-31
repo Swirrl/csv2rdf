@@ -1,4 +1,5 @@
 (ns csv2rdf.xml.datatype.parsing-test
+  (:refer-clojure :exclude [parse-long])
   (:require [clojure.test :refer :all]
             [csv2rdf.xml.datatype.parsing :refer :all]
             [csv2rdf.uax35 :as uax35]))

@@ -110,20 +110,33 @@
 (defn ^{:metadata-spec "5.5.1"} validate-compatible [validating? {columns1 :columns :as schema1} {columns2 :columns :as schema2}]
   ;;NOTE: it is legal for the metadata table to only include the URL of the tabular file and not include a schema
   ;;in this case, consider the schemas trivially compatible
-  (when (and (some? schema1) (some? schema2))
-    (let [col1-non-virtual (column/indexed-non-virtual-columns columns1)
-          col2-non-virtual (column/indexed-non-virtual-columns columns2)
-          common-indexes (set/intersection (set (keys col1-non-virtual)) (set (keys col2-non-virtual)))]
-      ;;Two schemas are compatible if they have the same number of non-virtual column descriptions,
-      (when-not (= (count col1-non-virtual) (count col2-non-virtual))
-        (logging/log-warning "Schemas have different number of non-virtual columns"))
+  (letfn [(schema-file-name [schema]
+            (when-let [parent (:csv2rdf.metadata.properties/parent schema)]
+              (util/uri-file-name (:url (deref parent)))))]
 
-      ;;and the non-virtual column descriptions at the same index within each are compatible with each other
-      (doseq [idx common-indexes]
-        (let [col1 (get col1-non-virtual idx)
-              col2 (get col2-non-virtual idx)]
-          (when-not (column/compatible? validating? col1 col2)
-            (logging/log-warning (format "Columns at index %d not compatible" idx))))))))
+    (when (and (some? schema1) (some? schema2))
+      (let [col1-non-virtual (column/indexed-non-virtual-columns columns1)
+            col2-non-virtual (column/indexed-non-virtual-columns columns2)
+            common-indexes (set/intersection (set (keys col1-non-virtual)) (set (keys col2-non-virtual)))]
+        ;;Two schemas are compatible if they have the same number of non-virtual column descriptions,
+        (when-not (= (count col1-non-virtual) (count col2-non-virtual))
+          (logging/log-warning (format "Schemas have different number of non-virtual columns for schemas: %s %s, non virtual columns are: %s %s"
+                                       (schema-file-name schema1)
+                                       (schema-file-name schema2)
+                                       col1-non-virtual
+                                       col2-non-virtual)))
+
+        ;;and the non-virtual column descriptions at the same index within each are compatible with each other
+        (doseq [idx common-indexes]
+          (let [col1 (get col1-non-virtual idx)
+                col2 (get col2-non-virtual idx)]
+            (when-not (column/compatible? validating? col1 col2)
+              (logging/log-warning (format "Columns at index %d not compatible for schemas: %s %s and columns: %s %s"
+                                           idx
+                                           (schema-file-name schema1)
+                                           (schema-file-name schema2)
+                                           col1
+                                           col2)))))))))
 
 (defn compatibility-merge [user-schema embedded-schema]
   (update user-schema :columns merge-columns (:columns embedded-schema)))

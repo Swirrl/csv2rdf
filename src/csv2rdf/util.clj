@@ -120,6 +120,10 @@
 
     :else (throw (IllegalArgumentException. "Resolving URI must be either string or URI instance"))))
 
+
+(defn uri-file-name [uri]
+  (last (string/split (.toString uri) #"/")))
+
 ;;NOTE: '-' and ' ' are not mentioned in the spec? Some test cases expected '-' to be encoded
 (def ^{:rfc3986 "2.2"} ^String percent-unreserved-chars "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.~")
 

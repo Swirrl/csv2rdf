@@ -29,8 +29,11 @@
   (warn [_this _msg])
   (error [_this _msg]))
 
-(defn memory-logger []
-  (->MemoryLogger (atom []) (atom [])))
+(defn memory-logger
+  ([]
+   (memory-logger (atom []) (atom [])))
+  ([warnings errors]
+   (->MemoryLogger warnings errors)))
 
 (def ^:dynamic *logger* (->ForwardingLogger))
 
