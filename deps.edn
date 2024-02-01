@@ -6,7 +6,7 @@
         org.martinklepsch/clj-http-lite    {:mvn/version "0.4.3"}
         org.clojure/tools.cli              {:mvn/version "1.0.219"}
         org.clojure/tools.logging          {:mvn/version "1.2.4"}
-        org.slf4j/slf4j-api                {:mvn/version "2.0.7"}}
+        org.slf4j/slf4j-api                {:mvn/version "2.0.11"}}
  :aliases {:cli {:main-opts ["-m" "csv2rdf.main"]}
            :with-logging
            {:extra-paths ["profiles/with-logging/resources"]
