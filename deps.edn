@@ -26,7 +26,7 @@
              io.github.swirrl/grafter.repository {:mvn/version "3.0.0"}
              lambdaisland/kaocha-junit-xml {:mvn/version "1.17.101"}
              org.clojure/test.check {:mvn/version "1.1.1"}
-             org.clojure/data.csv {:mvn/version "1.0.1"}}
+             org.clojure/data.csv {:mvn/version "1.1.0"}}
             :extra-paths ["test" "test/resources"]
             :main-opts ["-m" "kaocha.runner"]}
 
@@ -42,6 +42,6 @@
                                "-Dcom.sun.management.jmxremote.port=3007"]
                     :main-opts ["-m" "csv2rdf.main"]}
 
-           :gen-test-suite {:extra-deps {org.clojure/data.csv {:mvn/version "1.0.1"}}
+           :gen-test-suite {:extra-deps {org.clojure/data.csv {:mvn/version "1.1.0"}}
                             :extra-paths ["test" "test/resources"]
                             :exec-fn csv2rdf.w3c-csvw-suite-test.gen/write-tests-file}}}
