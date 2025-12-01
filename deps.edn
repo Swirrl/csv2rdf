@@ -25,7 +25,7 @@
             {lambdaisland/kaocha {:mvn/version "1.91.1392"}
              io.github.swirrl/grafter.repository {:mvn/version "3.0.0"}
              lambdaisland/kaocha-junit-xml {:mvn/version "1.17.101"}
-             org.clojure/test.check {:mvn/version "1.1.1"}
+             org.clojure/test.check {:mvn/version "1.1.2"}
              org.clojure/data.csv {:mvn/version "1.1.0"}}
             :extra-paths ["test" "test/resources"]
             :main-opts ["-m" "kaocha.runner"]}
